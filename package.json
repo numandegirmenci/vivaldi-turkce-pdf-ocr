@@ -1,0 +1,7 @@
+{
+  "name": "vivaldi-turkce-pdf-ocr",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vivaldi için deneysel Türkçe PDF OCR görüntüleyici",
+  "dependencies": {"pdfjs-dist": "4.10.38", "tesseract.js": "5.1.1"}
+}

@@ -1,0 +1,10 @@
+# Gizlilik (Beta)
+
+- OCR işlemi ve PDF render işlemi, kullanıcının tarayıcısında yerel olarak gerçekleştirilmek üzere tasarlanmıştır.
+- PDF içeriği, uygulamamız tarafından bir üçüncü taraf OCR servisine gönderilmez; hesap veya analiz altyapımız yoktur.
+- Kullanıcı bir PDF bağlantısı açtığında, eklenti **PDF kaynağından** belgeyi yeniden almak için ağ isteği gönderir. Bu, belgeyi sunan siteyle normal ağ iletişimidir; oturum çerezleri o siteye iletilebilir.
+- Eklenti geniş `http://*/*` ve `https://*/*` izinleri ister; amacı farklı web sitelerindeki PDF bağlantılarını tanımak ve açmaktır. Bu izinler potansiyel olarak hassastır, çünkü tarayıcıda birçok siteye erişim sağlar.
+- Eklenti bir kullanıcı hesabı istemez ve kendi sunucusuna PDF içeriği, izleme veya telemetri göndermez.
+- Kurulum esnasında npm paketleri ve Türkçe OCR modeli üçüncü taraf kaynaklardan indirilir; bu işlem PDF içeriklerinden bağımsızdır.
+- Yerel depolamada (`chrome.storage.local`) PDF bağlantılarının otomatik açılıp açılmayacağını belirleyen ayar saklanır.
+- Henüz bağımsız bir güvenlik denetimi yapılmamıştır; bu açıklama yalnızca kaynak kodunun mevcut davranışını özetler. Kurumsal ve hassas belgelerde kuruluş politikalarına uyulmalıdır.

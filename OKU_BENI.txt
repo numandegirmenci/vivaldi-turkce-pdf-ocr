@@ -1,0 +1,59 @@
+VIVALDI TÜRKÇE PDF OCR - DENEYSEL SÜRÜM 0.1
+===============================================
+
+AMAÇ
+Vivaldi'de bir PDF bağlantısını açınca alternatif bir PDF görüntüleyiciye geçmek,
+taranmış sayfalara Türkçe OCR uygulamak ve metin seçimi / Ctrl+C sunmak.
+
+KURULUM (Windows, yönetici izni gerektirmeyen yöntem)
+1) Bu ZIP dosyasını sabit bir klasöre çıkar. ZIP içinden doğrudan çalıştırma.
+2) Node.js ZIP sürümü daha önce Desktop\\1 konumuna çıkarılmışsa yerinde kalsın.
+3) HAZIRLA.cmd dosyasına çift tıkla.
+4) İşlem "BAŞARILI" diye biterse Vivaldi'de vivaldi://extensions adresine git.
+5) Geliştirici modunu aç > Paketlenmemiş öğe yükle > yalnızca Eklenti klasörünü seç.
+6) Önce gizli bilgi içermeyen taranmış bir PDF ile dene.
+7) Yerel PDF için eklenti simgesi > PDF dosyası seç.
+
+KULLANIM
+- PDF bağlantısı Vivaldi'de açıldığında eklenti onu otomatik olarak kendi
+  görüntüleyicisine yönlendirmeyi dener. PDF'deki metin azsa Türkçe OCR uygulanır.
+- Metni PDF görüntüsünün üstünde seçip Ctrl+C ile kopyala.
+- Alternatif olarak sağdaki "Çıkarılan metin" panelinden kopyala.
+- Mevcut PDF'nin yalnızca başlığında metin varsa bile OCR çalışması hedeflenir.
+- Otomatik yönlendirmeyi eklenti simgesinden kapatabilirsin.
+- OCR hatalıysa "Yeniden OCR" düğmesi tüm sayfaları zorla OCR ile yeniden işler.
+
+ÖNEMLİ SINIRLAR
+- Bu paket yerel ortamda gerçek Vivaldi PDF'leriyle test edilmemiş bir PROTOTİPTİR.
+- Vivaldi'nin yerleşik PDF görüntüleyicisine yazı katmanı EKLEMEZ. PDF'yi eklenti
+  sekmesinde yeniden açar. Chrome'un yerleşik PDF görüntüleyicisine doğrudan
+  metin enjekte edilemez.
+- Giriş gerektiren, POST ile üretilen veya bir kez indirilebilen PDF URL'leri
+  eklenti tarafından yeniden alınamayabilir. Böyle bir durumda indirip dosya seç.
+- Bazı içerik türleri Vivaldi tarafından engellenebilir veya yönlendirme
+  her PDF'yi yakalamayabilir. Bunu garanti eden genel amaçlı API yoktur.
+- Şirket bilgisayarında eklenti kurma politikası varsa kurumsal onay gerekir.
+- OCR yerelde yapılır, dosyalar bir OCR sunucusuna yüklenmez. Build sırasında
+  NPM paketleri ve Türkçe model indirilir. Eklenti, PDF URL'sini elde etmek için
+  dosyanın bulunduğu siteye doğrudan GET isteği gönderir.
+- PDF sayfa üzerindeki metin seçilebilir; tablolar, çok sütunlu metinler,
+  düşük kaliteli taramalar ve Türkçe özel isimler hatalı okunabilir.
+- Bu paket resmi yazı hazırlamak veya hassas kurumsal belgelerde doğrulama
+  gereğini ortadan kaldırmak için yeterince test edilmemiştir.
+
+GİZLİLİK VE İZİNLER
+- Eklenti, PDF bağlantılarını algılayabilmek ve URL'den yeniden indirebilmek için
+  tüm HTTP/HTTPS sitelerine erişim ister. Diğer sayfalara hiçbir veri göndermez.
+- Google/şirket içi kullanıcı girişleri gibi özel PDF'ler için kullanmadan önce
+  gerekiyorsa IT'den izin al.
+- Kaynak kodu Eklenti/background.js ve Eklenti/viewer.js altında okunabilir.
+
+KAYNAK KÜTÜPHANELER
+- Mozilla pdf.js: https://github.com/mozilla/pdf.js
+- Tesseract.js: https://github.com/naptha/tesseract.js
+- Türkçe tessdata_best modeli: https://github.com/tesseract-ocr/tessdata_best
+- Paketleri npm.cmd install ile yerelde yükler, çalışırken harici OCR servis
+  kullanmaz.
+
+HERHANGİ BİR HATA OLURSA
+HAZIRLA.cmd çıktısını veya Vivaldi eklenti hata ekranını paylaş.

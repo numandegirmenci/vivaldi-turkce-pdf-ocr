@@ -1,0 +1,10 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Türkçe PDF OCR</title><link rel="stylesheet" href="viewer.css"></head>
+<body><header><div class="brand"><strong>PDF • Türkçe OCR</strong><small>Vivaldi için yerel metin seçme</small></div>
+<div class="actions"><button id="choose">📂 PDF seç</button><button id="copyAll" disabled>📋 Tüm metni kopyala</button><button id="reocr" disabled>↻ Yeniden OCR</button><a id="original" target="_blank" rel="noreferrer" hidden>Orijinal PDF</a></div></header>
+<div class="status-bar"><span id="status">PDF seçebilir veya bağlantıdan açabilirsin.</span><span id="counter"></span></div>
+<main><section id="pages"><div class="empty">PDF açıldığında sayfalar burada görüntülenir. Taranmış sayfalara Türkçe OCR otomatik uygulanır.<br><br><b>Metni doğrudan sayfa üzerinde fareyle seçip Ctrl+C yapabilirsin.</b></div></section>
+<aside><div class="side-head"><strong>Çıkarılan metin</strong><button id="copyOne">Kopyala</button></div><textarea id="text" spellcheck="false" placeholder="PDF metni burada birikir; buradan da Ctrl+A / Ctrl+C kullanabilirsin."></textarea><p class="hint">Türkçe OCR: Tesseract (best modeli), yerel çalışır. Bazı belgelerde metin kontrolü gerekir. Tabloların düzeni bozulabilir.</p></aside></main>
+<input id="file" type="file" accept="application/pdf,.pdf" hidden>
+<script src="vendor/tesseract.min.js"></script><script type="module" src="viewer.js"></script>
+</body></html>
