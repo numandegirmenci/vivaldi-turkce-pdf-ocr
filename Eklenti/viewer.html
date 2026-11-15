@@ -1,10 +1,29 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Türkçe PDF OCR</title><link rel="stylesheet" href="viewer.css"></head>
-<body><header><div class="brand"><strong>PDF • Türkçe OCR</strong><small>Vivaldi için yerel metin seçme</small></div>
-<div class="actions"><button id="choose">📂 PDF seç</button><button id="copyAll" disabled>📋 Tüm metni kopyala</button><button id="reocr" disabled>↻ Yeniden OCR</button><a id="original" target="_blank" rel="noreferrer" hidden>Orijinal PDF</a></div></header>
-<div class="status-bar"><span id="status">PDF seçebilir veya bağlantıdan açabilirsin.</span><span id="counter"></span></div>
-<main><section id="pages"><div class="empty">PDF açıldığında sayfalar burada görüntülenir. Taranmış sayfalara Türkçe OCR otomatik uygulanır.<br><br><b>Metni doğrudan sayfa üzerinde fareyle seçip Ctrl+C yapabilirsin.</b></div></section>
-<aside><div class="side-head"><strong>Çıkarılan metin</strong><button id="copyOne">Kopyala</button></div><textarea id="text" spellcheck="false" placeholder="PDF metni burada birikir; buradan da Ctrl+A / Ctrl+C kullanabilirsin."></textarea><p class="hint">Türkçe OCR: Tesseract (best modeli), yerel çalışır. Bazı belgelerde metin kontrolü gerekir. Tabloların düzeni bozulabilir.</p></aside></main>
-<input id="file" type="file" accept="application/pdf,.pdf" hidden>
-<script src="vendor/tesseract.min.js"></script><script type="module" src="viewer.js"></script>
-</body></html>
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Türkçe PDF OCR</title><link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><strong>PDF • Türkçe OCR</strong><small>Önce PDF metnini korur, taranan sayfalara OCR uygular.</small></div>
+    <div class="actions">
+      <button id="choose">📂 PDF seç</button>
+      <button id="copyAll" disabled>📋 Tüm metni kopyala</button>
+      <button id="native" disabled title="PDF içinde yazı varsa korur; sadece metinsiz sayfalara OCR uygular">↶ PDF metnini kullan</button>
+      <button id="reocr" disabled title="Mevcut OCR metnini yanlış okuyabileceğinden sadece gerekiyorsa kullan">↻ Zorla OCR</button>
+      <a id="original" target="_blank" rel="noreferrer" hidden>Orijinal PDF</a>
+    </div>
+  </header>
+  <div class="status-bar"><span id="status">PDF seçebilir veya bağlantıdan açabilirsin.</span><span id="counter"></span></div>
+  <main>
+    <section class="page-panel">
+      <div class="page-toolbar"><span>Görüntüleme</span><div class="zoom-controls"><button id="zoomOut" disabled title="Küçült">−</button><button id="fit" disabled title="Tüm sayfayı ekrana sığdır">Tam sayfa</button><button id="fitWidth" disabled title="Sayfayı genişliğe sığdır">Genişlik</button><button id="zoomIn" disabled title="Büyüt">+</button><span id="zoomLabel">Tam sayfa</span></div></div>
+      <div id="pages"><div class="empty">PDF açıldığında tüm sayfa ekrana sığdırılır. PDF'nin kendi seçilebilir metni varsa bozulmadan korunur.<br><br><b>Sayfada yazıyı seçip Ctrl+C ile kopyalayabilirsin.</b></div></div>
+    </section>
+    <aside><div class="side-head"><strong>Çıkarılan metin</strong><button id="copyOne">Kopyala</button></div><textarea id="text" spellcheck="false" placeholder="PDF metni burada görünür. Buradan Ctrl+A / Ctrl+C yapabilirsin."></textarea><p class="hint">Varsayılan: Hazır PDF/OCR katmanını kullan, yalnızca yazısız sayfalara OCR yap. <b>Zorla OCR</b> mevcut metnin doğruluğunu azaltabilir. Tablo içeren karma sayfalarda "Bu sayfaya OCR" ile yalnız o sayfayı yeniden okuyabilirsin; OCR doğru olmayabilir.</p></aside>
+  </main>
+  <input id="file" type="file" accept="application/pdf,.pdf" hidden>
+  <script src="vendor/tesseract.min.js"></script><script type="module" src="viewer.js"></script>
+</body>
+</html>

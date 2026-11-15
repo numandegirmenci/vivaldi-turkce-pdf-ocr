@@ -1,0 +1,14 @@
+0.3.0 - Kapsamlı kaynak denetiminden sonraki yama
+------------------------------------------------
+- Tam sayfa ekrana sığdırma (genişlik + yükseklik) ve genişlik modu
+- OCR sözcüğü DOM ölçüm / yakınlaştırma koordinatı düzeltmesi
+- Kısa ama geçerli yerleşik PDF metnini koruma
+- PDF sayfası bazında OCR uygulama ve metne geri dönebilme
+- OCR worker init / recognize çağrılarını sıralama
+- PDF render boyut/bellek sınırları
+- Orijinal PDF bağlantısında yönlendirme döngüsünü önleme
+- Geç kalan ağ yüklemelerinin yeni PDF'yi geçersiz kılmasını önleme
+- OCR hatalarının belge toplamına yansıması
+- 11 birim testi ve kontrollü tarayıcı arayüz simülasyonu
+
+NOT: Hızlı ZIP sadece değişen kaynakları taşır, Eklenti/vendor korunmalıdır.

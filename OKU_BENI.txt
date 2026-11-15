@@ -1,59 +1,93 @@
-VIVALDI TÜRKÇE PDF OCR - DENEYSEL SÜRÜM 0.1
-===============================================
+VIVALDI TÜRKÇE PDF OCR - DENETLENMİŞ 0.3.0
+=========================================
 
-AMAÇ
-Vivaldi'de bir PDF bağlantısını açınca alternatif bir PDF görüntüleyiciye geçmek,
-taranmış sayfalara Türkçe OCR uygulamak ve metin seçimi / Ctrl+C sunmak.
+BU SÜRÜM KİMİN İÇİN?
+Eski 0.2.0 sürümüne hızlı güncelleme yapmış kullanıcılar içindir.
+0.3.0 sürümü; Türkçe tablo metnini koruma, eksiksiz sayfa gösterme,
+OCR seçiminin koordinatları, gereksiz OCR ve çok sayfalı belge sorunlarını
+azaltmak için hazırlanmıştır.
 
-KURULUM (Windows, yönetici izni gerektirmeyen yöntem)
-1) Bu ZIP dosyasını sabit bir klasöre çıkar. ZIP içinden doğrudan çalıştırma.
-2) Node.js ZIP sürümü daha önce Desktop\\1 konumuna çıkarılmışsa yerinde kalsın.
-3) HAZIRLA.cmd dosyasına çift tıkla.
-4) İşlem "BAŞARILI" diye biterse Vivaldi'de vivaldi://extensions adresine git.
-5) Geliştirici modunu aç > Paketlenmemiş öğe yükle > yalnızca Eklenti klasörünü seç.
-6) Önce gizli bilgi içermeyen taranmış bir PDF ile dene.
-7) Yerel PDF için eklenti simgesi > PDF dosyası seç.
+YENİ DÜZELTMELER
+1. "Tam sayfa" hem GENİŞLİĞE hem YÜKSEKLİĞE sığdırır. 0.2.0'da
+   "Sayfaya sığdır" yalnız genişliği ayarlıyordu ve uzun PDF sayfası
+   yarım görünüyordu. Okumak için "Genişlik" modu ayrıca eklendi.
+2. Tesseract sözcük katmanı önce sayfaya eklenip sonra ölçülür.
+   Eski kod ölçümü DOM dışında yaptığı için sıfır genişlik alıyordu.
+   Artık zoom uygulanmış OCR yazıları da daha doğru seçilir.
+3. Orijinal PDF içinde kısa ama anlamlı metin varsa yeniden OCR yaparak
+   mevcut metni bozmaz. Tek başına sayfa numarası olan tarama okunur.
+4. Her sayfanın üstünde "Bu sayfaya OCR" ve "PDF metni" düğmeleri var.
+   Karışık PDF'lerde yalnız sorunlu sayfayı yeniden okuyabilir,
+   öteki sayfaların metnini koruyabilirsiniz.
+5. OCR motoru tek kez hazırlanır; eşzamanlı OCR istekleri sıraya alınır.
+   Aynı anda tıklama kaynaklı çakışmalar azaltılır.
+6. Büyük PDF sayfaları / çok sayfalı belgeler için render çözünürlüğüne
+   bellek koruma sınırı eklendi. Çok uzun dosyalarda bellek yine artabilir.
+7. "Orijinal PDF" bağlantısına tıklanınca aynı eklentinin PDF'yi
+   yeniden yakalayıp sonsuz/tekrarlı görüntüleyici açması önlendi.
+8. Önceki ağ isteğinin daha sonra bitip yeni açılan dosyayı silmesini
+   önleyen eski-istek kontrolü eklendi.
+9. OCR hataları sayfa üzerinde gösterilir; başarısız sayfa sayısı tutulur.
+
+MEVCUT EKLENTİYİ HIZLI GÜNCELLEME (ÖNERİLEN)
+1. "Vivaldi_PDF_OCR_Hizli_Guncelleme_v0.3.zip" dosyasını çıkar.
+2. ZIP içindeki "Eklenti" klasöründeki dosyaları, mevcut kurulu
+   eklentinin "Eklenti" klasörüne kopyalayarak ÜZERİNE YAZ.
+3. Eklenti/vendor klasörünü SİLME. Hızlı güncelleme vendor içermez.
+4. Vivaldi adresine vivaldi://extensions yaz.
+5. "Vivaldi Türkçe PDF OCR" kartında dönen ok / Yeniden yükle simgesine tıkla.
+6. Önceki PDF sekmesini kapat, PDF'yi yeniden aç.
+7. "Tam sayfa" ile bütün sayfayı gör; tabloda hazır metin varsa seçip
+   Ctrl+C yap. Sağ panelin metnini de kopyalayabilirsin.
+
+TAM KAYNAK PAKETİ İLE KURULUM
+- Tam paket, üçüncü taraf vendor dosyalarını içermez.
+- İlk kurulum için Node.js + npm, internet erişimi ve HAZIRLA.cmd gerekir.
+- HAZIRLA.cmd, pdfjs-dist 4.10.38, tesseract.js 5.1.1 ve Türkçe modeli
+  indirir ve Eklenti/vendor klasörünü oluşturur.
+- Sonra vivaldi://extensions > Geliştirici modu > Paketlenmemiş öğe yükle
+  adımlarıyla yalnız "Eklenti" klasörü seçilir.
+- Eski kurulumun yanında ikinci eklenti yükleme; aynı anda iki eklenti
+  PDF yönlendirmelerini çakıştırabilir.
 
 KULLANIM
-- PDF bağlantısı Vivaldi'de açıldığında eklenti onu otomatik olarak kendi
-  görüntüleyicisine yönlendirmeyi dener. PDF'deki metin azsa Türkçe OCR uygulanır.
-- Metni PDF görüntüsünün üstünde seçip Ctrl+C ile kopyala.
-- Alternatif olarak sağdaki "Çıkarılan metin" panelinden kopyala.
-- Mevcut PDF'nin yalnızca başlığında metin varsa bile OCR çalışması hedeflenir.
-- Otomatik yönlendirmeyi eklenti simgesinden kapatabilirsin.
-- OCR hatalıysa "Yeniden OCR" düğmesi tüm sayfaları zorla OCR ile yeniden işler.
+- Varsayılan: PDF'nin gömülü metnini koru, boş sayfalara Türkçe OCR yap.
+- Uzun/karma tabloda metnin bir bölümü eksikse yalnız o sayfada
+  "Bu sayfaya OCR" kullan. Hatalıysa hemen "PDF metni" ile geri dön.
+- "Zorla OCR", tüm belgeyi yeniden okur; hazır metinde hata oluşturabilir.
+- "Tam sayfa" fotoğrafın tamamını görmek içindir.
+- "Genişlik" metni okumak için büyütür; dikey kaydırma gerekir.
+- "-" ve "+" ile ek büyütme/küçültme yapılır.
 
-ÖNEMLİ SINIRLAR
-- Bu paket yerel ortamda gerçek Vivaldi PDF'leriyle test edilmemiş bir PROTOTİPTİR.
-- Vivaldi'nin yerleşik PDF görüntüleyicisine yazı katmanı EKLEMEZ. PDF'yi eklenti
-  sekmesinde yeniden açar. Chrome'un yerleşik PDF görüntüleyicisine doğrudan
-  metin enjekte edilemez.
-- Giriş gerektiren, POST ile üretilen veya bir kez indirilebilen PDF URL'leri
-  eklenti tarafından yeniden alınamayabilir. Böyle bir durumda indirip dosya seç.
-- Bazı içerik türleri Vivaldi tarafından engellenebilir veya yönlendirme
-  her PDF'yi yakalamayabilir. Bunu garanti eden genel amaçlı API yoktur.
-- Şirket bilgisayarında eklenti kurma politikası varsa kurumsal onay gerekir.
-- OCR yerelde yapılır, dosyalar bir OCR sunucusuna yüklenmez. Build sırasında
-  NPM paketleri ve Türkçe model indirilir. Eklenti, PDF URL'sini elde etmek için
-  dosyanın bulunduğu siteye doğrudan GET isteği gönderir.
-- PDF sayfa üzerindeki metin seçilebilir; tablolar, çok sütunlu metinler,
-  düşük kaliteli taramalar ve Türkçe özel isimler hatalı okunabilir.
-- Bu paket resmi yazı hazırlamak veya hassas kurumsal belgelerde doğrulama
-  gereğini ortadan kaldırmak için yeterince test edilmemiştir.
+SINIRLAMALAR VE GÜVENLİK
+- PDF'nin kendi metin katmanı yanlışsa uygulama bunu otomatik düzeltemez.
+- Karma sayfalarda yerleşik metin varsa taranmış bölümü otomatik bulamaz;
+  kullanıcı istediği sayfaya manuel OCR uygulayabilir.
+- OCR'den gelen sayı, tablo başlığı ve hücreler hatalı olabilir;
+  kritik belgelerde orijinal belge ile karşılaştır.
+- PDF'nin aynı sütunlarını Excel düzenine birebir dönüştürme garantisi yoktur.
+- Şifreli, POST ile alınan, kurumsal giriş gereken bazı PDF adresleri
+  indirilemeyebilir; "PDF seç" kullanılmalıdır.
+- Yerel dosya adreslerini otomatik açmak için Vivaldi'de "Dosya URL'lerine
+  erişime izin ver" eklenti ayarı gerekebilir.
+- OCR kullanıcının bilgisayarında çalışır. İlk hazırlama sırasında
+  bağımlılıklar ve Türkçe dil modeli dış ağdan indirilir.
+- Eklentinin HTTP/HTTPS ve dosya izinleri geniştir: kurumsal IT
+  güvenlik ilkelerine uygun şekilde kullan.
 
-GİZLİLİK VE İZİNLER
-- Eklenti, PDF bağlantılarını algılayabilmek ve URL'den yeniden indirebilmek için
-  tüm HTTP/HTTPS sitelerine erişim ister. Diğer sayfalara hiçbir veri göndermez.
-- Google/şirket içi kullanıcı girişleri gibi özel PDF'ler için kullanmadan önce
-  gerekiyorsa IT'den izin al.
-- Kaynak kodu Eklenti/background.js ve Eklenti/viewer.js altında okunabilir.
+TESTLER
+- node --check ile JavaScript sözdizimi kontrol edildi.
+- node --test tests/*.test.mjs ile 11 otomatik test başarılı.
+- Başka bir Chromium motorunda sahte PDF.js/Tesseract ile iki sayfalı
+  arayüz akışı test edildi: gömülü PDF metni, OCR, tam sayfa, genişlik,
+  sayfa bazlı OCR ve geri dönüş, tek worker oluşturma.
+- Gerçek Vivaldi üzerinde son kullanıcı PDF'si ve gerçek OCR motorunun
+  bağımlılıklarıyla uçtan uca test yapılamadı. Ekte yalnız ekran görüntüsü
+  olduğundan hatasız sonuç garanti edilemez.
 
-KAYNAK KÜTÜPHANELER
-- Mozilla pdf.js: https://github.com/mozilla/pdf.js
-- Tesseract.js: https://github.com/naptha/tesseract.js
-- Türkçe tessdata_best modeli: https://github.com/tesseract-ocr/tessdata_best
-- Paketleri npm.cmd install ile yerelde yükler, çalışırken harici OCR servis
-  kullanmaz.
+GÜNCELLEMEDEKİ TEKNİK DOSYALAR
+Eklenti/viewer.js, viewer.html, viewer.css, text-utils.mjs,
+Eklenti/background.js, Eklenti/manifest.json.
 
-HERHANGİ BİR HATA OLURSA
-HAZIRLA.cmd çıktısını veya Vivaldi eklenti hata ekranını paylaş.
+pdfjs-dist ve tesseract.js gibi üçüncü taraf bileşenlerin kendi
+lisansları geçerlidir.

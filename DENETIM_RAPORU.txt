@@ -1,0 +1,56 @@
+Vivaldi Türkçe PDF OCR - 0.2.0 denetim raporu / 0.3.0 düzeltmeleri
+===============================================================
+İncelenen kaynağın adı: Vivaldi_Turkce_PDF_OCR_Duzeltilmis_v0.2.zip
+İlgili hızlı paket: Vivaldi_PDF_OCR_Hizli_Guncelleme.zip
+
+TESPİT EDİLEN HATALAR / RİSKLER
+[ÖNEMLİ] viewer.js / applyZoom: 0.2.0 sayfayı yalnız yatay genişliğe
+sığdırıyordu. Yüksek sayfa ekran boyundan taşıyor, "tam sayfa" yanıltıcı
+oluyordu. 0.3.0 hem genişlik hem yükseklik kullanır. "Genişlik" modu da var.
+
+[ÖNEMLİ] viewer.js / addWordsLayer: 0.2.0 sözcük ölçümünü DOM'a henüz
+eklenmemiş span üstünden yapıyordu. getBoundingClientRect().width 0
+olduğu için scaleX düzeltmesi uygulanmıyordu. 0.3.0 önce DOM'a ekler,
+sonra transform'dan etkilenmeyen offsetWidth ile ölçer.
+
+[ÖNEMLİ] viewer.js / renderDocument: 0.2.0 belgenin tamamında OCR
+modu değiştiriyordu. Karma PDF'lerde sadece sorunlu bir tarama/tablolu
+sayfayı OCR'lemek mümkün değildi. 0.3.0 her sayfaya ayrı işlem sunar.
+
+[ORTA] text-utils.mjs / hasUsablePdfText: 0.2.0 en az 15 harf/rakam
+istiyordu. Daha kısa ama geçerli metinler bozulabilirdi. 0.3.0 sayfa
+numarası gibi anlamsız metni ayırır, kısa metni korur.
+
+[ORTA] viewer.js / prepareWorker: Hızlı veya çakışan çağrılar paralel
+worker/recognize işlemi başlatabiliyordu. 0.3.0 tek initialize Promise
+ve OCR iş sırası kullanır.
+
+[ORTA] viewer.js / createPage: Büyük ve çok sayfalı PDF'lerde sabit
+1.7 görüntüleme ölçeği belleği aşırı kullanabilirdi. 0.3.0 çözünürlük
+üst sınırı getirir. Çok büyük belgelerde halen performans riski vardır.
+
+[ORTA] viewer.html / original bağlantısı: AutoOpen etkin olduğunda
+"Orijinal PDF" açılması tekrar eklentiye yönlendiriliyordu.
+0.3.0 sekme bazlı geçici istisna tanımlar.
+
+[DÜŞÜK] viewer.js / loadSource: Ağ isteği açıkken yerel PDF seçilirse
+önceki istek sonradan yanıtlanıp geçerli PDF'yi değiştirebilirdi.
+0.3.0 her yükleme isteğini sürüm numarasıyla kontrol eder.
+
+[DÜŞÜK] viewer.js / renderDocument: Tek sayfadaki OCR hatası genel hata
+sayısına her zaman yansımıyordu. 0.3.0 hata sayısını günceller.
+
+GÜVENLİK / ÇALIŞTIRMA
+- Paketlerde üçüncü taraf vendor kütüphaneleri yok; mevcut kurulumdaki
+  vendor dizini ile birlikte çalışır.
+- OCR modelinin bilgisayara indirildiği ilk hazırlama hariç, uygulama
+  OCR verisini dış servise göndermez.
+- Mevcut geniş host izinleri aynen korunmuştur.
+
+DOĞRULAMA
+- 11 Node birim testi (PDF metni, TSV/blok sözcük, bellek, yönlendirme).
+- Chromium sayfasında sahte PDF.js ve Tesseract kullanılarak DOM arayüz
+  kontrolü: 2 sayfa, yerleşik metin, OCR, kelime konumları, zoom,
+  sayfa bazlı geri dönüş, işçi sayısı. Başarılı.
+- Gerçek PDF.js/Tesseract vendor kurulumu ve kullanıcının asıl PDF'si
+  ortamda olmadığından gerçek Vivaldi uçtan uca denemesi yapılamadı.

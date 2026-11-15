@@ -1,0 +1,19 @@
+Vivaldi Türkçe PDF OCR 0.3.0 - HIZLI GÜNCELLEME
+=============================================
+
+1) ZIP'i aç.
+2) Eklenti klasörünün içindeki 6 dosyayı mevcut Eklenti klasörüne kopyala.
+3) Üzerine yaz. Mevcut Eklenti/vendor klasörünü SİLME.
+4) Vivaldi: vivaldi://extensions > ilgili eklentide YENİDEN YÜKLE.
+5) Açık eski PDF sekmesini kapat, PDF'yi yeniden aç.
+
+DÜZELTİLENLER:
+- Gerçek "Tam sayfa" görüntüleme (hem genişlik hem yükseklik).
+- PDF/OCR metin seçimi için sözcük konumlarının ölçümü.
+- Kısa geçerli PDF metnini koruma; yalnız sorunlu sayfada OCR.
+- Tek worker / sırayla OCR ile çakışmayı azaltma.
+- Bellek koruması, eski yükleme isteği hatası, orijinal PDF bağlantısı.
+
+NOT: "Tam sayfa" küçük görünüyorsa metni okumak için "Genişlik" seç.
+Hazır metin içeren tablolarda Zorla OCR yerine ilk olarak PDF metnini
+kullan. Kritik tablo değerlerini daima orijinal PDF ile karşılaştır.

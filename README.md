@@ -1,43 +1,66 @@
-# Türkçe PDF OCR — Vivaldi / Chromium (deneysel)
+# Vivaldi Türkçe PDF OCR
 
-Taranmış PDF'lerden **Türkçe OCR** ile metin çıkaran ve metni sayfa üstünde seçip kopyalamayı hedefleyen açık kaynak bir tarayıcı eklentisi prototipi.
+**PDF üzerindeki mevcut seçilebilir metni koruyan; yalnız gerektiğinde, cihazda Türkçe OCR uygulayan, açık kaynak Vivaldi/Chromium eklentisi.**
 
-**Durum: BETA / DENEYSEL.** Gerçek kullanımda bazı PDF'ler açılamayabilir, metin katmanı kayabilir veya OCR yanlış sonuç verebilir. Henüz Chrome Web Store yayını için onaylanmış ya da kapsamlı test edilmiş değildir.
+> **BETA / DENEYSEL:** Resmî belgelerdeki isim, sayı ve tarihlerin OCR sonucunu orijinal PDF ile mutlaka karşılaştırın. Bu bir Chrome Web Store yayını değildir.
+
+## ⬇️ Kuruluma hazır sürümü indir (Node.js gerekmez)
+
+**[📦 SON SÜRÜMÜ İNDİR — GitHub Releases](https://github.com/numandegirmenci/vivaldi-turkce-pdf-ocr/releases/latest)**
+
+GitHub'daki kaynak kod ZIP'ini değil, **Releases > Assets** altında sunulan `Vivaldi-Turkce-PDF-OCR-vX.Y.Z.zip` dosyasını indirin. Bu pakette PDF.js, Tesseract ve Türkçe OCR modeli **hazırdır**.
+
+### İlk kurulum (Vivaldi)
+
+1. Release ZIP dosyasını indirip sabit bir klasöre çıkarın.
+2. Adres satırına `vivaldi://extensions` yazın.
+3. **Geliştirici modu**nu açın.
+4. **Paketlenmemiş öğe yükle**ye tıklayıp çıkardığınız **Eklenti** klasörünü seçin.
+5. Eklenti simgesinden **PDF seç** ile deneyin.
+
+**Önemli:** Eklentiyi yüklediğiniz klasörü daha sonra silmeyin veya taşımayın. Bilgisayar yöneticisi/şirket politikası geliştirici modu kullanımını engelliyorsa kurumunuzun BT birimine başvurun.
+
+### Mevcut eklentiyi güncelleme
+
+Release ZIP dosyasını çıkarın. İçindeki **Eklenti** klasörünün dosyalarını mevcut kurulumdaki **aynı Eklenti klasörünün üzerine** kopyalayın. `vendor/` klasörü yeni paketten güncellenecektir. Vivaldi'nin `vivaldi://extensions` sayfasında mevcut eklentinin **Yeniden yükle** simgesine basın. **Ayrıca yeni bir eklenti olarak yüklemeyin**; iki kopya PDF yönlendirmesinde çakışabilir.
+
+### Tek tıkla yükleme ve otomatik güncelleme olur mu?
+
+GitHub üzerinde **tek tıkla ZIP indirme** sağlanır, ancak **tarayıcı eklentisini doğrudan tek tıkla kurma ve arka planda otomatik güncelleme GitHub üzerinden sağlanmaz**. Bu kullanıcı deneyimi için eklentiyi [Chrome Web Store](https://chromewebstore.google.com/) üzerinden yayımlamak gerekir. Mağazada yayımlandığında Vivaldi/Chromium kullanıcıları tek seferde yükleyebilir ve tarayıcı uyumlu olduğunda güncellemeler otomatik gelir. Mağaza yayını şu anda yapılmamıştır.
 
 ## Özellikler
 
-- `.pdf` bağlantılarını yakaladığında Vivaldi içinde ayrı bir OCR görüntüleyicisi açmayı dener.
-- Taranmış sayfalarda cihaz üzerinde Tesseract.js + Türkçe `tessdata_best` modelini kullanır.
-- PDF üzerinde metin seçimi ve sağ panelde düz metin kopyalama sunar.
-- Metin seçme vurgusu yarı saydamdır.
-- OCR işleme için belgeleri bir bulut OCR sunucusuna yüklemez.
-- Önceki prototipte PDF olmayan bir sayfayı açma sırasında görülen bazı yönlendirme sorunlarına karşı ek kontrol içerir.
+- PDF içindeki mevcut metin katmanını yeniden OCR ile bozmaz.
+- Metin içermeyen sayfalara Türkçe OCR uygular; istenen sayfaya ayrıca **Bu sayfaya OCR** seçilebilir.
+- OCR sonucundan **PDF metni**ne geri dönme seçeneği vardır.
+- **Tam sayfa**, **Genişlik**, büyütme/küçültme seçenekleri sunar.
+- PDF üzerinde metin seçimi ve yan panelden kopyalama olanağı verir.
+- OCR işlemi yerel cihazda çalışır; PDF'ler harici bir OCR sunucusuna gönderilmez.
 
-## Windows üzerinde kurulum
+## Geliştirme ve test
 
-1. Depoyu ZIP olarak indirip sabit bir klasöre çıkar.
-2. **Node.js** ve `npm` bilgisayarında erişilebilir olmalı. Taşınabilir Node.js ZIP sürümü de kullanılabilir.
-3. `HAZIRLA.cmd` dosyasını çalıştır. Bu işlem npm bağımlılıklarını ve Türkçe modeli indirip `Eklenti/vendor/` klasörünü oluşturur.
-4. Vivaldi'de `vivaldi://extensions` aç, **Geliştirici modu** ve **Paketlenmemiş öğe yükle** seçenekleriyle `Eklenti` klasörünü seç.
-5. PDF bağlantılarını açmayı dene veya eklenti simgesi > **PDF dosyası seç** ile yerel dosya aç.
+Kaynak koddan derlemek isteyenler için Node.js 22 veya daha yeni önerilir:
 
-> **Not:** `Eklenti/vendor/` sürüm kontrolünde tutulmuyor. `HAZIRLA.cmd` çalıştırılmadan eklenti eksiktir. Kullanıcıların kolay kurulum yapabilmesi için ileride bağımlılıkları dahil eden ayrı bir sürüm ZIP'i yayımlanabilir.
+```bash
+npm install
+npm test
+npm run build
+```
+
+`npm run build`, `Eklenti/vendor/` klasöründeki PDF.js, Tesseract.js, WebAssembly dosyalarını ve Türkçe dil modelini indirip yerleştirir. **GitHub Releases paketini indiren son kullanıcılar bu komutları çalıştırmaz.**
+
+`.github/workflows/release.yml` ana dala gönderilen değişikliklerde otomatik testleri çalıştırır, vendor dosyalarını hazırlar ve `package.json` ile `Eklenti/manifest.json` sürümleri eşleşiyorsa yeni GitHub Release paketini yayımlar. Yeni yayın için iki dosyadaki sürümü birlikte yükseltin. Yayın `Actions` üzerinden takip edilebilir.
 
 ## Bilinen sınırlamalar
 
-- PDF, Vivaldi'nin yerleşik PDF ekranında değil, eklentinin kendi sekmesinde açılır.
-- Oturum isteyen ya da geçici URL'ler, tekrar `fetch` edildiğinde giriş ekranı döndürebilir. Böyle durumlarda PDF'yi indirip **PDF seç** kullan.
-- OCR doğruluğu belge kalitesine bağlıdır. **Resmi veya hukuki belgelerde OCR metni mutlaka aslıyla karşılaştırılmalıdır.**
-- Çok sütunlu PDF'ler, tablolar, damgalar ve el yazısı hatalı tanınabilir.
-- Eklenti geniş alan adı erişimi talep eder çünkü farklı sitelerdeki PDF'leri yeniden almayı dener. İzinlerin daraltılması planlanan bir geliştirmedir.
-- Giriş ekranı gibi normal web sayfalarını PDF sanmamak için ek kontroller vardır; ancak her siteyle uyumluluk garanti edilmez.
+- Karma tablo veya eski OCR katmanlı belgelerde metin hatalı hizalanabilir; özellikle SGK/kimlik/tablo gibi verilerde orijinali doğrulayın.
+- Kurumsal oturum gerektiren bazı PDF URL'leri açılamayabilir. Bu durumda PDF'yi indirip **PDF seç** ile açın.
+- Yerel dosya URL'lerinin otomatik algılanması için Vivaldi eklenti ayarlarından dosya erişimi izni gerekebilir.
+- Geniş HTTP/HTTPS erişimi gerektirir. Kurumların BT politikalarına uygunluğunu kontrol edin.
+- Eklenti halen beta aşamasındadır; gerçek Vivaldi ve farklı PDF örnekleriyle kullanıcı testi gerektirir.
 
-## Lisans ve gizlilik
+## Lisans / gizlilik
 
-Bu projeye ait özgün kaynak kodu [MIT Lisansı](LICENSE) kapsamındadır. Üçüncü taraf kütüphaneler bağımsız lisanslarına tabidir; ayrıntılar [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) dosyasında. Gizlilik açıklaması [PRIVACY.md](PRIVACY.md) dosyasında.
+Özgün kod MIT lisanslıdır. Üçüncü taraf bileşenler kendi lisansları altındadır: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Gizlilik bilgileri: [PRIVACY.md](PRIVACY.md).
 
-**Gerçek kişilerden veya kurumsal belgelerden alınmış test PDF'lerini, ekran görüntülerini ve kişisel bilgileri GitHub deposuna eklemeyin.**
-
-## Topluluk geri bildirimi
-
-Hata bildirimlerinde Vivaldi sürümü, PDF'nin taranmış olup olmadığı ve adımlar yer alabilir. Gizli, ticari veya kişisel bilgi içeren PDF paylaşmayın.
+Gizli, kurumsal veya kişisel bilgi içeren PDF belgelerini hata raporlarına veya GitHub deposuna yüklemeyin.

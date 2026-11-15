@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: normal PDF adresi otomatik PDF OCR görüntüleyicisine yönlendirilir
+ok 1 - normal PDF adresi otomatik PDF OCR görüntüleyicisine yönlendirilir
+  ---
+  duration_ms: 13.824514
+  type: 'test'
+  ...
+# Subtest: Orijinal PDF açılırken 302 ve içerik türü yeniden yönlendirme yapmaz
+ok 2 - Orijinal PDF açılırken 302 ve içerik türü yeniden yönlendirme yapmaz
+  ---
+  duration_ms: 13.496625
+  type: 'test'
+  ...
+# Subtest: OCR katmanı olan tabloyu OCR ile tekrar bozmamalı
+ok 3 - OCR katmanı olan tabloyu OCR ile tekrar bozmamalı
+  ---
+  duration_ms: 1.769928
+  type: 'test'
+  ...
+# Subtest: Yalnız sayfa numarası olan taramayı OCR et
+ok 4 - Yalnız sayfa numarası olan taramayı OCR et
+  ---
+  duration_ms: 0.277941
+  type: 'test'
+  ...
+# Subtest: metin satırları y/x konumuna göre sıralanır, tablo hücreleri ayrılır
+ok 5 - metin satırları y/x konumuna göre sıralanır, tablo hücreleri ayrılır
+  ---
+  duration_ms: 1.162571
+  type: 'test'
+  ...
+# Subtest: OCR v5 sözcük koordinatlarını seçilebilir hale getir
+ok 6 - OCR v5 sözcük koordinatlarını seçilebilir hale getir
+  ---
+  duration_ms: 0.403908
+  type: 'test'
+  ...
+# Subtest: OCR blok yapısındaki sözcükleri bul
+ok 7 - OCR blok yapısındaki sözcükleri bul
+  ---
+  duration_ms: 0.31919
+  type: 'test'
+  ...
+# Subtest: OCR TSV yedeğinden kelimeleri çıkar
+ok 8 - OCR TSV yedeğinden kelimeleri çıkar
+  ---
+  duration_ms: 1.079814
+  type: 'test'
+  ...
+# Subtest: tek satırlı kısa ama anlamlı PDF metnini de bozma
+ok 9 - tek satırlı kısa ama anlamlı PDF metnini de bozma
+  ---
+  duration_ms: 1.306904
+  type: 'test'
+  ...
+# Subtest: çok büyük PDF sayfası ve çok sayfalı PDF bellek sınırını aşmaz
+ok 10 - çok büyük PDF sayfası ve çok sayfalı PDF bellek sınırını aşmaz
+  ---
+  duration_ms: 0.803316
+  type: 'test'
+  ...
+# Subtest: OCR olmayan boş blok ve bozuk koordinatlar atlanır
+ok 11 - OCR olmayan boş blok ve bozuk koordinatlar atlanır
+  ---
+  duration_ms: 0.590293
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 104.210399

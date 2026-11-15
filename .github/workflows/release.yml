@@ -1,0 +1,76 @@
+name: Hazir kurulum paketi yayinla
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vivaldi-pdf-ocr-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Test et, hazir eklentiyi paketle, Release olustur
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Kaynak kodunu al
+        uses: actions/checkout@v4
+
+      - name: Node.js hazirla
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Bagimliliklari yukle
+        run: npm install --no-audit --no-fund
+
+      - name: Otomatik testleri calistir
+        run: npm test
+
+      - name: Eklenti ve Turkce OCR modelini hazirla
+        run: npm run build
+
+      - name: Surumu ve paket icerigini dogrula
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          MANIFEST_VERSION=$(node -p "require('./Eklenti/manifest.json').version")
+          test "$VERSION" = "$MANIFEST_VERSION" || { echo 'package.json ve manifest surumleri farkli'; exit 1; }
+          for f in Eklenti/manifest.json Eklenti/viewer.html Eklenti/viewer.js Eklenti/text-utils.mjs Eklenti/background.js Eklenti/vendor/pdf.mjs Eklenti/vendor/pdf.worker.mjs Eklenti/vendor/tesseract.min.js Eklenti/vendor/worker.min.js Eklenti/vendor/lang/tur.traineddata.gz; do
+            test -s "$f" || { echo "Eksik veya bos dosya: $f"; exit 1; }
+          done
+          ls Eklenti/vendor/core/tesseract-core*.wasm* >/dev/null || { echo 'Tesseract WASM eksik'; exit 1; }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Tek ZIP olustur
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE="Vivaldi-Turkce-PDF-OCR-v${{ steps.version.outputs.version }}.zip"
+          zip -q -r "$FILE" Eklenti
+          unzip -tq "$FILE"
+          echo "RELEASE_ASSET=$FILE" >> "$GITHUB_ENV"
+
+      - name: GitHub Release'e yukle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${{ steps.version.outputs.version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG zaten mevcut. Yeni sürüm için package.json ve manifest.json sürümlerini artırın."
+            exit 0
+          fi
+          gh release create "$TAG" "$RELEASE_ASSET" \
+            --target "$GITHUB_SHA" \
+            --title "Vivaldi Türkçe PDF OCR $TAG (Beta)" \
+            --notes-file RELEASE_NOTES.md \
+            --latest
