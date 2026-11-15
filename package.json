@@ -1,8 +1,14 @@
 {
-  "name": "vivaldi-turkce-pdf-ocr",
-  "version": "0.3.0",
+  "name": "turkce-pdf-ocr-chromium",
+  "version": "0.3.1",
   "private": true,
-  "description": "Vivaldi için deneysel Türkçe PDF OCR görüntüleyici",
-  "scripts": {"test": "node --test tests/*.test.mjs", "build": "node build.mjs"},
-  "dependencies": {"pdfjs-dist": "4.10.38", "tesseract.js": "5.1.1"}
+  "description": "Chromium tabanlı tarayıcılar için deneysel yerel Türkçe PDF OCR eklentisi",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "pdfjs-dist": "4.10.38",
+    "tesseract.js": "5.1.1"
+  }
 }

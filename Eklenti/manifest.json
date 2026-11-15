@@ -1,11 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "Vivaldi Türkçe PDF OCR (Düzeltilmiş)",
-  "version": "0.3.0",
-  "description": "PDF metnini korur, seçilebilir OCR ve sayfa bazlı düzeltme sunar.",
-  "permissions": ["tabs", "storage", "webRequest"],
-  "host_permissions": ["http://*/*", "https://*/*", "file:///*"],
-  "background": {"service_worker": "background.js"},
-  "action": {"default_title": "PDF OCR", "default_popup": "popup.html"},
-  "content_security_policy": {"extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"}
+  "name": "Türkçe PDF OCR (Chromium)",
+  "version": "0.3.1",
+  "description": "Chromium tarayıcıları için yerel Türkçe PDF OCR; mevcut PDF metnini korur ve sayfa bazlı OCR sunar.",
+  "permissions": [
+    "tabs",
+    "storage",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "file:///*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "PDF OCR",
+    "default_popup": "popup.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  }
 }

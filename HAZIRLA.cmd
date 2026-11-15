@@ -25,7 +25,7 @@ echo 2/2 - Yerel Turkce OCR paketi hazirlaniyor...
 node build.mjs
 if errorlevel 1 goto :fail
 echo.
-echo BASARILI. Vivaldi'ye Eklenti klasorunu yukleyin.
+echo BASARILI. Tarayicinizin eklenti sayfasindan Eklenti klasorunu yukleyin.
 pause
 exit /b 0
 :fail

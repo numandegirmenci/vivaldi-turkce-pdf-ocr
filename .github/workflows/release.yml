@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          FILE="Vivaldi-Turkce-PDF-OCR-v${{ steps.version.outputs.version }}.zip"
+          FILE="Turkce-PDF-OCR-Chromium-v${{ steps.version.outputs.version }}.zip"
           zip -q -r "$FILE" Eklenti
           unzip -tq "$FILE"
           echo "RELEASE_ASSET=$FILE" >> "$GITHUB_ENV"
@@ -71,6 +71,6 @@ jobs:
           fi
           gh release create "$TAG" "$RELEASE_ASSET" \
             --target "$GITHUB_SHA" \
-            --title "Vivaldi Türkçe PDF OCR $TAG (Beta)" \
+            --title "Türkçe PDF OCR (Chromium) $TAG (Beta)" \
             --notes-file RELEASE_NOTES.md \
             --latest

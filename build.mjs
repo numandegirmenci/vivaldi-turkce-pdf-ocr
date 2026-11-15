@@ -27,4 +27,4 @@ if(!fs.existsSync(out)) {
   fs.writeFileSync(out,zlib.gzipSync(raw,{level:6}));
   console.log('✓ lang/tur.traineddata.gz ('+Math.round(fs.statSync(out).size/1024/1024)+' MB)');
 }
-console.log('\nHAZIR: Eklenti klasörünü Vivaldi > vivaldi://extensions > Paketlenmemiş öğe yükle ile seç.');
+console.log('\nHAZIR: Eklenti klasörünü tarayıcınızın uzantı sayfası > Geliştirici modu > Paketlenmemiş öğe yükle ile seç.');

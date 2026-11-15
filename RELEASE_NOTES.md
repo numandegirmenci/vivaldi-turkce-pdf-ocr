@@ -1,18 +1,22 @@
-## Vivaldi Türkçe PDF OCR 0.3.0 — Beta
+## Türkçe PDF OCR (Chromium) v0.3.1 — Beta
 
-- PDF'de var olan metin katmanını, kısa anlamlı metinlerde bile korur.
-- Gömülü metin bulunmayan sayfaları Türkçe OCR ile işler; tüm belgeyi zorla OCR etmek yerine tek sayfa OCR seçeneği sunar.
-- **Tam sayfa** ve **Genişliğe sığdır** görünümü, metin katmanının yerleşimi ve çok sayfalı belgelerdeki işlem akışı iyileştirildi.
+Bu sürümde ürün adı ve kurulum açıklamaları **Chromium tabanlı tarayıcılar** için güncellendi. PDF işleme/OCR algoritmasında yeni bir değişiklik yapılmadı.
+
+### Önceki sürümden devam eden özellikler
+- PDF'deki hazır seçilebilir metni korur; yalnız metinsiz sayfalara OCR uygular.
+- **Bu sayfaya OCR** ve **PDF metni** seçenekleri ile sayfa bazlı düzeltme sunar.
+- **Tam sayfa**, **Genişlik**, metin seçme/kopyalama seçenekleri bulunur.
+- OCR tarayıcı içinde yerel çalışır.
+
+### Tarayıcılar için önemli açıklama
+Manifest V3 ve Chromium API'leri kullanılır. **Chrome, Edge ve Brave üzerinde uçtan uca test tamamlanmamıştır.** Bu tarayıcılarda otomatik PDF yönlendirme farklı davranabilir. Eklenti simgesindeki **PDF dosyası seç** seçeneğiyle deneyin ve sorunları bildirin.
 
 ### Kurulum (Node.js gerekmez)
+1. Aşağıdaki `Turkce-PDF-OCR-Chromium-v0.3.1.zip` paketini indirip sabit bir klasöre çıkarın.
+2. Tarayıcınızda `vivaldi://extensions`, `chrome://extensions`, `edge://extensions` veya `brave://extensions` adresini açın.
+3. **Geliştirici modu**nu açıp **Paketlenmemiş öğe yükle** ile **Eklenti** klasörünü seçin.
+4. Eklenti simgesinde **PDF dosyası seç** ile test edin.
 
-1. Aşağıdaki **Vivaldi-Turkce-PDF-OCR-v0.3.0.zip** dosyasını indirip sabit bir klasöre çıkartın.
-2. Vivaldi'de `vivaldi://extensions` adresini açıp **Geliştirici modu**nu etkinleştirin.
-3. **Paketlenmemiş öğe yükle** ile ZIP'ten çıkan **Eklenti** klasörünü seçin.
-4. Eklenti simgesinden PDF seçerek test edin. Yerel `file://` PDF erişimi gerekiyorsa eklentinin ayarından ayrıca izin verin.
+**Güncelleme:** Mevcut kurulumdaki aynı **Eklenti** klasörünün içeriğini yeni ZIP ile (vendor dahil) değiştirin ve eklenti sayfasında **Yeniden yükle**ye basın. Yeni bir ikinci kopya yüklemeyin.
 
-**Güncelleme:** Daha önce bu projeyi yüklediyseniz eski **Eklenti** klasörünün içeriğinin yerine yeni sürümün içeriğini koyup aynı klasörü koruyun; ardından `vivaldi://extensions` sayfasından **Yeniden yükle** düğmesine basın. İkinci kopyayı yüklemeyin.
-
-> GitHub'dan indirilen paket **kendiliğinden yüklenmez veya otomatik güncellenmez**. Gerçek tek tıklamalı tarayıcı yüklemesi/otomatik güncelleme için Chrome Web Store yayını gerekir.
->
-> OCR çıktısı resmî/kurumsal belgelerde mutlaka aslıyla kontrol edilmelidir. Bu sürüm betadır.
+> GitHub ZIP paketi otomatik kurulmaz veya otomatik güncellenmez. Bu sürüm betadır; resmî belgelerde metin, sayı ve tarihleri asıl PDF ile doğrulayın.
