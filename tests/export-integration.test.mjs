@@ -27,6 +27,13 @@ test('Türkçe karakterleri içeren görünmez PDF OCR katmanı üretilebilir', 
     assert.ok(result.bytes.length>source.length);
     const output=await PDFDocument.load(result.bytes);
     assert.equal(output.getPageCount(),1);
+    const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const readable=await pdfjs.getDocument({data:Uint8Array.from(result.bytes)}).promise;
+    try{
+      const page=await readable.getPage(1);
+      const text=(await page.getTextContent()).items.map(i=>i.str).join(' ');
+      assert.ok(text.includes('Çeşme Şişli ıİğü'), 'Türkçe OCR metni PDF içinde gerçekten aranabilir olmalı');
+    }finally{await readable.destroy();}
   }finally{
     globalThis.fetch=previousFetch;globalThis.PDFLib=oldPDF;globalThis.fontkit=oldFont;globalThis.chrome=oldChrome;
   }
