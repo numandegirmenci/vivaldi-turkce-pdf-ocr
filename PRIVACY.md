@@ -8,3 +8,6 @@
 - Kurulum esnasında npm paketleri ve Türkçe OCR modeli üçüncü taraf kaynaklardan indirilir; bu işlem PDF içeriklerinden bağımsızdır.
 - Yerel depolamada (`chrome.storage.local`) PDF bağlantılarının otomatik açılıp açılmayacağını belirleyen ayar saklanır.
 - Henüz bağımsız bir güvenlik denetimi yapılmamıştır; bu açıklama yalnızca kaynak kodunun mevcut davranışını özetler. Kurumsal ve hassas belgelerde kuruluş politikalarına uyulmalıdır.
+
+## v0.4.0 ek notlar
+Arama, kopyalama, OCR ve aranabilir PDF oluşturma tarayıcı içinde yerel olarak yürütülür. Aranabilir PDF kaydında font PDF içine gömülür, dosya harici OCR servisine gönderilmez. Kullanıcı Windows'taki `KOLAY_GUNCELLE.cmd` dosyasını çalıştırırsa GitHub API ve resmi Release ZIP'i indirilir; belgeler Github'a yüklenmez.

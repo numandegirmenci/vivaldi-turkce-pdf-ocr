@@ -35,6 +35,9 @@ jobs:
       - name: Eklenti ve Turkce OCR modelini hazirla
         run: npm run build
 
+      - name: Aranabilir PDF entegrasyon testlerini de calistir
+        run: npm test
+
       - name: Surumu ve paket icerigini dogrula
         id: version
         shell: bash
@@ -43,7 +46,7 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           MANIFEST_VERSION=$(node -p "require('./Eklenti/manifest.json').version")
           test "$VERSION" = "$MANIFEST_VERSION" || { echo 'package.json ve manifest surumleri farkli'; exit 1; }
-          for f in Eklenti/manifest.json Eklenti/viewer.html Eklenti/viewer.js Eklenti/text-utils.mjs Eklenti/background.js Eklenti/vendor/pdf.mjs Eklenti/vendor/pdf.worker.mjs Eklenti/vendor/tesseract.min.js Eklenti/vendor/worker.min.js Eklenti/vendor/lang/tur.traineddata.gz; do
+          for f in Eklenti/manifest.json Eklenti/viewer.html Eklenti/viewer.js Eklenti/text-utils.mjs Eklenti/background.js Eklenti/vendor/pdf.mjs Eklenti/vendor/pdf.worker.mjs Eklenti/vendor/tesseract.min.js Eklenti/vendor/worker.min.js Eklenti/vendor/lang/tur.traineddata.gz Eklenti/vendor/pdf-lib.min.js Eklenti/vendor/fontkit.umd.min.js Eklenti/vendor/NotoSans-Regular.ttf Eklenti/vendor/Noto-OFL.txt; do
             test -s "$f" || { echo "Eksik veya bos dosya: $f"; exit 1; }
           done
           ls Eklenti/vendor/core/tesseract-core*.wasm* >/dev/null || { echo 'Tesseract WASM eksik'; exit 1; }
@@ -54,7 +57,7 @@ jobs:
         run: |
           set -euo pipefail
           FILE="Turkce-PDF-OCR-Chromium-v${{ steps.version.outputs.version }}.zip"
-          zip -q -r "$FILE" Eklenti
+          zip -q -r "$FILE" Eklenti KOLAY_GUNCELLE.cmd KOLAY_GUNCELLE.ps1 LICENSE THIRD_PARTY_NOTICES.md
           unzip -tq "$FILE"
           echo "RELEASE_ASSET=$FILE" >> "$GITHUB_ENV"
 

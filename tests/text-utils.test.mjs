@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {hasUsablePdfText,formatPdfText,collectOcrWords,getSafeRenderScale} from '../Eklenti/text-utils.mjs';
+import {hasUsablePdfText,formatPdfText,collectOcrWords,getSafeRenderScale,formatOcrWords,findTextMatches} from '../Eklenti/text-utils.mjs';
 const viewport={scale:1,convertToViewportPoint:(x,y)=>[x,-y]};
 const item=(str,x,y,width,height=10)=>({str,transform:[1,0,0,1,x,y],width,height});
 test('OCR katmanı olan tabloyu OCR ile tekrar bozmamalı',()=>{
@@ -43,4 +43,19 @@ test('çok büyük PDF sayfası ve çok sayfalı PDF bellek sınırını aşmaz'
 test('OCR olmayan boş blok ve bozuk koordinatlar atlanır',()=>{
   assert.deepEqual(collectOcrWords({words:[{text:'bozuk',bbox:{x0:1,y0:3,x1:0,y1:4}}]}),[]);
   assert.deepEqual(collectOcrWords({words:[],blocks:[]}),[]);
+});
+
+test('OCR tablo satırlarında sütun aralığı tab ile korunur',()=>{
+  const words=[
+    {text:'Ad',bbox:{x0:10,y0:10,x1:30,y1:24}},
+    {text:'Değer',bbox:{x0:120,y0:10,x1:170,y1:24}},
+    {text:'Numan',bbox:{x0:10,y0:40,x1:60,y1:54}},
+    {text:'12345',bbox:{x0:120,y0:40,x1:170,y1:54}},
+  ];
+  assert.equal(formatOcrWords(words),'Ad\tDeğer\nNuman\t12345');
+});
+test('Türkçe karakterlerle arama sonuçları doğru sayfalara bağlanır',()=>{
+  assert.deepEqual(findTextMatches(['İZMİR İşleri','Kocaeli\nBüyükşehir'], 'izmir').map(x=>x.page),[1]);
+  assert.deepEqual(findTextMatches(['ÖRNEK','örnek'], 'örnek').map(x=>x.page),[1,2]);
+  assert.deepEqual(findTextMatches(['ok','ok'],'ok',1).length,1);
 });

@@ -1,5 +1,7 @@
 import * as pdfjs from './vendor/pdf.mjs';
-import { hasUsablePdfText, formatPdfText, collectOcrWords, getSafeRenderScale } from './text-utils.mjs';
+import { hasUsablePdfText, formatPdfText, collectOcrWords, getSafeRenderScale, formatOcrWords } from './text-utils.mjs';
+import { installViewerTools } from './viewer-tools.mjs';
+import { createSearchablePdf, saveBytesAsPdf } from './export-pdf.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('vendor/pdf.worker.mjs');
 const $ = id => document.getElementById(id);
@@ -9,8 +11,11 @@ const status = (message, bad=false) => {
 };
 const state = {
   pdf: null, pages: [], sheets: [], run: 0,
-  viewMode: 'page', zoom: 1, busy: false,
+  viewMode: 'width', zoom: 1, busy: false,
   workerPromise: null, ocrQueue: Promise.resolve(),
+  sourceBytes:null, sourceName:'belge.pdf',
+  observer:null, renderQueue:Promise.resolve(), scanPromise:null,
+  allTextReady:false, activePage:1, maxCanvases:8,
 };
 
 $('choose').onclick = () => $('file').click();
@@ -26,7 +31,7 @@ $('file').onchange = async event => {
     if (request === state.run) await openBytes(bytes, file.name);
   } catch (err) { if (request === state.run) status('Dosya okunamadı: ' + err.message, true); }
 };
-$('copyAll').onclick = copyText;
+$('copyAll').onclick = async () => { await scanAll(false); await copyText(); };
 $('copyOne').onclick = copyText;
 $('original').onclick = async event => {
   event.preventDefault();
@@ -36,13 +41,18 @@ $('original').onclick = async event => {
     if (!result?.ok) status('Orijinal PDF açılamadı: ' + (result?.error || 'Bilinmeyen hata'), true);
   } catch (error) { status('Orijinal PDF açılamadı: ' + error.message, true); }
 };
-$('reocr').onclick = () => state.pdf && renderDocument(true);
+$('reocr').onclick = () => state.pdf && scanAll(true);
 $('native').onclick = () => state.pdf && renderDocument(false);
 $('zoomOut').onclick = () => setZoom(state.zoom / 1.25);
 $('zoomIn').onclick = () => setZoom(state.zoom * 1.25);
 $('fit').onclick = () => { state.viewMode='page'; state.zoom=1; applyZoom(); };
 $('fitWidth').onclick = () => { state.viewMode='width'; state.zoom=1; applyZoom(); };
 new ResizeObserver(applyZoom).observe($('pages'));
+$('scanAll').onclick = () => scanAll(false);
+const viewerTools = installViewerTools({
+  $,state,status,goToPage,scanAll,saveSearchablePdf,setZoom,applyZoom,
+});
+
 
 async function copyText() {
   try {
@@ -64,7 +74,7 @@ function applyZoom() {
   // Başlık, alt durum satırı, panel iç boşlukları ve sayfa arası pay.
   const availableHeight = Math.max(130, pane.clientHeight - 110);
   for (const { sheet, frame, surface, width, height } of state.sheets) {
-    const fitWidth = Math.min(1, availableWidth / width);
+    const fitWidth = availableWidth / width;
     const fitPage = Math.min(fitWidth, availableHeight / height);
     const ratio = (state.viewMode === 'width' ? fitWidth : fitPage) * state.zoom;
     const showWidth = Math.max(1, width * ratio);
@@ -105,16 +115,34 @@ async function prepareWorker() {
   return state.workerPromise;
 }
 
-function recognizeSerially(canvas, stillCurrent) {
+function recognizeSerially(canvas, stillCurrent, enhanced=false) {
   // Tek Tesseract worker ile iki sayfayı aynı anda recognize etmek desteklenmez.
   const task = state.ocrQueue.then(async () => {
     if (!stillCurrent()) return null;
     const worker = await prepareWorker();
     if (!stillCurrent()) return null;
-    return worker.recognize(canvas, {}, { text: true, blocks: true, tsv: true });
+    await worker.setParameters({ tessedit_pageseg_mode: enhanced ? '11' : '3' });
+    return worker.recognize(enhanced ? improveImage(canvas) : canvas, {}, { text: true, blocks: true, tsv: true });
   });
   state.ocrQueue = task.catch(() => {});
   return task;
+}
+
+/** Seçmeli form/tablo OCR: kontrastı ölçülü artır, orijinali değiştirme. */
+function improveImage(canvas) {
+  const output=document.createElement('canvas');
+  output.width=canvas.width;output.height=canvas.height;
+  const context=output.getContext('2d',{willReadFrequently:true});
+  context.drawImage(canvas,0,0);
+  const img=context.getImageData(0,0,output.width,output.height);
+  const data=img.data;
+  for(let n=0;n<data.length;n+=4){
+    const gray=.299*data[n]+.587*data[n+1]+.114*data[n+2];
+    const better=Math.max(0,Math.min(255,(gray-128)*1.28+128));
+    data[n]=data[n+1]=data[n+2]=better;
+  }
+  context.putImageData(img,0,0);
+  return output;
 }
 
 function addWordsLayer(surface, data, width, height) {
@@ -152,51 +180,194 @@ function updateExtractedText() {
 }
 
 function createPageView(page, index, count) {
-  const scale = getSafeRenderScale(page.getViewport({ scale: 1 }), count);
-  const viewport = page.getViewport({ scale });
-  const { width, height } = viewport;
-  const sheet = document.createElement('article'); sheet.className = 'sheet';
-  const title = document.createElement('div'); title.className = 'sheet-title';
-  const titleLabel = document.createElement('span');
-  titleLabel.textContent = `Sayfa ${index} / ${count}`;
-  const pageTools = document.createElement('div'); pageTools.className = 'sheet-tools';
-  const originalBtn = document.createElement('button');
-  originalBtn.textContent = 'PDF metni';
-  originalBtn.title = 'Bu sayfadaki hazır metni kullan';
-  const ocrBtn = document.createElement('button');
-  ocrBtn.textContent = 'Bu sayfaya OCR';
-  ocrBtn.title = 'Yalnız bu sayfayı yeniden OCR ile oku';
-  pageTools.append(originalBtn, ocrBtn);
-  title.append(titleLabel, pageTools);
-  const frame = document.createElement('div'); frame.className = 'page-img';
-  const surface = document.createElement('div'); surface.className = 'page-surface';
-  surface.style.width = `${width}px`;
-  surface.style.height = `${height}px`;
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.ceil(width);
-  canvas.height = Math.ceil(height);
-  canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
-  surface.append(canvas); frame.append(surface);
-  const line = document.createElement('div'); line.className = 'sheet-status';
-  line.textContent = 'Görüntüleniyor...';
-  sheet.append(title, frame, line); $('pages').append(sheet);
-  const view = {
-    index, page, viewport, width, height, sheet, frame, surface, canvas, line,
-    originalBtn, ocrBtn, nativeContent: null, token: 0, currentLayer: null,
-  };
+  // Sayfa kabukları hemen oluşturulur. Canvas/OCR yalnız görüntülenecek sayfada hazırlanır.
+  const scale=getSafeRenderScale(page.getViewport({scale:1}),1);
+  const viewport=page.getViewport({scale});
+  const {width,height}=viewport;
+  const sheet=document.createElement('article');sheet.className='sheet';
+  const title=document.createElement('div');title.className='sheet-title';
+  const titleLabel=document.createElement('span');titleLabel.textContent='Sayfa '+index+' / '+count;
+  const pageTools=document.createElement('div');pageTools.className='sheet-tools';
+  const originalBtn=document.createElement('button');originalBtn.textContent='PDF metni';
+  originalBtn.title='Bu sayfadaki hazır metni kullan';
+  const ocrBtn=document.createElement('button');ocrBtn.textContent='Bu sayfaya OCR';
+  ocrBtn.title='Bu sayfayı OCR ile yeniden oku';
+  const rotateBtn=document.createElement('button');rotateBtn.textContent='Döndür ↻';
+  rotateBtn.title='Yalnız görüntülemeyi 90 derece döndür';
+  pageTools.append(originalBtn,ocrBtn,rotateBtn);
+  title.append(titleLabel,pageTools);
+  const frame=document.createElement('div');frame.className='page-img';
+  const surface=document.createElement('div');surface.className='page-surface';
+  surface.style.width=width+'px';surface.style.height=height+'px';
+  frame.append(surface);
+  const line=document.createElement('div');line.className='sheet-status';
+  line.textContent='Sayfa hazır. Görünür olduğunda işlenecek.';
+  sheet.append(title,frame,line);$('pages').append(sheet);
+  const view={index,page,viewport,width,height,sheet,frame,surface,canvas:null,line,
+    originalBtn,ocrBtn,rotateBtn,nativeContent:null,token:0,currentLayer:null,searchLayer:null,
+    words:[],textSource:null,processed:false,processing:false,loadPromise:null,
+    rotation:0,lastUsed:0};
   state.sheets.push(view);
-  originalBtn.disabled = ocrBtn.disabled = true;
-  originalBtn.onclick = () => { if (!state.busy) processPageText(view, false, state.run); };
-  ocrBtn.onclick = () => { if (!state.busy) processPageText(view, true, state.run); };
+  originalBtn.disabled=ocrBtn.disabled=true;
+  originalBtn.onclick=async()=>{if(!state.busy){await renderPage(view,state.run);await processPageText(view,false,state.run);}};
+  ocrBtn.onclick=async()=>{if(!state.busy){await renderPage(view,state.run);await processPageText(view,true,state.run);}};
+  rotateBtn.onclick=()=>rotatePage(view);
+  state.observer?.observe(sheet);
   applyZoom();
   return view;
+}
+
+function goToPage(number) {
+  if(!Number.isInteger(number) || number<1 || number>state.sheets.length)return;
+  state.activePage=number;
+  $('pageNumber').value=String(number);
+  state.sheets[number-1].sheet.scrollIntoView({block:'start',behavior:'smooth'});
+  enqueuePage(state.sheets[number-1],state.run);
+}
+
+function rotatePage(view) {
+  if(state.busy || view.processing)return;
+  view.rotation=(view.rotation+90)%360;
+  const scale=getSafeRenderScale(view.page.getViewport({scale:1,rotation:view.page.rotate+view.rotation}),1);
+  view.viewport=view.page.getViewport({scale,rotation:view.page.rotate+view.rotation});
+  view.width=view.viewport.width;view.height=view.viewport.height;
+  releaseCanvas(view);
+  view.surface.style.width=view.width+'px';
+  view.surface.style.height=view.height+'px';
+  view.nativeContent=null;
+  view.words=[];view.processed=false;view.textSource=null;
+  state.pages[view.index-1]='';
+  state.allTextReady=false;
+  applyZoom();updateExtractedText();viewerTools.refresh();
+  enqueuePage(view,state.run);
+}
+
+function releaseCanvas(view) {
+  view.currentLayer?.remove();view.currentLayer=null;
+  view.searchLayer?.remove();view.searchLayer=null;
+  view.canvas?.remove();
+  if(view.canvas) {view.canvas.width=0;view.canvas.height=0;}
+  view.canvas=null;
+}
+
+function boundCanvasMemory() {
+  const active=state.sheets.filter(v=>v.canvas&&!v.processing&&!v.loadPromise);
+  if(active.length<=state.maxCanvases)return;
+  const panel=$('pages').getBoundingClientRect();
+  const distant=active.filter(v=>{
+    const rect=v.sheet.getBoundingClientRect();
+    return rect.bottom<panel.top-600 || rect.top>panel.bottom+600;
+  }).sort((a,b)=>a.lastUsed-b.lastUsed);
+  for(const view of distant.slice(0,Math.max(0,active.length-state.maxCanvases)))releaseCanvas(view);
+}
+
+async function renderPage(view,run,forceOcr=false) {
+  if(run!==state.run)return;
+  if(view.loadPromise){
+    await view.loadPromise;
+    if(forceOcr && run===state.run && view.canvas)return processPageText(view,true,run);
+    return;
+  }
+  if(view.canvas){
+    view.lastUsed=Date.now();
+    if(forceOcr)return processPageText(view,true,run);
+    return;
+  }
+  view.loadPromise=(async()=>{
+    try {
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);
+      canvas.style.width=view.width+'px';canvas.style.height=view.height+'px';
+      view.canvas=canvas;
+      view.surface.prepend(canvas);
+      const ctx=canvas.getContext('2d',{alpha:false,willReadFrequently:true});
+      if(!ctx)throw new Error('Canvas başlatılamadı.');
+      view.line.textContent='Sayfa görüntüsü hazırlanıyor...';
+      await view.page.render({canvasContext:ctx,viewport:view.viewport}).promise;
+      if(run!==state.run)return;
+      if(!view.nativeContent)view.nativeContent=await view.page.getTextContent();
+      if(run!==state.run)return;
+      if(view.processed && view.textSource==='ocr' && !forceOcr){
+        view.currentLayer=addWordsLayer(view.surface,{words:view.words},canvas.width,canvas.height).layer;
+        view.line.textContent='OCR metni korunuyor. Yazı seçilebilir.';
+        viewerTools.paint(view);
+      } else {
+        await processPageText(view,forceOcr,run);
+      }
+      view.lastUsed=Date.now();
+    }catch(error){
+      view.line.textContent='Sayfa açılamadı: '+error.message;
+      view.line.classList.add('error');
+      console.error('PDF sayfası:',error);
+      releaseCanvas(view);
+    }
+  })();
+  try{await view.loadPromise;}finally{
+    view.loadPromise=null;
+    boundCanvasMemory();
+  }
+}
+
+function enqueuePage(view,run){
+  if(!view || view.canvas || view.loadPromise || run!==state.run)return;
+  state.renderQueue=state.renderQueue.catch(()=>{}).then(()=>renderPage(view,run));
+}
+
+async function scanAll(forceOcr=false) {
+  if(!state.pdf)return;
+  if(state.scanPromise)return state.scanPromise;
+  const run=state.run;
+  state.busy=true;
+  for(const view of state.sheets)updatePageButtons(view);
+  $('scanAll').disabled=true;$('exportPdf').disabled=true;
+  state.scanPromise=(async()=>{
+    let errors=0;
+    for(let i=0;i<state.sheets.length;i++){
+      if(run!==state.run)return;
+      const view=state.sheets[i];
+      status((forceOcr?'Zorunlu OCR':'Tüm metni hazırla')+': '+(i+1)+' / '+state.sheets.length);
+      try{
+        await renderPage(view,run,forceOcr);
+        if(forceOcr && !view.canvas)throw new Error('Sayfa görüntüsü hazırlanamadı.');
+        if(!view.processed)errors++;
+      }catch(error){errors++;console.error('Sayfa işleme:',error);}
+      $('counter').textContent=(i+1)+'/'+state.sheets.length+' sayfa'+(errors?' • '+errors+' hata':'');
+      boundCanvasMemory();
+    }
+    if(run===state.run){
+      state.allTextReady=errors===0;
+      viewerTools.refresh();updateExtractedText();
+      status(errors?'Tarama bitti; '+errors+' sayfa işlenemedi.':'Tüm sayfalarda metin hazır.' ,errors>0);
+    }
+  })().finally(()=>{
+    if(run===state.run){
+      state.busy=false;
+      state.scanPromise=null;
+      for(const view of state.sheets)updatePageButtons(view);
+      $('scanAll').disabled=false;$('exportPdf').disabled=false;
+    }
+  });
+  return state.scanPromise;
+}
+
+async function saveSearchablePdf(){
+  if(!state.pdf || state.busy)return;
+  $('exportPdf').disabled=true;
+  try{
+    await scanAll(false);
+    if(!state.allTextReady)throw new Error('Bazı sayfalar işlenemedi; eksik aranabilir PDF oluşturulmadı.');
+    const result=await createSearchablePdf(state.sourceBytes,state.sheets,msg=>status(msg));
+    const filename=saveBytesAsPdf(result.bytes,state.sourceName);
+    status(filename+' kaydedildi • '+result.count+' OCR kelimesi eklendi.');
+  }catch(error){status('Aranabilir PDF oluşturulamadı: '+error.message,true);}
+  finally{$('exportPdf').disabled=false;}
 }
 
 function updatePageButtons(view) {
   const locked = state.busy || view.processing;
   view.originalBtn.disabled = locked || !hasUsablePdfText(view.nativeContent);
   view.ocrBtn.disabled = locked;
+  view.rotateBtn.disabled = locked;
 }
 
 async function processPageText(view, forceOcr, run) {
@@ -211,6 +382,8 @@ async function processPageText(view, forceOcr, run) {
     let pageText = '';
     let message = '';
     if (native && !forceOcr) {
+      view.words=[];
+      view.textSource='native';
       const layer = document.createElement('div'); layer.className = 'textLayer';
       layer.style.width = `${view.width}px`;
       layer.style.height = `${view.height}px`;
@@ -231,10 +404,14 @@ async function processPageText(view, forceOcr, run) {
       pageText = formatPdfText(view.nativeContent, view.viewport);
     } else {
       view.line.textContent = forceOcr ? 'Bu sayfaya Türkçe OCR uygulanıyor...' : 'Metinsiz sayfaya OCR uygulanıyor...';
-      const response = await recognizeSerially(view.canvas, isCurrent);
+      const enhanced=$('ocrQuality').checked;
+      const response = await recognizeSerially(view.canvas, isCurrent, enhanced);
       if (!isCurrent() || !response) return;
       const data = response.data || {};
-      pageText = (data.text || '').trim();
+      const words=collectOcrWords(data);
+      pageText = formatOcrWords(words) || (data.text || '').trim();
+      view.words=words;
+      view.textSource='ocr';
       // Seçilebilir sözcük alanı yalnızca OCR tamamlanınca oluşturulur.
       const result = addWordsLayer(view.surface, data, view.canvas.width, view.canvas.height);
       newLayer = result.layer;
@@ -246,7 +423,11 @@ async function processPageText(view, forceOcr, run) {
     if (previousLayer && previousLayer !== newLayer) previousLayer.remove();
     view.currentLayer = newLayer;
     state.pages[view.index - 1] = pageText;
+    view.processed=true;
+    view.lastUsed=Date.now();
     updateExtractedText();
+    viewerTools.refresh();
+    viewerTools.paint(view);
     view.line.textContent = message;
     view.line.classList.toggle('error', /açılamadı|bulunamadı/.test(message));
     if (!state.busy) status(`Sayfa ${view.index} güncellendi. Diğer sayfaların metni korundu.`);
@@ -278,69 +459,66 @@ async function openBytes(bytes, label) {
     if (!bytes?.length || String.fromCharCode(...bytes.slice(0, 5)) !== '%PDF-') {
       throw new Error('Geçerli PDF bulunamadı; bağlantı bir giriş ekranına yönlenmiş olabilir.');
     }
-    const pdf = await pdfjs.getDocument({ data: bytes }).promise;
+    const pdf = await pdfjs.getDocument({ data: bytes.slice() }).promise;
     if (openRun !== state.run) { pdf.destroy?.(); return; }
     const oldPdf = state.pdf;
     state.pdf = pdf;
+    state.sourceBytes=bytes;
+    state.sourceName=label;
     state.zoom = 1;
-    state.viewMode = 'page';
+    state.viewMode = 'width';
     document.title = `${label} · Türkçe PDF OCR`;
     if (oldPdf && oldPdf !== pdf) oldPdf.destroy?.().catch?.(() => {});
-    await renderDocument(false);
+    await renderDocument();
   } catch (err) {
     if (openRun === state.run) status('Açılamadı: ' + err.message, true);
     console.error('PDF açma:', err);
   }
 }
 
-async function renderDocument(forceOcr) {
-  if (!state.pdf) return;
-  const run = ++state.run;
-  state.busy = true;
-  state.pages = Array(state.pdf.numPages).fill('');
-  state.sheets = [];
-  $('pages').replaceChildren();
-  $('counter').textContent = '';
+async function renderDocument() {
+  if(!state.pdf)return;
+  const run=++state.run;
+  state.observer?.disconnect();
+  state.busy=false;
+  state.allTextReady=false;
+  state.scanPromise=null;
+  state.pages=Array(state.pdf.numPages).fill('');
+  state.sheets=[];
+  state.renderQueue=Promise.resolve();
+  $('pages').replaceChildren();$('counter').textContent='';
   updateExtractedText();
-  for (const id of ['reocr', 'native', 'fit', 'fitWidth', 'zoomIn', 'zoomOut']) {
-    $(id).disabled = id === 'reocr' || id === 'native';
+  for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf']){
+    $(id).disabled=false;
   }
-  status(`${state.pdf.numPages} sayfa hazırlanıyor...`);
-  let failed = 0;
-  for (let index = 1; index <= state.pdf.numPages; index++) {
-    if (run !== state.run) return;
-    let view = null;
-    try {
-      const page = await state.pdf.getPage(index);
-      if (run !== state.run) return;
-      view = createPageView(page, index, state.pdf.numPages);
-      const ctx = view.canvas.getContext('2d', { alpha: false, willReadFrequently: true });
-      if (!ctx) throw new Error('Canvas başlatılamadı.');
-      await page.render({ canvasContext: ctx, viewport: view.viewport }).promise;
-      if (run !== state.run) return;
-      view.nativeContent = await page.getTextContent();
-      if (run !== state.run) return;
-      const textOk = await processPageText(view, forceOcr, run);
-      if (run !== state.run) return;
-      if (!textOk) failed++;
-    } catch (error) {
-      if (run !== state.run) return;
-      failed++;
-      if (view) { view.line.textContent = 'Sayfa açılamadı: ' + error.message; view.line.classList.add('error'); }
-      console.error(`Sayfa ${index} görüntülenemedi:`, error);
-      status(`Sayfa ${index} hatası: ${error.message}`, true);
+  $('totalPages').textContent='/ '+state.pdf.numPages;
+  $('pageNumber').max=String(state.pdf.numPages);
+  $('pageNumber').value='1';
+  status(state.pdf.numPages+' sayfa hazırlanıyor (görünür sayfalar önce)...');
+  state.observer=new IntersectionObserver(entries=>{
+    if(run!==state.run)return;
+    for(const entry of entries)if(entry.isIntersecting){
+      const view=state.sheets.find(v=>v.sheet===entry.target);
+      if(view)enqueuePage(view,run);
     }
-    $('counter').textContent = `${index}/${state.pdf.numPages} sayfa` + (failed ? ` • ${failed} hata` : '');
+    boundCanvasMemory();
+  },{root:$('pages'),rootMargin:'700px 0px',threshold:0.01});
+  let count=0;
+  for(let index=1;index<=state.pdf.numPages;index++){
+    if(run!==state.run)return;
+    try{
+      const page=await state.pdf.getPage(index);
+      if(run!==state.run)return;
+      createPageView(page,index,state.pdf.numPages);
+      count++;
+    }catch(error){console.error('Sayfa kabuğu:',index,error);}
+    if(index%12===0)await new Promise(resolve=>setTimeout(resolve,0));
   }
-  if (run === state.run) {
-    state.busy = false;
-    for (const view of state.sheets) updatePageButtons(view);
-    $('reocr').disabled = $('native').disabled = false;
-    status(failed
-      ? `İşlem tamamlandı; ${failed} sayfa hatalı. Hataları kontrol et.`
-      : (forceOcr
-          ? 'Zorunlu OCR tamamlandı. PDF metnine dönmek için "PDF metnini kullan" seç.'
-          : 'Tamamlandı. Hazır metin korundu; gerektiğinde yalnız bir sayfaya OCR yapabilirsin.'));
+  if(run===state.run){
+    viewerTools.refresh();
+    $('counter').textContent=count+'/'+state.pdf.numPages+' sayfa hazır';
+    status('PDF açıldı. Görünen sayfalar yükleniyor; tüm sayfalar için "Tüm metni hazırla" kullanılabilir.');
+    if(state.sheets[0])enqueuePage(state.sheets[0],run);
   }
 }
 

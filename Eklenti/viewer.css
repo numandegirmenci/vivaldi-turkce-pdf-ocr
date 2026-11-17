@@ -39,3 +39,19 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 
 .zoom-controls button[aria-pressed="true"]{border-color:#2e93c7;background:#e4f4ff}
 @media(max-width:530px){.sheet-title{flex-wrap:wrap}.zoom-controls{flex-wrap:wrap;white-space:normal}}
+
+/* v0.4.0: arama, sayfa gezgini ve kontrollü OCR */
+.viewer-nav{display:flex;align-items:center;gap:6px}
+.viewer-nav input{width:63px;padding:4px;border:1px solid #bfd3df;border-radius:6px}
+.search-bar{display:flex;flex-direction:column;gap:5px;border-bottom:1px solid #d7e2eb;padding-bottom:8px}
+.search-bar label{font-size:12px;font-weight:700}
+.search-bar input{width:100%;padding:8px;border:1px solid #bdd4e1;border-radius:7px}
+.search-actions{display:flex;gap:5px}.search-actions button{padding:4px 7px;font-size:12px}
+.search-bar small{color:#526e81;font-size:11px}
+.ocr-options{display:flex;flex-wrap:wrap;gap:7px;padding-bottom:8px;border-bottom:1px solid #d7e2eb}
+.ocr-options label{font-size:11px}.ocr-options button{font-size:11px;padding:4px 7px}
+.search-layer{position:absolute;inset:0;pointer-events:none;z-index:3}
+.search-layer span{position:absolute;display:block;background:#fde0478a;border:1px solid #eab30888}
+.sheet.search-page{outline:2px solid #f0bf3c}
+#pages{overflow-anchor:none}
+@media(max-width:1000px){main{grid-template-columns:minmax(0,1fr) 280px}.actions button{font-size:12px}}
