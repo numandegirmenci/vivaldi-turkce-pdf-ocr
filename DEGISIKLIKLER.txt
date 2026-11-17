@@ -12,3 +12,12 @@
 - 11 birim testi ve kontrollü tarayıcı arayüz simülasyonu
 
 NOT: Hızlı ZIP sadece değişen kaynakları taşır, Eklenti/vendor korunmalıdır.
+
+0.4.0 - Toplu özellik sürümü
+---------------------------
+- Varsayılan genişlik modu
+- PDF içinde arama, kısayollar, sayfa numarası, döndürme
+- Uzun belgelerde görünür sayfaları sırayla işleme / sınırlı canvas belleği
+- Form/tablo OCR modu ve kelime koordinatlarından satır/tablo çıkarımı
+- Türkçe font ile orijinali bozmadan yeni aranabilir PDF oluşturma
+- Windows güncelleme yardımcısı ve daha kapsamlı CI

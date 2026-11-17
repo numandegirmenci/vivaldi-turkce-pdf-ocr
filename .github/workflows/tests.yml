@@ -20,3 +20,7 @@ jobs:
           node-version: '22'
       - name: Birim ve görünüm testleri
         run: npm test
+      - name: Dağıtım dosyalarını hazırla
+        run: npm run build
+      - name: Gerçek PDF ve Türkçe font entegrasyon testleri
+        run: npm test

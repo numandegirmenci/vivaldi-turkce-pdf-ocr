@@ -20,3 +20,15 @@ Aşağıdaki maddeler tamamlanana kadar Chrome, Edge veya Brave için **doğrula
 - [ ] Üçüncü taraf lisans metinleri ve bildirimleri dağıtım paketine eklendi.
 - [ ] Mağaza adı, simgesi, açıklaması, ekran görüntüleri ve destek adresi hazır.
 - [ ] Store incelemesinde onay garantisi olmadığı belirtildi.
+
+## v0.4.0 için ek gerçek tarayıcı testleri (yayından önce)
+- [ ] Vivaldi'de 1 sayfa ve 100+ sayfa PDF yükle; ilk görüntü **Genişlik** modunda olsun.
+- [ ] 100+ sayfa belgedeki uzak sayfaya git ve geri dön; boş görüntü olmamalı.
+- [ ] Ctrl+F / F3 / Shift+F3 araması ve sarı vurguları normal, taranmış PDF üzerinde dene.
+- [ ] Gelişmiş OCR'yi formlarda dene ve düz OCR ile sonuçları karşılaştır.
+- [ ] Tablo içindeki hücre aralıklarını **Sütunları koruyarak kopyala** ile kontrol et.
+- [ ] 90 derece döndürüp yazıyı seçme ve başka sayfaya geçmeyi kontrol et.
+- [ ] Türkçe karakter içeren taranmış PDF'yi **Aranabilir PDF** olarak kaydet, aç, içinde Ctrl+F ile arama yap.
+- [ ] OCR katmanlı eski PDF'de metnin yeniden OCR ile bozulmadığını kontrol et.
+- [ ] Windows KOLAY_GUNCELLE.cmd yedek ve dosya kopyalama işlemini gerçek kurulumda dene.
+- [ ] Dijital imzalı PDF'de orijinal dosyanın hiç değişmediğini kontrol et.

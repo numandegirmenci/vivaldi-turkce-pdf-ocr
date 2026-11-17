@@ -35,6 +35,9 @@ jobs:
       - name: Eklenti ve Turkce OCR modelini hazirla
         run: npm run build
 
+      - name: Aranabilir PDF entegrasyon testlerini de calistir
+        run: npm test
+
       - name: Surumu ve paket icerigini dogrula
         id: version
         shell: bash

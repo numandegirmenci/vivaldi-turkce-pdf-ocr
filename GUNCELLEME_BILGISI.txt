@@ -1,15 +1,17 @@
-TÜRKÇE PDF OCR (CHROMIUM) v0.3.2 - GÜNCELLEME
-============================================
+TÜRKÇE PDF OCR (CHROMIUM) v0.4.0 - TOPLU GÜNCELLEME
+=================================================
 
-1) GitHub Releases sayfasındaki Turkce-PDF-OCR-Chromium-v0.3.2.zip paketini indir.
-2) ZIP'i sabit bir klasöre çıkar.
-3) Eklenti klasörünün TÜM içeriğini (vendor dahil) eski kurulumdaki AYNI Eklenti klasörüne kopyala; üzerine yaz.
-4) Vivaldi: vivaldi://extensions | Chrome: chrome://extensions | Edge: edge://extensions | Brave: brave://extensions
-5) Eklenti kartındaki YENİDEN YÜKLE düğmesine bas. İkinci kopya yükleme.
-6) Açık PDF sekmesini kapat, PDF'yi yeniden aç. Genişlik modu artık varsayılan olacak.
+YENİ PAKET
+1) GitHub Releases sayfasından Turkce-PDF-OCR-Chromium-v0.4.0.zip indir.
+2) ZIP'i sabit klasöre çıkar.
+3) İlk kurulum: vivaldi://extensions > Geliştirici modu > Paketlenmemiş öğe yükle > Eklenti klasörü.
+4) Mevcut kurulum: Aynı Eklenti klasörünü (vendor dahil) üzerine yazarak güncelle.
+5) Vivaldi eklenti sayfasında Yeniden yükle düğmesine bas; PDF sekmesini yeniden aç.
 
-NOTLAR:
-- PDF'ler artık varsayılan olarak genişliğe sığdırılır; gerektiğinde Tam sayfa'ya basabilirsin.
-- PDF metnini koruma ve yalnız gerektiğinde sayfa bazlı OCR davranışı değişmedi.
-- Chrome, Edge ve Brave için gerçek tarayıcı uçtan uca testi henüz tamamlanmamıştır.
-- Tablolar ve resmî evraklardaki kritik verileri daima orijinal PDF ile kontrol et.
+DAHA SONRA KOLAY GÜNCELLEME (WINDOWS)
+- Eklenti klasörünün yanında KOLAY_GUNCELLE.cmd dosyasını çalıştır.
+- Script, son GitHub Releases paketini indirir, mevcut Eklenti klasörünü yedekler ve dosyaları günceller.
+- Son adım Vivaldi'de Yeniden yükle düğmesine basmaktır. Gerçek otomatik güncelleme DEĞİLDİR.
+
+DİKKAT: İmzalı PDF'den oluşturulan yeni aranabilir PDF imzayı geçersiz kılabilir.
+Kritik belge verilerini OCR sonrasında orijinal belgeyle karşılaştır.
