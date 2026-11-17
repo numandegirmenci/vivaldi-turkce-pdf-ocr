@@ -10,6 +10,8 @@
     <div class="actions">
       <button id="choose">📂 PDF seç</button>
       <button id="copyAll" disabled>📋 Tüm metni kopyala</button>
+      <button id="scanAll" disabled title="Sayfalardaki metni tara; metinsiz sayfalara OCR uygula">⚡ Tüm metni hazırla</button>
+      <button id="exportPdf" disabled title="Orijinal PDF üzerine görünmez seçilebilir OCR metni ekleyerek yeni PDF kaydet">💾 Aranabilir PDF</button>
       <button id="native" disabled title="PDF içinde yazı varsa korur; sadece metinsiz sayfalara OCR uygular">↶ PDF metnini kullan</button>
       <button id="reocr" disabled title="Mevcut OCR metnini yanlış okuyabileceğinden sadece gerekiyorsa kullan">↻ Zorla OCR</button>
       <a id="original" target="_blank" rel="noreferrer" hidden>Orijinal PDF</a>
@@ -18,12 +20,17 @@
   <div class="status-bar"><span id="status">PDF seçebilir veya bağlantıdan açabilirsin.</span><span id="counter"></span></div>
   <main>
     <section class="page-panel">
-      <div class="page-toolbar"><span>Görüntüleme</span><div class="zoom-controls"><button id="zoomOut" disabled title="Küçült">−</button><button id="fit" disabled aria-pressed="false" title="Tüm sayfayı ekrana sığdır">Tam sayfa</button><button id="fitWidth" disabled aria-pressed="true" title="Sayfayı genişliğe sığdır">Genişlik</button><button id="zoomIn" disabled title="Büyüt">+</button><span id="zoomLabel">Genişliğe sığdır</span></div></div>
+      <div class="page-toolbar"><div class="viewer-nav"><span>Görüntüleme</span> <input id="pageNumber" type="number" min="1" value="1" title="Sayfa numarası" aria-label="Sayfa numarası"><span id="totalPages">/ 0</span><button id="goPage" title="Belirtilen sayfaya git">Git</button></div><div class="zoom-controls"><button id="zoomOut" disabled title="Küçült">−</button><button id="fit" disabled aria-pressed="false" title="Tüm sayfayı ekrana sığdır">Tam sayfa</button><button id="fitWidth" disabled aria-pressed="true" title="Sayfayı genişliğe sığdır">Genişlik</button><button id="zoomIn" disabled title="Büyüt">+</button><span id="zoomLabel">Genişliğe sığdır</span></div></div>
       <div id="pages"><div class="empty">PDF açıldığında sayfa otomatik genişliğe sığdırılır; devamını görmek için aşağı kaydırabilirsin. PDF'nin kendi seçilebilir metni varsa bozulmadan korunur.<br><br><b>Sayfada yazıyı seçip Ctrl+C ile kopyalayabilirsin.</b></div></div>
     </section>
-    <aside><div class="side-head"><strong>Çıkarılan metin</strong><button id="copyOne">Kopyala</button></div><textarea id="text" spellcheck="false" placeholder="PDF metni burada görünür. Buradan Ctrl+A / Ctrl+C yapabilirsin."></textarea><p class="hint">Varsayılan: Hazır PDF/OCR katmanını kullan, yalnızca yazısız sayfalara OCR yap. <b>Zorla OCR</b> mevcut metnin doğruluğunu azaltabilir. Tablo içeren karma sayfalarda "Bu sayfaya OCR" ile yalnız o sayfayı yeniden okuyabilirsin; OCR doğru olmayabilir.</p></aside>
+    <aside>
+      <div class="search-bar"><label for="searchInput">PDF içinde ara</label><input id="searchInput" type="search" placeholder="Ctrl+F ile ara"><div class="search-actions"><button id="searchPrevious" title="Önceki sonuç">↑</button><button id="searchNext" title="Sonraki sonuç">↓</button><button id="searchAll" title="Taranmış sayfaları da OCR ile ara">Tüm sayfalarda ara</button></div><small id="searchInfo">Ctrl+F: Ara</small></div>
+      <div class="ocr-options"><label><input id="ocrQuality" type="checkbox"> Form/tablo için gelişmiş OCR (seçimli)</label><button id="copyTable">Sütunları koruyarak kopyala</button></div>
+      <div class="side-head"><strong>Çıkarılan metin</strong><button id="copyOne">Kopyala</button></div><textarea id="text" spellcheck="false" placeholder="PDF metni burada görünür. Buradan Ctrl+A / Ctrl+C yapabilirsin."></textarea><p class="hint"><b>Kısayollar:</b> Ctrl+F ara, F3 sonraki, J/K sayfa, +/- yakınlaştır, 0 genişlik, 1 tam sayfa, Ctrl+S aranabilir PDF. PDF'deki seçili metni Ctrl+C ile kopyalayabilirsin.<br><br><b>Not:</b> Tüm metni hazırlama büyük taranmış belgelerde zaman alabilir. Aranabilir PDF yeni bir dosya olarak oluşturulur; dijital imzalar geçersiz olabilir.<br><br>Varsayılan: Hazır PDF/OCR katmanını kullan, yalnızca yazısız sayfalara OCR yap. <b>Zorla OCR</b> mevcut metnin doğruluğunu azaltabilir. Tablo içeren karma sayfalarda "Bu sayfaya OCR" ile yalnız o sayfayı yeniden okuyabilirsin; OCR doğru olmayabilir.</p></aside>
   </main>
   <input id="file" type="file" accept="application/pdf,.pdf" hidden>
-  <script src="vendor/tesseract.min.js"></script><script type="module" src="viewer.js"></script>
+  <script src="vendor/tesseract.min.js"></script>
+  <script src="vendor/pdf-lib.min.js"></script>
+  <script src="vendor/fontkit.umd.min.js"></script><script type="module" src="viewer.js"></script>
 </body>
 </html>
