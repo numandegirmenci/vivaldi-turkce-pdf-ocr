@@ -108,3 +108,61 @@ export function collectOcrWords(data) {
   }
   return words;
 }
+
+
+/** Tesseract kutularından satır ve hücre boşluklarını koruyan metin oluştur. */
+export function formatOcrWords(words) {
+  const valid = (words || []).filter(w => w?.text?.trim() && w.bbox &&
+    [w.bbox.x0,w.bbox.y0,w.bbox.x1,w.bbox.y1].every(Number.isFinite) &&
+    w.bbox.x1>w.bbox.x0 && w.bbox.y1>w.bbox.y0);
+  if (!valid.length) return '';
+  const median = values => {
+    const sorted = [...values].sort((a,b)=>a-b);
+    return sorted[Math.floor(sorted.length/2)];
+  };
+  const medianH = median(valid.map(w=>w.bbox.y1-w.bbox.y0));
+  const rows=[];
+  for (const w of [...valid].sort((a,b)=>(a.bbox.y0+a.bbox.y1)-(b.bbox.y0+b.bbox.y1) || a.bbox.x0-b.bbox.x0)) {
+    const center=(w.bbox.y0+w.bbox.y1)/2;
+    const row=rows.find(r=>Math.abs(r.center-center)<medianH*.55);
+    if (row) {
+      row.words.push(w);
+      row.center=(row.center*(row.words.length-1)+center)/row.words.length;
+    } else rows.push({center,words:[w]});
+  }
+  return rows.sort((a,b)=>a.center-b.center).map(row=>{
+    const sorted=row.words.sort((a,b)=>a.bbox.x0-b.bbox.x0);
+    const charWidth=median(sorted.map(w=>(w.bbox.x1-w.bbox.x0)/Math.max(1,[...w.text].length)));
+    let out='',previous=null;
+    for(const word of sorted){
+      if(previous){
+        const gap=word.bbox.x0-previous.bbox.x1;
+        out += gap>charWidth*3 ? '\t' : ' ';
+      }
+      out+=word.text.trim();
+      previous=word;
+    }
+    return out;
+  }).join('\n');
+}
+
+/** Türkçe büyük/küçük harflerle sayfa bazında güvenli düz metin araması. */
+export function findTextMatches(pages, query, maxResults=1000) {
+  const needle=String(query||'').trim().toLocaleLowerCase('tr-TR');
+  if (!needle) return [];
+  const result=[];
+  for(let i=0;i<pages.length;i++){
+    const text=String(pages[i]||'');
+    const lower=text.toLocaleLowerCase('tr-TR');
+    let from=0;
+    while(from<lower.length && result.length<maxResults){
+      const at=lower.indexOf(needle,from);
+      if(at<0)break;
+      const snippet=text.slice(Math.max(0,at-40),Math.min(text.length,at+needle.length+50)).replace(/\s+/g,' ');
+      result.push({page:i+1,offset:at,snippet});
+      from=at+Math.max(1,needle.length);
+    }
+    if(result.length>=maxResults)break;
+  }
+  return result;
+}
