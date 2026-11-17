@@ -355,6 +355,7 @@ async function saveSearchablePdf(){
   $('exportPdf').disabled=true;
   try{
     await scanAll(false);
+    if(!state.allTextReady)throw new Error('Bazı sayfalar işlenemedi; eksik aranabilir PDF oluşturulmadı.');
     const result=await createSearchablePdf(state.sourceBytes,state.sheets,msg=>status(msg));
     const filename=saveBytesAsPdf(result.bytes,state.sourceName);
     status(filename+' kaydedildi • '+result.count+' OCR kelimesi eklendi.');
