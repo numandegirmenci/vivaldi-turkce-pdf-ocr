@@ -1,15 +1,15 @@
-TÜRKÇE PDF OCR (CHROMIUM) v0.3.1 - GÜNCELLEME
+TÜRKÇE PDF OCR (CHROMIUM) v0.3.2 - GÜNCELLEME
 ============================================
 
-1) GitHub Releases sayfasındaki Turkce-PDF-OCR-Chromium-v0.3.1.zip paketini indir.
+1) GitHub Releases sayfasındaki Turkce-PDF-OCR-Chromium-v0.3.2.zip paketini indir.
 2) ZIP'i sabit bir klasöre çıkar.
 3) Eklenti klasörünün TÜM içeriğini (vendor dahil) eski kurulumdaki AYNI Eklenti klasörüne kopyala; üzerine yaz.
 4) Vivaldi: vivaldi://extensions | Chrome: chrome://extensions | Edge: edge://extensions | Brave: brave://extensions
 5) Eklenti kartındaki YENİDEN YÜKLE düğmesine bas. İkinci kopya yükleme.
-6) Açık PDF sekmesini kapat, PDF'yi yeniden aç. Otomatik açılmıyorsa eklenti simgesinden PDF dosyası seç.
+6) Açık PDF sekmesini kapat, PDF'yi yeniden aç. Genişlik modu artık varsayılan olacak.
 
 NOTLAR:
-- İsim, kurulum rehberi ve dağıtım paketi ismi Chromium tabanlı tarayıcılar için güncellendi.
-- PDF işleme ve OCR algoritması 0.3.0 ile aynıdır.
-- Chrome, Edge ve Brave için uçtan uca test henüz tamamlanmamıştır.
+- PDF'ler artık varsayılan olarak genişliğe sığdırılır; gerektiğinde Tam sayfa'ya basabilirsin.
+- PDF metnini koruma ve yalnız gerektiğinde sayfa bazlı OCR davranışı değişmedi.
+- Chrome, Edge ve Brave için gerçek tarayıcı uçtan uca testi henüz tamamlanmamıştır.
 - Tablolar ve resmî evraklardaki kritik verileri daima orijinal PDF ile kontrol et.

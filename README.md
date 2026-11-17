@@ -50,7 +50,8 @@ Son sürüm ZIP'ini çıkarın. İçindeki **Eklenti** klasörünün **tüm dosy
 ## Özellikler
 
 - PDF'deki hazır metni korur; metinsiz sayfalarda Türkçe OCR uygular.
-- **Bu sayfaya OCR**, **PDF metni**, **Tam sayfa**, **Genişlik** ve büyütme/küçültme seçenekleri vardır.
+- PDF'ler varsayılan olarak **Genişlik** modunda açılır; **Tam sayfa** ve büyütme/küçültme seçenekleriyle görünümü değiştirebilirsin.
+- **Bu sayfaya OCR** ve **PDF metni** seçenekleriyle sayfa bazlı düzeltme yapılabilir.
 - PDF üzerinde metin seçimi ve yan panelden kopyalama sunar.
 - OCR yerel bilgisayarda çalışır; harici OCR servisine belge gönderilmez.
 

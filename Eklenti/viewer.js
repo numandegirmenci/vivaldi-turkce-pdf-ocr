@@ -9,7 +9,7 @@ const status = (message, bad=false) => {
 };
 const state = {
   pdf: null, pages: [], sheets: [], run: 0,
-  viewMode: 'page', zoom: 1, busy: false,
+  viewMode: 'width', zoom: 1, busy: false,
   workerPromise: null, ocrQueue: Promise.resolve(),
 };
 
@@ -283,7 +283,7 @@ async function openBytes(bytes, label) {
     const oldPdf = state.pdf;
     state.pdf = pdf;
     state.zoom = 1;
-    state.viewMode = 'page';
+    state.viewMode = 'width';
     document.title = `${label} · Türkçe PDF OCR`;
     if (oldPdf && oldPdf !== pdf) oldPdf.destroy?.().catch?.(() => {});
     await renderDocument(false);
