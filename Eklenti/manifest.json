@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Türkçe PDF OCR (Chromium)",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Chromium tarayıcıları için yerel Türkçe PDF OCR; mevcut PDF metnini korur ve sayfa bazlı OCR sunar.",
   "permissions": [
     "tabs",
