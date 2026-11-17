@@ -41,4 +41,14 @@ if (!fs.existsSync(fontOut)) {
   fs.writeFileSync(fontOut,binary);
   console.log('✓ NotoSans-Regular.ttf');
 }
+const fontLicense=path.join(dst,'Noto-OFL.txt');
+if (!fs.existsSync(fontLicense)) {
+  const licenseUrl='https://raw.githubusercontent.com/notofonts/noto-fonts/main/LICENSE';
+  const licenseResponse=await fetch(licenseUrl,{signal:AbortSignal.timeout(120000)});
+  if (!licenseResponse.ok) throw new Error('Noto Sans lisansı indirilemedi.');
+  const licenseText=await licenseResponse.text();
+  if (!licenseText.includes('SIL OPEN FONT LICENSE')) throw new Error('Noto Sans lisans metni doğrulanamadı.');
+  fs.writeFileSync(fontLicense,licenseText);
+  console.log('✓ Noto-OFL.txt');
+}
 console.log('\nHAZIR: Eklenti klasörünü tarayıcınızın uzantı sayfası > Geliştirici modu > Paketlenmemiş öğe yükle ile seç.');
