@@ -3,6 +3,11 @@ import { hasUsablePdfText, formatPdfText, collectOcrWords, getSafeRenderScale, f
 import { installViewerTools } from './viewer-tools.mjs';
 import { createSearchablePdf, saveBytesAsPdf } from './export-pdf.mjs';
 
+import {normalizeToPdf} from './document-input.mjs';
+import {prepareOcrSurface,remapOcrWords} from './ocr-quality.mjs';
+import {chooseBestOcrResult} from './ocr-ranker.mjs';
+import {installSelectionSync} from './selection-sync.mjs';
+
 pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('vendor/pdf.worker.mjs');
 const $ = id => document.getElementById(id);
 const status = (message, bad=false) => {
@@ -28,7 +33,7 @@ $('file').onchange = async event => {
   const request = ++state.run;
   try {
     const bytes = new Uint8Array(await file.arrayBuffer());
-    if (request === state.run) await openBytes(bytes, file.name);
+    if (request === state.run) await openBytes(bytes, file.name, file.type);
   } catch (err) { if (request === state.run) status('Dosya okunamadı: ' + err.message, true); }
 };
 $('copyAll').onclick = async () => { await scanAll(false); await copyText(); };
@@ -53,6 +58,8 @@ const viewerTools = installViewerTools({
   $,state,status,goToPage,scanAll,saveSearchablePdf,setZoom,applyZoom,
 });
 
+
+const selectionSync=installSelectionSync({pages:$('pages'),text:$('text'),status});
 
 async function copyText() {
   try {
@@ -115,16 +122,38 @@ async function prepareWorker() {
   return state.workerPromise;
 }
 
-function recognizeSerially(canvas, stillCurrent, enhanced=false) {
-  // Tek Tesseract worker ile iki sayfayı aynı anda recognize etmek desteklenmez.
-  const task = state.ocrQueue.then(async () => {
-    if (!stillCurrent()) return null;
-    const worker = await prepareWorker();
-    if (!stillCurrent()) return null;
-    await worker.setParameters({ tessedit_pageseg_mode: enhanced ? '11' : '3' });
-    return worker.recognize(enhanced ? improveImage(canvas) : canvas, {}, { text: true, blocks: true, tsv: true });
+function recognizeSerially(view, stillCurrent, enhanced=false) {
+  const task=state.ocrQueue.then(async()=>{
+    if(!stillCurrent())return null;
+    const worker=await prepareWorker();
+    if(!stillCurrent())return null;
+    const candidates=[],inputs=[];
+    const run=async(mode,input)=>{
+      if(!stillCurrent())return;
+      await worker.setParameters({tessedit_pageseg_mode:String(mode)});
+      const result=await worker.recognize(input.canvas,{}, {text:true,blocks:true,tsv:true});
+      if(stillCurrent())candidates.push({mode,result,input});
+    };
+    try {
+      const normal=await prepareOcrSurface(view,false); inputs.push(normal);
+      await run(3,normal);
+      if(!stillCurrent())return null;
+      const first=candidates[0]?.result?.data||{};
+      const count=collectOcrWords(first).length;
+      const confidence=Number(first.confidence)||0;
+      if(enhanced||count<18||confidence<72)await run(6,normal);
+      if(!stillCurrent())return null;
+      if(enhanced||(count<12&&confidence<70)){
+        const contrast=await prepareOcrSurface(view,true); inputs.push(contrast);
+        await run(6,contrast);
+        if(enhanced&&collectOcrWords(first).length<7)await run(11,contrast);
+      }
+      if(!stillCurrent())return null;
+      const best=chooseBestOcrResult(candidates,collectOcrWords);
+      return {data:best.result.data,scaleX:best.input.scaleX,scaleY:best.input.scaleY};
+    } finally {for(const input of inputs)input.dispose();}
   });
-  state.ocrQueue = task.catch(() => {});
+  state.ocrQueue=task.catch(()=>{});
   return task;
 }
 
@@ -405,15 +434,15 @@ async function processPageText(view, forceOcr, run) {
     } else {
       view.line.textContent = forceOcr ? 'Bu sayfaya Türkçe OCR uygulanıyor...' : 'Metinsiz sayfaya OCR uygulanıyor...';
       const enhanced=$('ocrQuality').checked;
-      const response = await recognizeSerially(view.canvas, isCurrent, enhanced);
+      const response = await recognizeSerially(view, isCurrent, enhanced);
       if (!isCurrent() || !response) return;
       const data = response.data || {};
-      const words=collectOcrWords(data);
+      const words=remapOcrWords(collectOcrWords(data),response.scaleX||1,response.scaleY||1);
       pageText = formatOcrWords(words) || (data.text || '').trim();
       view.words=words;
       view.textSource='ocr';
       // Seçilebilir sözcük alanı yalnızca OCR tamamlanınca oluşturulur.
-      const result = addWordsLayer(view.surface, data, view.canvas.width, view.canvas.height);
+      const result = addWordsLayer(view.surface, {words}, view.canvas.width, view.canvas.height);
       newLayer = result.layer;
       message = result.count
         ? `OCR tamamlandı: ${result.count} seçilebilir sözcük.`
@@ -453,23 +482,22 @@ async function processPageText(view, forceOcr, run) {
   }
 }
 
-async function openBytes(bytes, label) {
+async function openBytes(bytes, label, mime="") {
   const openRun = ++state.run;
   try {
-    if (!bytes?.length || String.fromCharCode(...bytes.slice(0, 5)) !== '%PDF-') {
-      throw new Error('Geçerli PDF bulunamadı; bağlantı bir giriş ekranına yönlenmiş olabilir.');
-    }
-    const pdf = await pdfjs.getDocument({ data: bytes.slice() }).promise;
+    const converted=await normalizeToPdf(bytes,label,mime);
+    if(openRun!==state.run)return;
+    const pdf=await pdfjs.getDocument({data:converted.bytes.slice()}).promise;
     if (openRun !== state.run) { pdf.destroy?.(); return; }
     const oldPdf = state.pdf;
     state.pdf = pdf;
-    state.sourceBytes=bytes;
-    state.sourceName=label;
+    state.sourceBytes=converted.bytes;
+    state.sourceName=converted.filename;
     state.zoom = 1;
     state.viewMode = 'width';
     document.title = `${label} · Türkçe PDF OCR`;
     if (oldPdf && oldPdf !== pdf) oldPdf.destroy?.().catch?.(() => {});
-    await renderDocument();
+    selectionSync.clear(); await renderDocument();
   } catch (err) {
     if (openRun === state.run) status('Açılamadı: ' + err.message, true);
     console.error('PDF açma:', err);
@@ -535,7 +563,7 @@ async function loadSource(url) {
     if (!resp.ok) throw new Error(`PDF alınamadı (HTTP ${resp.status}). "PDF seç" kullanabilirsin.`);
     const bytes = new Uint8Array(await resp.arrayBuffer());
     if (request !== state.run) return; // Kullanıcı bu sırada başka PDF seçtiyse silme.
-    await openBytes(bytes, new URL(url).pathname.split('/').pop() || 'PDF');
+    await openBytes(bytes, new URL(url).pathname.split('/').pop() || 'PDF', resp.headers.get('content-type')||'');
   } catch (error) { if (request === state.run) throw error; }
 }
 async function loadWhatsappTransfer(id) {
@@ -560,7 +588,7 @@ async function loadWhatsappTransfer(id) {
       status('WhatsApp PDF hazırlanıyor: %'+Math.round(position*100/meta.size));
     }
     if(position!==meta.size)throw new Error('PDF eksik geldi.');
-    await openBytes(bytes,meta.name||'WhatsApp.pdf');
+    await openBytes(bytes,meta.name||'WhatsApp.pdf',meta.mime||'');
   } catch(error){
     status('WhatsApp PDF açılamadı: '+error.message+' • WhatsApp\'tan indirip PDF seç ile açabilirsin.',true);
   } finally {

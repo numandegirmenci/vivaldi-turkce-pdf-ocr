@@ -52,14 +52,11 @@ Aşağıdaki maddeler tamamlanana kadar Chrome, Edge veya Brave için **doğrula
 - [ ] WhatsApp sekmesini yenile, eski PDF bellekte tutulmamalı.
 - [ ] Normal PDF indir / aç tıklamaları engellenmemeli veya çoğalmamalı.
 
-## v0.5.8 gerçek kullanım kontrolü
-- [ ] Vivaldi WhatsApp Web'de yalnızca "Yakalamayı aç" düğmesine basıldığında **hiçbir OCR sekmesi açılmıyor**.
-- [ ] PDF A aç → OCR sekmesini kapat → PDF B aç → kapat → tekrar A; en fazla bir OCR sekmesi açılıyor.
-- [ ] Aynı anda birden çok WhatsApp Blob önizlemesi algılanırsa yanlış belge otomatik seçilmiyor.
-- [ ] Aynı belgede ücret tablosu ve sağ üst alan/değer kutusu **iki farklı tablo** gösteriliyor.
-- [ ] Ödeme/fatura belgesinde başlık içermeyen alan/değer grupları tanınıyor.
-- [ ] ':' işareti 1/3 sanıldığında tablodan koşullu temizleniyor; gerçek numara başındaki 1 silinmiyor.
-- [ ] Solda seçilen metin sağda gerçekten seçiliyor, Ctrl+C aynı karakterleri kopyalıyor.
-- [ ] Tablo hücreleri düzeltildikten sonra Excel/CSV çıkışında düzeltmeler korunuyor.
-- [ ] Kayıt ve belge mahremiyeti kontrol ediliyor; test PDF'leri kişisel veri içermiyor.
-- [ ] Hazır ZIP'in GitHub Actions üzerinden oluşturulduğu ve 0.5.8 manifest/package eşleşmesi doğrulandı.
+## v0.5.8 beta ek manuel kontroller (henüz tamamlanmadı)
+- [ ] Yakalamayı açmak tek başına OCR sekmesi oluşturmaz; PDF A, PDF B, tekrar PDF A akışında kullanıcı hareketi başına en fazla 1 OCR sekmesi açılır.
+- [ ] Yanlışlıkla açılan birden fazla PDF sekmesi olmadan WhatsApp normal çalışır.
+- [ ] Sağ üstteki tahakkuk alan/değer kutusu ve alttaki ücret tablosu 2 ayrı tablo çıkarılır.
+- [ ] Başlıksız fatura/ödeme kutuları kendi alan/değer tablosunda görülür.
+- [ ] `: ` işaretinin `1`/`3` olarak okunmasında ayraç düzelir; gerçek rakam asla kanıtsız silinmez.
+- [ ] Sol metin seçimi sağ tarafta gerçekten seçilir; tablo hücresi Excel'e kopyalanır.
+- [ ] Mevcut Tesseract v5 kullanımı ve gerçek tarayıcıda Türkçe metin karşılaştırması kontrol edilir.

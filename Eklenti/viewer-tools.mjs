@@ -1,4 +1,5 @@
 import {findTextMatches} from './text-utils.mjs';
+import {installTableTools} from './table-tools.mjs';
 
 /** Görünür sayfada PDF/Tesseract sözcüklerini sarı vurgula. */
 export function drawPageHighlights(view, query) {
@@ -107,5 +108,7 @@ export function installViewerTools({$,state,status,goToPage,scanAll,saveSearchab
       case '1':state.viewMode='page';state.zoom=1;applyZoom();break;
     }
   });
+  // This is the final click handler: table extraction replaces the old flat-text copy.
+  installTableTools({$,state,status,scanAll});
   return {refresh,paint:view=>drawPageHighlights(view,input.value)};
 }

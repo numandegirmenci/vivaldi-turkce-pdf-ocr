@@ -8,7 +8,7 @@
   <header>
     <div class="brand"><strong>PDF • Türkçe OCR</strong><small>Önce PDF metnini korur, taranan sayfalara OCR uygular.</small></div>
     <div class="actions">
-      <button id="choose">📂 PDF seç</button>
+      <button id="choose">📂 Dosya seç</button>
       <button id="copyAll" disabled>📋 Tüm metni kopyala</button>
       <button id="scanAll" disabled title="Sayfalardaki metni tara; metinsiz sayfalara OCR uygula">⚡ Tüm metni hazırla</button>
       <button id="exportPdf" disabled title="Orijinal PDF üzerine görünmez seçilebilir OCR metni ekleyerek yeni PDF kaydet">💾 Aranabilir PDF</button>
@@ -26,9 +26,9 @@
     <aside>
       <div class="search-bar"><label for="searchInput">PDF içinde ara</label><input id="searchInput" type="search" placeholder="Ctrl+F ile ara"><div class="search-actions"><button id="searchPrevious" title="Önceki sonuç">↑</button><button id="searchNext" title="Sonraki sonuç">↓</button><button id="searchAll" title="Taranmış sayfaları da OCR ile ara">Tüm sayfalarda ara</button></div><small id="searchInfo">Ctrl+F: Ara</small></div>
       <div class="ocr-options"><label><input id="ocrQuality" type="checkbox"> Form/tablo için gelişmiş OCR (seçimli)</label><button id="copyTable">Sütunları koruyarak kopyala</button></div>
-      <div class="side-head"><strong>Çıkarılan metin</strong><button id="copyOne">Kopyala</button></div><textarea id="text" spellcheck="false" placeholder="PDF metni burada görünür. Buradan Ctrl+A / Ctrl+C yapabilirsin."></textarea><p class="hint"><b>Kısayollar:</b> Ctrl+F ara, F3 sonraki, J/K sayfa, +/- yakınlaştır, 0 genişlik, 1 tam sayfa, Ctrl+S aranabilir PDF. PDF'deki seçili metni Ctrl+C ile kopyalayabilirsin.<br><br><b>Not:</b> Tüm metni hazırlama büyük taranmış belgelerde zaman alabilir. Aranabilir PDF yeni bir dosya olarak oluşturulur; dijital imzalar geçersiz olabilir.<br><br>Varsayılan: Hazır PDF/OCR katmanını kullan, yalnızca yazısız sayfalara OCR yap. <b>Zorla OCR</b> mevcut metnin doğruluğunu azaltabilir. Tablo içeren karma sayfalarda "Bu sayfaya OCR" ile yalnız o sayfayı yeniden okuyabilirsin; OCR doğru olmayabilir.</p></aside>
+      <div class="side-head"><strong>Çıkarılan metin</strong><button id="copyOne">Kopyala</button></div><textarea id="text" spellcheck="false" placeholder="PDF, resim ve belge metni burada görünür. Buradan Ctrl+A / Ctrl+C yapabilirsin."></textarea><p class="hint"><b>Kısayollar:</b> Ctrl+F ara, F3 sonraki, J/K sayfa, +/- yakınlaştır, 0 genişlik, 1 tam sayfa, Ctrl+S aranabilir PDF. PDF'deki seçili metni Ctrl+C ile kopyalayabilirsin.<br><br><b>Not:</b> Tüm metni hazırlama büyük taranmış belgelerde zaman alabilir. Aranabilir PDF yeni bir dosya olarak oluşturulur; dijital imzalar geçersiz olabilir.<br><br>Varsayılan: Hazır PDF/OCR katmanını kullan, yalnızca yazısız sayfalara OCR yap. <b>Zorla OCR</b> mevcut metnin doğruluğunu azaltabilir. Tablo içeren karma sayfalarda "Bu sayfaya OCR" ile yalnız o sayfayı yeniden okuyabilirsin; OCR doğru olmayabilir.</p></aside>
   </main>
-  <input id="file" type="file" accept="application/pdf,.pdf" hidden>
+  <input id="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.bmp,.docx,.xlsx,.pptx,.odt,.txt,.csv,.md,.log,.json,.xml,.html,.htm,.rtf,.tsv,application/pdf,image/*,text/plain" hidden>
   <script src="vendor/tesseract.min.js"></script>
   <script src="vendor/pdf-lib.min.js"></script>
   <script src="vendor/fontkit.umd.min.js"></script><script type="module" src="viewer.js"></script>
