@@ -80,8 +80,10 @@
   function captureUrl(url, name = 'WhatsApp.pdf') {
     if (!current() || !/^blob:/i.test(String(url || ''))) return;
     // Start reading *before* WhatsApp may revoke a temporary URL. Never block its click.
-    void Promise.resolve().then(() => fetch(url))
-      .then(response => {
+    let request;
+    try { request = fetch(url); }
+    catch { return; }
+    void Promise.resolve(request).then(response => {
         if (!response.ok) throw new Error('PDF bağlantısına erişilemiyor.');
         return response.blob();
       })
