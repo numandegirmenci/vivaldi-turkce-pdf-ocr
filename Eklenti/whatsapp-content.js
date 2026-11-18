@@ -7,7 +7,7 @@
 
   const CHANNEL = 'turkce-pdf-ocr-whatsapp-v1';
   const LIMIT = 32 * 1024 * 1024;
-  const CHUNK_SIZE = 96 * 1024;
+  const CHUNK_SIZE = 256 * 1024; // Fewer MV3 messages for faster PDFs
   const LAST_PDF_MS = 5 * 60 * 1000;
   let nonce = null, countdown = null, transferring = false;
   let lastPdf = null, lastPdfExpiry = null;
@@ -114,7 +114,7 @@
       for (let index = 0; index < total; index++) {
         const chunk = data.subarray(index * CHUNK_SIZE, (index+1)*CHUNK_SIZE);
         await send({ action: 'waChunk', id, index, base64: toBase64(chunk) });
-        if (index % 8 === 0 || index === total - 1)
+        if (index % 4 === 0 || index === total - 1)
           show('PDF hazırlanıyor: %' + Math.round((index+1)*100/total));
       }
       await send({ action: 'waFinish', id });
