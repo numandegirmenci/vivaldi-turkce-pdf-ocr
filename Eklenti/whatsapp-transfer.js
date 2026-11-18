@@ -61,7 +61,7 @@
     if(!validId(msg.id))throw new Error('Aktarım kimliği geçersiz.');const id=msg.id;
     if(action==='waStart'){
       if(!fromWA)throw new Error('Yalnızca WhatsApp Web destekleniyor.');
-      const size=Number(msg.size),kind=String(msg.kind||'');
+      const size=Number(msg.size),kind=String(msg.kind||(/\.pdf$/i.test(String(msg.name||''))?'pdf':''));
       if(!Number.isSafeInteger(size)||size<1||size>MAX_BYTES||!KINDS.includes(kind))throw new Error('Dosya türü veya boyutu geçersiz.');
       await cleanup();if(await get('sessions',id))throw new Error('Aktarım zaten var.');
       const name=String(msg.name||'WhatsApp').split(/[\\/]/).pop().slice(0,180);
