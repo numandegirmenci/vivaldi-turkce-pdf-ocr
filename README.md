@@ -1,11 +1,11 @@
-# Türkçe PDF OCR — Chromium tarayıcıları (v0.5.0 Beta)
+# Türkçe PDF OCR — Chromium tarayıcıları (v0.5.1 Beta)
 
 Ücretsiz, açık kaynaklı, **yerel** PDF görüntüleyici ve Türkçe OCR eklentisi. Özellikle Vivaldi hedeflenir; Chrome, Edge ve Brave deneysel olarak desteklenir.
 
 > **BETA:** Farklı Chromium sürümleri ve kurumsal PDF dosyaları üzerinde kapsamlı gerçek tarayıcı testleri tamamlanmadı. Önemli sayı, tarih, tablo ve resmî evrak verilerini orijinal PDF ile doğrulayın. OCR hataları olabilir.
 
 ## Hazır kurulum
-**[Son GitHub Release](https://github.com/numandegirmenci/vivaldi-turkce-pdf-ocr/releases/latest)** üzerinden `Turkce-PDF-OCR-Chromium-v0.5.0.zip` dosyasını indirin. Kaynak kod ZIP'i yerine **Assets** bölümündeki hazır ZIP'i kullanın; üçüncü taraf bileşenleri ve Türkçe dil modelini içerir.
+**[Son GitHub Release](https://github.com/numandegirmenci/vivaldi-turkce-pdf-ocr/releases/latest)** üzerinden `Turkce-PDF-OCR-Chromium-v0.5.1.zip` dosyasını indirin. Kaynak kod ZIP'i yerine **Assets** bölümündeki hazır ZIP'i kullanın; üçüncü taraf bileşenleri ve Türkçe dil modelini içerir.
 
 1. ZIP'i bilgisayarda **sabit bir klasöre** çıkarın.
 2. Vivaldi'de `vivaldi://extensions` (Chrome: `chrome://extensions`, Edge: `edge://extensions`, Brave: `brave://extensions`) sayfasını açın.
@@ -13,7 +13,16 @@
 4. Eklenti simgesinden **PDF dosyası seç** ya da doğrudan bir PDF bağlantısını açın.
 5. Var olan eklentiyi yeniliyorsanız ikinci bir kopya kurmayın; aynı eklenti klasörünü güncelleyin.
 
-## v0.5.0 — WhatsApp Web'deki PDF'leri kullanıcı isteğiyle açma
+## v0.5.1 — WhatsApp Web PDF yakalama ve yeniden açma (Beta)
+
+- WhatsApp'ta **📄 PDF OCR ile aç** düğmesine basın; **45 saniye** içinde PDF dosyasına tıklayın. Normal PDF önizlemesinde bir PDF blob bağlantısı bulunursa yakalanabilir. WhatsApp farklı bir gösterim kullanırsa üstteki **PDF düzenle** seçeneği PDF'yi oluşturduğunda da yakalamayı dener.
+- PDF başarıyla açıldıktan sonra WhatsApp ekranında **↻ Son PDF** düğmesi görünür. OCR sekmesini kapatmış olsanız bile aynı dosyayı **5 dakika boyunca** bu düğmeyle tekrar açabilirsiniz. WhatsApp sekmesi yenilenirse veya 5 dakika geçerse geçici kopya silinir.
+- PDF açma işlemi WhatsApp'ın normal tıklama davranışını artık geciktirmez. Açılma sırasında status mesajı gösterilir.
+- Eklenti WhatsApp sohbetlerini izlemez; yakalama yalnız açık onayla etkinleşir ve son PDF yalnız cihazın geçici belleğinde tutulur. 32 MB sınırı sürer.
+
+**Önemli:** WhatsApp Web'in bazı önizlemeleri PDF verisini tarayıcıda yakalanabilir bir Blob olarak sunmayabilir. Böyle durumlarda PDF düzenle seçeneğini deneyin; o da işe yaramazsa PDF'yi indirip eklentide PDF seç ile açın. Normal Vivaldi sekmesinde test edin; panelde betik çalışması garanti değildir.
+
+## v0.5.0 — WhatsApp entegrasyonunun ilk sürümü
 
 1. Güncellenmiş eklenti ile **Vivaldi'de WhatsApp Web** (`web.whatsapp.com`) sayfasını yenileyin.
 2. Sağ altta çıkan **📄 PDF OCR ile aç** düğmesine basın.

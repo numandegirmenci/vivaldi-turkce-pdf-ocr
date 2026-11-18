@@ -14,3 +14,6 @@ Arama, kopyalama, OCR ve aranabilir PDF oluşturma tarayıcı içinde yerel olar
 
 ## WhatsApp Web (v0.5.0)
 WhatsApp Web'deki PDF aktarımı kullanıcı tarafından etkinleştirilen kısa süreli bir işlevdir. Yalnız `web.whatsapp.com` sayfasında çalışacak içerik betikleri vardır. Mesaj ve kişi listesi okunmaz. Yalnız kullanıcı düğmeye bastıktan sonra açtığı PDF'nin ham baytları tarayıcı eklentisine geçici olarak aktarılır; OCR yerel gerçekleştirilir. Parçalar tarayıcı eklentisinin geçici IndexedDB deposundan görüntüleyiciye alınıp silinir; terk edilen aktarım verileri süre aşımıyla temizlenir. Dosyalar GitHub'a veya uygulamanın ayrı bir sunucusuna gönderilmez.
+
+## v0.5.1 son belgeyi yeniden açma
+Başarılı PDF yakalamasından sonra son dosyanın kopyası yalnız açık WhatsApp Web sekmesinin geçici belleğinde en fazla 5 dakika tutulur. Bu veri başka bir dosya veya servise otomatik kaydedilmez; sayfa yenilendiğinde veya süre dolduğunda bırakılır. Son PDF düğmesi kullanıcı isteğiyle tekrar aktarım yapar.

@@ -21,3 +21,10 @@ NOT: Hızlı ZIP sadece değişen kaynakları taşır, Eklenti/vendor korunmalı
 - Form/tablo OCR modu ve kelime koordinatlarından satır/tablo çıkarımı
 - Türkçe font ile orijinali bozmadan yeni aranabilir PDF oluşturma
 - Windows güncelleme yardımcısı ve daha kapsamlı CI
+
+0.5.1 - WhatsApp Web PDF yakalama kararliligi
+-------------------------------------------
+- Normal blob linki/iframe PDF onizleme yakalama ve dogrudan native click
+- 45 saniyelik yakalama penceresini koruma
+- 5 dakikalik gecici bellekle ayni PDF'i tek tusla yeniden acma
+- Tekrar acma, tekrar yakalama, iptal ve link birim testleri
