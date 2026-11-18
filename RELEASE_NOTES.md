@@ -1,18 +1,21 @@
-## Türkçe PDF OCR (Chromium) v0.5.1 — WhatsApp Web Hız ve Yeniden Açma Düzeltmesi (Beta)
+# Türkçe PDF OCR v0.5.8 (Beta)
 
-Bu sürüm v0.5.0 üzerindeki gerçek kullanım geri bildirimleriyle hazırlandı.
+**18 Kasım 2026**
 
-### Düzeltmeler
-- Kullanıcı 45 saniyelik PDF yakalamayı başlattığında normal PDF önizlemesi, sonradan açılan blob bağlantıları, bağlantıya normal tıklama ve üstteki **PDF düzenle** akışı için daha fazla yakalama yolu.
-- WhatsApp'ın PDF bağlantısını açma/tıklama davranışı bekletilmez; önceki sürümün gecikmeye veya iki kez tıklamaya yol açabilen kancası değiştirildi.
-- **↻ Son PDF** düğmesi: Başarıyla açılan PDF, yalnız WhatsApp Web sekmesinin belleğinde 5 dakika saklanır; OCR sekmesi kapatılsa bile tek tıkla yeniden açılabilir.
-- İkinci PDF'yi yakalamak için normal **PDF OCR ile aç** düğmesine tekrar basılabilir.
-- Tekrar yakalama, native bağlantı ve iptal durumları için testler.
+GitHub v0.5.1 tabanı üzerine yerel 0.5.2–0.5.8 geliştirmeleri birleştirilmiştir.
 
-### Güncelleme
-Releases > Assets > `Turkce-PDF-OCR-Chromium-v0.5.1.zip` paketini indirip mevcut kurulumdaki aynı **Eklenti** klasörüne tüm dosyaları (vendor dahil) kopyalayın. Vivaldi `vivaldi://extensions` ekranında **Yeniden yükle** yapın ve WhatsApp Web sekmesini yenileyin.
+### Öne çıkanlar
+- WhatsApp'ta kullanıcı tarafından başlatılan sürekli yakalama, son dosyalardan yeniden açma ve yanlış tetiklenen çoklu sekmelere karşı kontroller.
+- PDF, görüntü ve desteklenen ofis/metin belgelerini açma.
+- Sol PDF seçiminde sağda Ctrl+C yapılabilir gerçek metin seçimi ve çift yönlü hizalama.
+- Çoklu tablo ve alan–değer grubu algılama; düzenlenebilir hücre, TSV/Excel kopyalama ve CSV indirme.
+- Özellikle ': → 1 / 3' hatasında birden fazla satırdaki ayraç konumlarını dikkate alan sınırlı temizleme.
 
-### Beta sınırları
-- WhatsApp PDF dosyasını Blob olarak sunmadığında veya önizleyici yöntemini değiştirdiğinde yakalama başarısız olabilir; PDF'yi indirip **PDF seç** ile açabilirsiniz.
-- Gerçek WhatsApp Web uçtan uca tarayıcı testi yapılmalıdır.
-- Aranabilir PDF'ye metin eklenmesi, orijinal dijital imzaları geçersiz kılabilir; asıl dosyayı saklayın.
+### CMD kullanmadan güncelleme
+Releases → Assets altındaki hazır v0.5.8 ZIP'ini açın; **mevcut Eklenti klasörünün yedeğini alın**, yeni dosyaları ve `vendor` klasörünü aynı etkin klasöre yapıştırın. Vivaldi'de `vivaldi://extensions` → Yeniden yükle, WhatsApp Web'de F5.
+
+### Geri dönüş
+v0.5.7 yerel eklenti klasörünün tam yedeğini saklayın. İlgili eski tablo modülleri `snapshots/v0.5.7` altında ayrıca tutulur.
+
+### Beta uyarısı
+Gerçek Vivaldi ve canlı WhatsApp Web uçtan uca testleri tamamlanmadı. PaddleOCR entegre değil; Tesseract.js 5 kullanılır. Kritik rakamları orijinal belgeyle doğrulayın. Bazı WhatsApp belgeleri otomatik yakalanmayabilir. Yeni aranabilir PDF, eski dijital imzayı geçersiz kılabilir.

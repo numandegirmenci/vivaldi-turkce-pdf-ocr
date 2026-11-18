@@ -51,3 +51,15 @@ Aşağıdaki maddeler tamamlanana kadar Chrome, Edge veya Brave için **doğrula
 - [ ] 45 saniyeyi aş, iptal et; izin kapanınca başka belge kendiliğinden alınmamalı.
 - [ ] WhatsApp sekmesini yenile, eski PDF bellekte tutulmamalı.
 - [ ] Normal PDF indir / aç tıklamaları engellenmemeli veya çoğalmamalı.
+
+## v0.5.8 gerçek kullanım kontrolü
+- [ ] Vivaldi WhatsApp Web'de yalnızca "Yakalamayı aç" düğmesine basıldığında **hiçbir OCR sekmesi açılmıyor**.
+- [ ] PDF A aç → OCR sekmesini kapat → PDF B aç → kapat → tekrar A; en fazla bir OCR sekmesi açılıyor.
+- [ ] Aynı anda birden çok WhatsApp Blob önizlemesi algılanırsa yanlış belge otomatik seçilmiyor.
+- [ ] Aynı belgede ücret tablosu ve sağ üst alan/değer kutusu **iki farklı tablo** gösteriliyor.
+- [ ] Ödeme/fatura belgesinde başlık içermeyen alan/değer grupları tanınıyor.
+- [ ] ':' işareti 1/3 sanıldığında tablodan koşullu temizleniyor; gerçek numara başındaki 1 silinmiyor.
+- [ ] Solda seçilen metin sağda gerçekten seçiliyor, Ctrl+C aynı karakterleri kopyalıyor.
+- [ ] Tablo hücreleri düzeltildikten sonra Excel/CSV çıkışında düzeltmeler korunuyor.
+- [ ] Kayıt ve belge mahremiyeti kontrol ediliyor; test PDF'leri kişisel veri içermiyor.
+- [ ] Hazır ZIP'in GitHub Actions üzerinden oluşturulduğu ve 0.5.8 manifest/package eşleşmesi doğrulandı.

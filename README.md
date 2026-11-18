@@ -1,4 +1,4 @@
-# Türkçe PDF OCR — Chromium tarayıcıları (v0.5.1 Beta)
+# Türkçe PDF OCR — Chromium tarayıcıları (v0.5.8 Beta)
 
 Ücretsiz, açık kaynaklı, **yerel** PDF görüntüleyici ve Türkçe OCR eklentisi. Özellikle Vivaldi hedeflenir; Chrome, Edge ve Brave deneysel olarak desteklenir.
 
@@ -12,6 +12,18 @@
 3. **Geliştirici modu** → **Paketlenmemiş öğe yükle** → paket içindeki **Eklenti** klasörü.
 4. Eklenti simgesinden **PDF dosyası seç** ya da doğrudan bir PDF bağlantısını açın.
 5. Var olan eklentiyi yeniliyorsanız ikinci bir kopya kurmayın; aynı eklenti klasörünü güncelleyin.
+
+## v0.5.8 (Beta, 18 Kasım 2026) — Geliştirme paketi
+
+> Bu bölüm, v0.5.2–v0.5.8 yerel beta değişikliklerinin kaynak kodla birlikte yayınlanmasını belgeliyor. Resmi/finansal belgelerde OCR çıktısını mutlaka özgün belgeyle doğrulayın.
+
+**Yeni:** İsteğe bağlı WhatsApp yakalama, farklı PDF'leri açıp ilk dosyaya geri dönebilme, gereksiz OCR sekmelerinin açılmasına karşı tek-aktarım kontrolü, PDF dışı belgeleri açma, soldaki metnin sağda gerçek seçimi, çoklu ücret/alan-değer tablosu, Excel/CSV çıktısı ve `:` işaretinin `1`/`3` sanılmasına karşı koordinat temelli sınırlı temizleme.
+
+**Kurulum (CMD gerekmez):** GitHub Actions tarafından üretilen **v0.5.8 hazır ZIP'i** Releases → Assets bölümünden indirin; mevcut `Eklenti` klasörünün tamamını yedekleyin; yeni ZIP içindeki `Eklenti` içeriğini (vendor dahil) aynı klasörün üzerine kopyalayın; `vivaldi://extensions` → Yeniden yükle; WhatsApp Web'i F5 ile yenileyin. Hazır ZIP oluşmadan kaynak kod ZIP'ini eklenti olarak kurmayın.
+
+**OCR motoru:** Tesseract.js 5. PaddleOCR veya başka bir OCR motoruna henüz geçilmedi. Tablolar koordinatlara göre ayrıştırılır fakat her çizgi/rakam kesin ayırt edilemez.
+
+**Geri dönüş:** v0.5.7 yerel beta yedeğini saklayın. `snapshots/v0.5.7` altında önceki tablo ayırıcı dosyalarının kodu saklanacaktır; bu dosyalar tek başına tam uzantı değildir.
 
 ## v0.5.1 — WhatsApp Web PDF yakalama ve yeniden açma (Beta)
 
