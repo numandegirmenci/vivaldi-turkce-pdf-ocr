@@ -32,3 +32,12 @@ Aşağıdaki maddeler tamamlanana kadar Chrome, Edge veya Brave için **doğrula
 - [ ] OCR katmanlı eski PDF'de metnin yeniden OCR ile bozulmadığını kontrol et.
 - [ ] Windows KOLAY_GUNCELLE.cmd yedek ve dosya kopyalama işlemini gerçek kurulumda dene.
 - [ ] Dijital imzalı PDF'de orijinal dosyanın hiç değişmediğini kontrol et.
+
+## v0.5.0 WhatsApp Web gerçek kullanım testleri
+- [ ] Vivaldi normal sekmede WhatsApp Web oturumu aç, PDF OCR ile aç düğmesini gör.
+- [ ] Yan panelde WhatsApp Web açıkken düğmenin olup olmadığını kontrol et; Vivaldi sürümüne göre farklı olabilir.
+- [ ] PDF belgesine tıklamadan önce PDF OCR düğmesini etkinleştir; PDF yeni sekmeye ulaşsın.
+- [ ] Geçersiz PDF, PDF olmayan blob ve 32 MB üstü dosya için hata ve orijinal WhatsApp davranışı kontrolü.
+- [ ] Yakalamayı iptal et; daha sonraki PDF'lerin pasif olarak alınmadığını doğrula.
+- [ ] Uzun PDF aktarımında bellek ve geçici parça temizliğini kontrol et.
+- [ ] Önceden hazırlanmış seçilebilir PDF'lerde OCR katmanının bozulmadığını kontrol et.

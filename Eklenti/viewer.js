@@ -538,6 +538,39 @@ async function loadSource(url) {
     await openBytes(bytes, new URL(url).pathname.split('/').pop() || 'PDF');
   } catch (error) { if (request === state.run) throw error; }
 }
+async function loadWhatsappTransfer(id) {
+  const send=async message=>{
+    const response=await chrome.runtime.sendMessage(message);
+    if(!response?.ok)throw new Error(response?.error||'WhatsApp PDF aktarımı okunamadı.');
+    return response;
+  };
+  try{
+    status('WhatsApp PDF güvenli geçici depodan alınıyor...');
+    const meta=await send({action:'waMeta',id});
+    if(meta.size<5||meta.size>32*1024*1024||meta.count<1||meta.count>400)
+      throw new Error('Aktarım boyutu geçersiz.');
+    const bytes=new Uint8Array(meta.size);
+    let position=0;
+    for(let index=0;index<meta.count;index++){
+      const part=await send({action:'waReadChunk',id,index});
+      const raw=atob(part.base64);
+      if(position+raw.length>bytes.length)throw new Error('PDF aktarım boyutu değişti.');
+      for(let j=0;j<raw.length;j++)bytes[position+j]=raw.charCodeAt(j);
+      position+=raw.length;
+      status('WhatsApp PDF hazırlanıyor: %'+Math.round(position*100/meta.size));
+    }
+    if(position!==meta.size)throw new Error('PDF eksik geldi.');
+    await openBytes(bytes,meta.name||'WhatsApp.pdf');
+  } catch(error){
+    status('WhatsApp PDF açılamadı: '+error.message+' • WhatsApp\'tan indirip PDF seç ile açabilirsin.',true);
+  } finally {
+    try{await chrome.runtime.sendMessage({action:'waDispose',id});}catch{}
+  }
+}
+const waId = new URLSearchParams(location.search).get('wa');
+if (waId && /^[a-f0-9-]{20,80}$/i.test(waId)) {
+  loadWhatsappTransfer(waId);
+}
 const src = new URLSearchParams(location.search).get('src');
 if (src) loadSource(src).catch(error => {
   // Eski PDF isteğinin hatası, yeni açılmış belge üstüne yazılmasın.

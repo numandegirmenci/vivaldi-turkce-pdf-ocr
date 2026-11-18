@@ -20,6 +20,11 @@ jobs:
           node-version: '22'
       - name: Bagimliliklari yukle
         run: npm install --no-audit --no-fund
+      - name: WhatsApp entegrasyon JS sözdizimini doğrula
+        run: |
+          node --check Eklenti/whatsapp-page.js
+          node --check Eklenti/whatsapp-content.js
+          node --check Eklenti/whatsapp-transfer.js
       - name: Birim ve görünüm testleri
         run: npm test
       - name: Dağıtım dosyalarını hazırla

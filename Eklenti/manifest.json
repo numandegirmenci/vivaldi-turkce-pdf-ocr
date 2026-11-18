@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Türkçe PDF OCR (Chromium)",
-  "version": "0.4.0",
-  "description": "Chromium tarayıcıları için yerel Türkçe PDF OCR; mevcut PDF metnini korur ve sayfa bazlı OCR sunar.",
+  "version": "0.5.0",
+  "description": "Yerel Türkçe PDF OCR, aranabilir PDF ve kullanıcı isteğiyle WhatsApp Web PDF yakalama.",
   "permissions": [
     "tabs",
     "storage",
-    "webRequest"
+    "webRequest",
+    "alarms"
   ],
   "host_permissions": [
     "http://*/*",
@@ -22,5 +23,26 @@
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "js": [
+        "whatsapp-page.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "js": [
+        "whatsapp-content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
 }

@@ -50,3 +50,6 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     return true;
   }
 });
+
+// Only WhatsApp's user-triggered PDF bridge uses the temporary extension-origin store.
+if (typeof importScripts === 'function') importScripts('whatsapp-transfer.js');
