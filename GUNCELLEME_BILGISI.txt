@@ -1,8 +1,8 @@
-TÜRKÇE PDF OCR (CHROMIUM) v0.4.0 - TOPLU GÜNCELLEME
+TÜRKÇE PDF OCR (CHROMIUM) v0.5.0 - TOPLU GÜNCELLEME
 =================================================
 
 YENİ PAKET
-1) GitHub Releases sayfasından Turkce-PDF-OCR-Chromium-v0.4.0.zip indir.
+1) GitHub Releases sayfasından Turkce-PDF-OCR-Chromium-v0.5.0.zip indir.
 2) ZIP'i sabit klasöre çıkar.
 3) İlk kurulum: vivaldi://extensions > Geliştirici modu > Paketlenmemiş öğe yükle > Eklenti klasörü.
 4) Mevcut kurulum: Aynı Eklenti klasörünü (vendor dahil) üzerine yazarak güncelle.
@@ -15,3 +15,9 @@ DAHA SONRA KOLAY GÜNCELLEME (WINDOWS)
 
 DİKKAT: İmzalı PDF'den oluşturulan yeni aranabilir PDF imzayı geçersiz kılabilir.
 Kritik belge verilerini OCR sonrasında orijinal belgeyle karşılaştır.
+
+WHATSAPP WEB PDF YAKALAMA
+- WhatsApp Web sayfasını Vivaldi'de aç ve yenile.
+- Sağ altta PDF OCR ile aç düğmesine tıkla; 45 saniye içinde PDF belgesine tıkla.
+- Tarayıcı içi PDF yakalanırsa yeni OCR sekmesinde açılır. Yan panelde görünmezse normal sekmede dene.
+- PDF yakalanamıyorsa WhatsApp'tan indirip PDF seç ile aç.

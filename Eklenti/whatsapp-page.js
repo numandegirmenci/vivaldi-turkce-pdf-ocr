@@ -30,8 +30,10 @@
     const session = current();
     if (!session || inFlight || !(blob instanceof Blob)) return false;
     if (blob.size < 5 || blob.size > MAX_BYTES) {
-      if (blob.type.toLowerCase().includes('pdf'))
+      if (blob.type.toLowerCase().includes('pdf')) {
+        armed = null;
         send('error', session.nonce, { message: 'PDF 32 MB sınırını aşıyor. İndirip PDF seç ile aç.' });
+      }
       return false;
     }
     let head;
@@ -92,7 +94,9 @@
   window.addEventListener('message', event => {
     if (event.source !== window || event.origin !== location.origin) return;
     const msg = event.data;
-    if (msg?.channel !== CHANNEL || msg?.type !== 'arm') return;
+    if (msg?.channel !== CHANNEL) return;
+    if (msg?.type === 'cancel' && msg.nonce === armed?.nonce) { armed=null;return; }
+    if (msg?.type !== 'arm') return;
     if (typeof msg.nonce !== 'string' || !/^[0-9a-f-]{20,80}$/i.test(msg.nonce)) return;
     armed = { nonce: msg.nonce, until: Date.now() + 45000 };
     inFlight = false;

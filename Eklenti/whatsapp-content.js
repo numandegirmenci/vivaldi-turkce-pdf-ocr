@@ -45,6 +45,7 @@
   function stop() {
     if (countdown) clearTimeout(countdown);
     countdown = null;
+    if (nonce) window.postMessage({channel:CHANNEL,type:'cancel',nonce},location.origin);
     nonce = null;
     transferring = false;
     button.disabled = false;
