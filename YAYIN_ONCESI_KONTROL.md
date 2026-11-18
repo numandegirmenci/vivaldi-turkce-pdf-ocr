@@ -51,3 +51,12 @@ Aşağıdaki maddeler tamamlanana kadar Chrome, Edge veya Brave için **doğrula
 - [ ] 45 saniyeyi aş, iptal et; izin kapanınca başka belge kendiliğinden alınmamalı.
 - [ ] WhatsApp sekmesini yenile, eski PDF bellekte tutulmamalı.
 - [ ] Normal PDF indir / aç tıklamaları engellenmemeli veya çoğalmamalı.
+
+## v0.5.8 beta ek manuel kontroller (henüz tamamlanmadı)
+- [ ] Yakalamayı açmak tek başına OCR sekmesi oluşturmaz; PDF A, PDF B, tekrar PDF A akışında kullanıcı hareketi başına en fazla 1 OCR sekmesi açılır.
+- [ ] Yanlışlıkla açılan birden fazla PDF sekmesi olmadan WhatsApp normal çalışır.
+- [ ] Sağ üstteki tahakkuk alan/değer kutusu ve alttaki ücret tablosu 2 ayrı tablo çıkarılır.
+- [ ] Başlıksız fatura/ödeme kutuları kendi alan/değer tablosunda görülür.
+- [ ] `: ` işaretinin `1`/`3` olarak okunmasında ayraç düzelir; gerçek rakam asla kanıtsız silinmez.
+- [ ] Sol metin seçimi sağ tarafta gerçekten seçilir; tablo hücresi Excel'e kopyalanır.
+- [ ] Mevcut Tesseract v5 kullanımı ve gerçek tarayıcıda Türkçe metin karşılaştırması kontrol edilir.

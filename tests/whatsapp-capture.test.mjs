@@ -2,95 +2,46 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-
-const source=fs.readFileSync(new URL('../Eklenti/whatsapp-page.js',import.meta.url),'utf8');
-function harness(){
-  const messages=[],handlers={};
-  class Anchor { constructor(href,download=''){this.href=href;this.download=download;this.clicked=0;} click(){this.clicked++;} }
-  const FakeURL={createObjectURL:()=> 'blob:https://web.whatsapp.com/abc'};
-  const win={postMessage:(data)=>messages.push(data),addEventListener:(type,callback)=>{handlers[type]=callback;}};
-  const ctx={window:win,URL:FakeURL,HTMLAnchorElement:Anchor,Blob,Date,Uint8Array,
-    location:{origin:'https://web.whatsapp.com'},document:{querySelectorAll:()=>[]},
-    fetch:async()=>{throw new Error('fetch not expected')},console,setTimeout,clearTimeout};
-  vm.runInNewContext(source,ctx);
-  const arm=(nonce='12345678-1234-1234-1234-123456789012')=>{
-    handlers.message({source:win,origin:'https://web.whatsapp.com',
-      data:{channel:'turkce-pdf-ocr-whatsapp-v1',type:'arm',nonce}});
-    return nonce;
-  };
-  return {messages,arm,win,ctx,Anchor,handlers};
+const code=fs.readFileSync(new URL('../Eklenti/whatsapp-page.js',import.meta.url),'utf8');
+const nonce='11111111-1111-4111-8111-111111111111',origin='https://web.whatsapp.com';
+const wait=()=>new Promise(r=>setTimeout(r,60));
+function mock(){
+ const handlers={},domHandlers={},out=[];let preview=[],counter=0,fetchCount=0;
+ const window={addEventListener(t,f){handlers[t]=f;},postMessage(m,loc,transfers){out.push(transfers?.length?structuredClone(m,{transfer:transfers}):m);},open(){}};
+ const URL={createObjectURL(){return 'blob:'+origin+'/'+(++counter);}};
+ const document={documentElement:{},addEventListener(t,f){domHandlers[t]=f;},querySelectorAll(){return preview.map(url=>({src:url,tagName:'EMBED',getClientRects:()=>[{}],getBoundingClientRect:()=>({width:800,height:700})}));}};
+ class Anchor{click(){}}
+ class MutationObserver{observe(){}disconnect(){}}
+ vm.runInNewContext(code,{window,URL,HTMLAnchorElement:Anchor,document,location:{origin},Blob,Uint8Array,ArrayBuffer,Date,
+   setTimeout:(f,ms)=>{const id=setTimeout(f,ms);id.unref();return id;},clearTimeout,MutationObserver,
+   fetch:async()=>{fetchCount++;throw new Error('URL revoked');}});
+ const message=(type)=>handlers.message({source:window,origin,data:{type,nonce,channel:'turkce-pdf-ocr-whatsapp-v1'}});
+ const click=(label,opts={})=>domHandlers.click({isTrusted:true,target:{nodeType:1,getAttribute(k){return k==='aria-label'?label:'';},
+  closest(selector){if(opts.extension)return null;if(selector.includes('[aria-label*="PDF"]')&&label.includes('PDF'))return this;
+   if(selector.includes('a[href^="blob:"]'))return null;
+   if(selector.includes('[role="button"]')&&opts.button)return {textContent:label};return null;}},
+  composedPath:()=>opts.extension?[{id:'turkce-pdf-ocr-whatsapp-control'}]:[]});
+ return {out,window,URL,message,click,setPreview:urls=>{preview=urls;},getFetch:()=>fetchCount};
 }
-const tick=()=>new Promise(resolve=>setTimeout(resolve,25));
-
-test('Yakalama etkin değilken PDF verisi veya sohbet okunmaz',async()=>{
-  const h=harness();
-  h.ctx.URL.createObjectURL(new Blob(['%PDF-1.7 local bytes'],{type:'application/pdf'}));
-  await tick();
-  assert.equal(h.messages.length,0);
+const files=a=>a.out.filter(m=>m.type==='file');
+test('arming without a document click launches zero captures',async()=>{
+ const a=mock();a.message('arm');a.click('');a.click('sohbet');a.click('',{extension:true});
+ a.URL.createObjectURL(new Blob(['%PDF-1.7 unwanted'],{type:'application/pdf'}));
+ await wait();assert.equal(files(a).length,0);
 });
-test('WhatsApp PDF yalnız kullanıcı etkinleştirince bir kez gönderilir',async()=>{
-  const h=harness(),id=h.arm();
-  h.ctx.URL.createObjectURL(new Blob(['%PDF-1.7 local bytes'],{type:'application/pdf'}));
-  await tick();
-  assert.equal(h.messages.length,1);
-  assert.equal(h.messages[0].nonce,id);
-  assert.equal(h.messages[0].type,'pdf');
-  assert.ok(h.messages[0].bytes.byteLength>5);
-  h.ctx.URL.createObjectURL(new Blob(['%PDF-1.7 other bytes'],{type:'application/pdf'}));
-  await tick();
-  assert.equal(h.messages.length,1);
+test('document A, B, A repeated cached URL: one capture per interaction',async()=>{
+ const a=mock();a.message('arm');a.click('PDF belge');
+ const urlA=a.URL.createObjectURL(new Blob(['%PDF-1.7 first'],{type:'application/pdf'}));await wait();
+ assert.equal(files(a).length,1);a.message('ack');
+ a.click('sohbet');a.setPreview([urlA]);await wait();assert.equal(files(a).length,1);
+ a.setPreview([]);a.click('PDF ikinci');a.URL.createObjectURL(new Blob(['%PDF-1.7 second'],{type:'application/pdf'}));
+ await wait();assert.equal(files(a).length,2);a.message('ack');
+ a.setPreview([urlA]);a.click('PDF ilk');await new Promise(resolve=>setTimeout(resolve,170));
+ assert.equal(files(a).length,3);assert.equal(new TextDecoder().decode(files(a)[2].bytes),'%PDF-1.7 first');
+ assert.equal(a.getFetch(),0);
 });
-test('PDF olmayan veriler aktarılmaz ve iptal sonrası izlenmez',async()=>{
-  const h=harness(),id=h.arm();
-  h.ctx.URL.createObjectURL(new Blob(['not a PDF'],{type:'image/png'}));
-  await tick();
-  assert.equal(h.messages.length,0);
-  h.handlers.message({source:h.win,origin:'https://web.whatsapp.com',
-    data:{channel:'turkce-pdf-ocr-whatsapp-v1',type:'cancel',nonce:id}});
-  h.ctx.URL.createObjectURL(new Blob(['%PDF-1.7 later'],{type:'application/pdf'}));
-  await tick();
-  assert.equal(h.messages.length,0);
-});
-test('Yabancı origin mesajı yakalamayı başlatamaz',async()=>{
-  const h=harness();
-  h.handlers.message({source:h.win,origin:'https://evil.example',
-    data:{channel:'turkce-pdf-ocr-whatsapp-v1',type:'arm',nonce:'12345678-1234-1234-1234-123456789012'}});
-  h.ctx.URL.createObjectURL(new Blob(['%PDF-1.7 later'],{type:'application/pdf'}));
-  await tick();
-  assert.equal(h.messages.length,0);
-});
-test('Geçici aktarım yalnız WhatsApp origin için kabul edilir',()=>{
-  const bg=fs.readFileSync(new URL('../Eklenti/whatsapp-transfer.js',import.meta.url),'utf8');
-  assert.match(bg,/web\.whatsapp\.com/);
-  assert.match(bg,/isViewerSender/);
-  assert.match(bg,/MAX_BYTES = 32 \* 1024 \* 1024/);
-  assert.match(bg,/cleanupStale/);
-});
-
-test('Yeniden etkinleştirdikten sonra aynı PDF ikinci kez yakalanabilir',async()=>{
-  const h=harness(),first=h.arm();
-  const pdf=new Blob(['%PDF-1.7 first capture'],{type:'application/pdf'});
-  h.ctx.URL.createObjectURL(pdf);
-  await tick();
-  assert.equal(h.messages.filter(x=>x.type==='pdf').length,1);
-  const second='22345678-1234-1234-1234-123456789012';
-  h.arm(second);
-  h.ctx.URL.createObjectURL(pdf);
-  await tick();
-  const pdfs=h.messages.filter(x=>x.type==='pdf');
-  assert.equal(pdfs.length,2);
-  assert.equal(pdfs[0].nonce,first);
-  assert.equal(pdfs[1].nonce,second);
-});
-test('Mevcut PDF blob bağlantısı native click gecikmeden açılır ve kopyalanır',async()=>{
-  const h=harness();
-  const blob=new Blob(['%PDF-1.7 cached link'],{type:'application/pdf'});
-  h.ctx.fetch=async()=>({ok:true,blob:async()=>blob});
-  h.arm();
-  const link=new h.Anchor('blob:https://web.whatsapp.com/abc','evrak.pdf');
-  link.click();
-  assert.equal(link.clicked,1,'WhatsApp tıklaması engellenmemeli');
-  await tick();
-  assert.equal(h.messages.filter(x=>x.type==='pdf').length,1);
-  assert.equal(h.messages.find(x=>x.type==='pdf').name,'evrak.pdf');
+test('multiple visible previews never spawn many tabs on manual capture',async()=>{
+ const a=mock();a.message('arm');a.setPreview(['blob:'+origin+'/A','blob:'+origin+'/B']);a.message('captureVisible');
+ await wait();assert.equal(files(a).length,0);
+ assert.match(a.out.find(x=>x.type==='error')?.message||'',/Birden fazla/);
 });

@@ -17,3 +17,6 @@ WhatsApp Web'deki PDF aktarımı kullanıcı tarafından etkinleştirilen kısa 
 
 ## v0.5.1 son belgeyi yeniden açma
 Başarılı PDF yakalamasından sonra son dosyanın kopyası yalnız açık WhatsApp Web sekmesinin geçici belleğinde en fazla 5 dakika tutulur. Bu veri başka bir dosya veya servise otomatik kaydedilmez; sayfa yenilendiğinde veya süre dolduğunda bırakılır. Son PDF düğmesi kullanıcı isteğiyle tekrar aktarım yapar.
+
+## v0.5.8 – çoklu dosya geçmişi ve yerel ayrıştırma
+Kullanıcının etkinleştirdiği WhatsApp yakalamada son en fazla 5 dosyanın toplam en fazla 64 MB kopyası, WhatsApp sekmesinin geçici belleğinde saklanır. Sayfa yenilenince bu geçmiş silinir. Eklentinin IndexedDB aktarım parçaları, görüntüleyici aktardıktan sonra silinir; kalanlar süre aşımında temizlenir. Hiçbir sohbet metni veya kişi listesi taranmaz. Belgenin ağ kaynağından alınması gerektiğinde o kaynak sunucuyla standart tarayıcı iletişimi yapılır. Diğer OCR ve tablo işlemleri yereldir. Kurumsal/hassas belgeleri kullanıcı kontrolü olmadan paylaşmayın.

@@ -1,69 +1,36 @@
-# Türkçe PDF OCR — Chromium tarayıcıları (v0.5.1 Beta)
+# Türkçe PDF OCR — Chromium / Vivaldi (v0.5.8 Beta)
 
-Ücretsiz, açık kaynaklı, **yerel** PDF görüntüleyici ve Türkçe OCR eklentisi. Özellikle Vivaldi hedeflenir; Chrome, Edge ve Brave deneysel olarak desteklenir.
+Vivaldi öncelikli; Chrome, Edge ve Brave üzerinde deneysel kullanılabilen, yerel çalışan Türkçe PDF OCR ve belge inceleme uzantısı. **v0.5.8 beta**; gerçek WhatsApp Web/Vivaldi uçtan uca doğrulaması tamamlanmamıştır.
 
-> **BETA:** Farklı Chromium sürümleri ve kurumsal PDF dosyaları üzerinde kapsamlı gerçek tarayıcı testleri tamamlanmadı. Önemli sayı, tarih, tablo ve resmî evrak verilerini orijinal PDF ile doğrulayın. OCR hataları olabilir.
+## Kurulum — CMD gerekmez
 
-## Hazır kurulum
-**[Son GitHub Release](https://github.com/numandegirmenci/vivaldi-turkce-pdf-ocr/releases/latest)** üzerinden `Turkce-PDF-OCR-Chromium-v0.5.1.zip` dosyasını indirin. Kaynak kod ZIP'i yerine **Assets** bölümündeki hazır ZIP'i kullanın; üçüncü taraf bileşenleri ve Türkçe dil modelini içerir.
+1. [Releases](https://github.com/numandegirmenci/vivaldi-turkce-pdf-ocr/releases) sayfasındaki **v0.5.8 hazır ZIP** yayınlandıysa onu indirin. Kaynak kod ZIP'ini değil, **Assets** altındaki `Turkce-PDF-OCR-Chromium-v0.5.8.zip` dosyasını kullanın. Otomatik Release başarılı olmadan bağlantıyı hazır saymayın.
+2. ZIP'i sabit bir klasöre çıkarın. Eski `Eklenti` klasörünü önce **yedekleyin**.
+3. Daha önce kurulmuş uzantı varsa yeni `Eklenti` içeriğini (özellikle `vendor` klasörü dahil) aynı etkin klasörün üzerine **Ctrl+C / Ctrl+V** ile kopyalayın; eski klasörü silmeyin.
+4. `vivaldi://extensions` adresinde **Yeniden yükle** düğmesine basın ve WhatsApp Web sekmesini F5 ile yenileyin. İlk kez kuruyorsanız **Geliştirici modu → Paketlenmemiş öğe yükle → Eklenti** yolunu izleyin.
 
-1. ZIP'i bilgisayarda **sabit bir klasöre** çıkarın.
-2. Vivaldi'de `vivaldi://extensions` (Chrome: `chrome://extensions`, Edge: `edge://extensions`, Brave: `brave://extensions`) sayfasını açın.
-3. **Geliştirici modu** → **Paketlenmemiş öğe yükle** → paket içindeki **Eklenti** klasörü.
-4. Eklenti simgesinden **PDF dosyası seç** ya da doğrudan bir PDF bağlantısını açın.
-5. Var olan eklentiyi yeniliyorsanız ikinci bir kopya kurmayın; aynı eklenti klasörünü güncelleyin.
+> Kaynak koddan kurmak isteyenler için `npm install && npm run build` gerekir. Hazır dağıtım ZIP'i kullanıldığında CMD/PowerShell veya Node.js gerekmez. GitHub kaynak kod deposundaki `Eklenti/vendor` dosyaları derleme aşamasında hazırlanır.
 
-## v0.5.1 — WhatsApp Web PDF yakalama ve yeniden açma (Beta)
+## Özellikler
 
-- WhatsApp'ta **📄 PDF OCR ile aç** düğmesine basın; **45 saniye** içinde PDF dosyasına tıklayın. Normal PDF önizlemesinde bir PDF blob bağlantısı bulunursa yakalanabilir. WhatsApp farklı bir gösterim kullanırsa üstteki **PDF düzenle** seçeneği PDF'yi oluşturduğunda da yakalamayı dener.
-- PDF başarıyla açıldıktan sonra WhatsApp ekranında **↻ Son PDF** düğmesi görünür. OCR sekmesini kapatmış olsanız bile aynı dosyayı **5 dakika boyunca** bu düğmeyle tekrar açabilirsiniz. WhatsApp sekmesi yenilenirse veya 5 dakika geçerse geçici kopya silinir.
-- PDF açma işlemi WhatsApp'ın normal tıklama davranışını artık geciktirmez. Açılma sırasında status mesajı gösterilir.
-- Eklenti WhatsApp sohbetlerini izlemez; yakalama yalnız açık onayla etkinleşir ve son PDF yalnız cihazın geçici belleğinde tutulur. 32 MB sınırı sürer.
+- **Türkçe OCR ve PDF:** PDF.js ile mevcut PDF yazı katmanını koruma; yazısız sayfalara Tesseract.js 5 OCR. Zayıf OCR sonucunda PSM 3/6 ve gerektiğinde kontrast denemeleri; alternatif OCR motoru **henüz entegre değildir**.
+- **Seçim eşitleme:** Sol PDF'de metin seçildiğinde sağ metin alanında aynı karakter aralığı gerçekten seçilir ve Ctrl+C ile kopyalanabilir. OCR farkı varsa orijinal seçim ayrıca gösterilir. Sağdaki seçim ilgili PDF sayfasına yönlenir.
+- **Çoklu tablo:** Aynı sayfada birden fazla ücret tablosu ve alan/değer kutusunu ayrı kartlarda gösterme; hücre düzenleme, Excel'e TSV kopyalama, CSV indirme.
+- **Ayraç hatası:** `:` işaretinin OCR tarafından `1`, `3`, `I` veya `|` gibi okunmasını, yalnız birden fazla alanın geometrik kanıt sunduğu konumlarda tablonun hücresinde temizleme. **OCR metninin orijinali değiştirilmez; gerçek rakamlar rastgele silinmez.**
+- **WhatsApp Web:** Yalnız kullanıcı etkinleştirince WhatsApp Web PDF/belge yakalama; yakalama açıkken normal sohbeti taramaz. Bir etkileşim için tek aktarım; otomatik yakalama başarısızsa **Açık PDF önizlemesini yakala** veya **Dosyadan seç**. Son dosyalar geçici sekme belleğinde tutulur.
+- **Dosya türleri:** PDF, PNG/JPEG/WebP/GIF/BMP, DOCX, XLSX, PPTX, ODT, TXT, CSV/TSV, MD/LOG, JSON/XML/HTML, RTF. Word/Excel/PowerPoint dosyalarında biçim birebir korunmayabilir; eski DOC/XLS ve şifreli dosyalar desteklenmez.
+- **Arama ve dışa aktarma:** Ctrl+F, F3, görünür sayfa tabanlı yükleme, sayfa gezgini, yakınlaştırma, döndürme, aranabilir PDF kaydetme. Dijital imzalar yeni PDF'de geçersiz olabilir.
 
-**Önemli:** WhatsApp Web'in bazı önizlemeleri PDF verisini tarayıcıda yakalanabilir bir Blob olarak sunmayabilir. Böyle durumlarda PDF düzenle seçeneğini deneyin; o da işe yaramazsa PDF'yi indirip eklentide PDF seç ile açın. Normal Vivaldi sekmesinde test edin; panelde betik çalışması garanti değildir.
+## Sorun giderme
 
-## v0.5.0 — WhatsApp entegrasyonunun ilk sürümü
+- **WhatsApp OCR sekmesi açılmadı:** WhatsApp farklı belge gösterimi kullanıyor olabilir. Açık PDF önizlemesi düğmesini veya belgeyi indirip **Dosyadan seç** seçeneğini kullanın.
+- **Çok sayıda OCR sekmesi:** Eklentiyi yeniden yükleyip WhatsApp sekmesini de F5 ile yenileyin; eski OCR sekmelerini kapatın. Sorun devam ederse raporlayın; canlı entegrasyon doğrulanmış değildir.
+- **Tablo bulunamadı / yanlış rakam:** Form/tablo OCR seçeneğini açıp ilgili sayfaya OCR uygulayın. Yanlış hücreleri elle düzeltin; ödeme tutarı, IBAN, tarihler ve sicil numaralarını orijinal belgeyle karşılaştırın.
+- **Yeniden sürüme dönme:** Önce kurulu `Eklenti` klasörünüzün yedeğine dönün. `snapshots/v0.5.7/` altında önceki ayraç ayrıştırıcısının kodu saklanır; v0.5.7'ye tam dönüş için elinizdeki önceki kurulumu kullanın.
 
-1. Güncellenmiş eklenti ile **Vivaldi'de WhatsApp Web** (`web.whatsapp.com`) sayfasını yenileyin.
-2. Sağ altta çıkan **📄 PDF OCR ile aç** düğmesine basın.
-3. **45 saniye içinde** sohbetinizdeki PDF belgesine tıklayın. Eklenti, PDF veri akışı tarayıcıda mevcutsa dosyayı indirmeden OCR görüntüleyicisine aktarmayı dener.
-4. Başarılı olursa PDF yeni bir Vivaldi sekmesinde, **Genişlik** modunda açılır.
-5. WhatsApp arayüzü değişirse veya PDF farklı bir biçimde aktarılırsa yakalama mümkün olmayabilir; bu durumda WhatsApp'tan PDF'yi indirip **PDF seç** ile açın.
+## Geliştirici
 
-**Gizlilik:** Eklenti mesaj içeriğini veya kişi listesini okumaz. PDF yakalamayı yalnız sizin düğmeye bastığınız 45 saniyelik pencerede dener. Dosya aktarımı yalnız cihazınız içinde gerçekleşir; geçici aktarım parçaları tarayıcı eklentisinin yerel deposunda en fazla 10 dakika tutulur ve dosya açılınca silinir. Bu özellik isteğe bağlıdır; otomatik sohbet taraması yapılmaz.
-
-**Sınır:** WhatsApp Web'i Vivaldi'nin yan panelinde açtıysanız, tarayıcının eklenti betiklerini web paneline enjekte etmesine bağlı olarak düğme görünmeyebilir. Böyle olursa WhatsApp Web'i normal Vivaldi sekmesinde açarak deneyin.
-
-## v0.4.0 — Önceki sürümden gelen özellikler
-
-- **Varsayılan Genişlik modu:** Açılan PDF görüntüleme alanına enlemesine sığar. İsterseniz **Tam sayfa** kullanabilirsiniz.
-- **PDF'de arama:** Ctrl+F ile arama, F3 / Shift+F3 ile sonuç gezme, eşleşen sayfalarda sarı işaretler. Tarama PDF'lerinin tamamında aramak için **Tüm sayfalarda ara** düğmesini kullanın.
-- **Yüksek sayfalı belgeler:** Sayfa kabukları önce gelir, görünür sayfalar gerektiğinde işlenir. Canvas sayısı sınırlanır. **Tüm metni hazırla** tüm sayfaları sıralı işleyerek kopyalama/arama için hazırlar.
-- **OCR geliştirmesi:** PDF'de mevcut yazı varsa korunur; yalnız metinsiz sayfalar OCR edilir. İsteğe bağlı **Form/tablo için gelişmiş OCR** ile kontrast ve seyrek metin okuma modu denenebilir.
-- **Sütunları koruyarak kopyala:** OCR sözcük kutularından satır, boşluk ve sekmeler oluşturulur; tablolarda yaklaşık sütun ayrımı yapılır. Orijinal yazı da seçilip Ctrl+C ile kopyalanabilir.
-- **Klavye kısayolları:** Ctrl+F ara, F3/Shift+F3 sonraki/önceki, J/K sayfa, +/- yakınlaştır, 0 genişlik, 1 tam sayfa, Ctrl+S aranabilir PDF indir.
-- **Sayfa gezgini:** Sayfa numarasına gitme ve sayfayı 90° döndürme.
-- **Aranabilir PDF kaydı:** Taranmış sayfalara, Türkçe karakterleri destekleyen görünmez OCR metin katmanı ekleyerek yeni PDF dosyası oluşturur; mevcut PDF'nin görüntüsünü korur. Orijinal PDF üzerinde değişiklik yapmaz.
-- **Kolay güncelleme yardımcısı (Windows):** ZIP'in yanındaki `KOLAY_GUNCELLE.cmd` mevcut Eklenti klasörünü yedekler, son resmi Release paketini indirip aynı klasöre kopyalar. **Ardından tarayıcının eklenti sayfasından Yeniden yükle yapılmalıdır.**
-
-**Sınır:** Doğrudan GitHub ZIP ile kurulmuş paketlenmemiş uzantıyı Chrome/Vivaldi kendiliğinden otomatik güncellemez. Eklenti için gerçek tam otomatik güncelleme isteniyorsa bir uzantı mağazasında yayınlama ve mağazanın güncelleme kanalı gerekir.
-
-## Kullanım ipuçları
-
-- Tüm PDF metnini sağ panelden alacaksanız **Tüm metni hazırla** ile belgenin tamamını işleyin; çok sayfalı taramalar zaman alabilir.
-- **Form/tablo için gelişmiş OCR** yalnız gerektiğinde deneyin. İyi OCR katmanlarını yeniden OCR etmeniz doğruluğu azaltabilir.
-- **Aranabilir PDF** mevcut dijital imzaları geçersiz kılabilir; imzalı belgelerde orijinali saklayın.
-- Şifreli PDF, bozuk PDF ve bazı giriş gerektiren bağlantılar açılamayabilir.
-- Karmaşık tabloların hücre sırası ve OCR sözcük koordinatları her zaman tam doğru olmayabilir.
-- Görüntüleyiciden dosya seçerek açma yereldir. Bağlantıyla açılan PDF'nin orijinal sunucusundan indirilmesi gerekebilir. OCR için harici sunucuya yüklenmez.
-
-## Güncelleme
-
-Sabit klasöre çıkardığınız pakette `KOLAY_GUNCELLE.cmd` dosyasını çalıştırıp eklentiyi güncelleyebilirsiniz. Windows güvenlik ilkeleri PowerShell çalıştırılmasını engelleyebilir. Böyle durumlarda yeni Release ZIP'indeki **Eklenti** klasörünün tüm içeriğini (vendor dahil) mevcut eklenti klasörünün üzerine kopyalayın ve Vivaldi'de `vivaldi://extensions` → **Yeniden yükle** yapın. ZIP içindeki eklenti klasörünü taşımayın veya silmeyin.
-
-## Geliştiriciler
-
-Node.js 22+ ile:
+Node.js 22+:
 
 ```bash
 npm install
@@ -72,17 +39,14 @@ npm run build
 npm test
 ```
 
-`npm run build`, PDF.js, Tesseract, pdf-lib, fontkit, Türkçe OCR modeli ve OFL lisanslı Noto Sans dosyasını yerel `Eklenti/vendor` klasörüne kopyalar veya indirir. İndirme için GitHub erişimi gerekir. Hazır Release kullananların Node.js kurması gerekmez.
+Otomatik testler gerçek WhatsApp Web/Vivaldi uçtan uca testinin yerine geçmez. Çekmece/yan panelde eklenti betikleri Vivaldi sürümüne göre farklı çalışabilir.
 
-Otomatik testler metin düzenleme, varsayılan görünüm, bağlantı yönlendirme, yeni araçlar ve font/PDF entegrasyonunun bir bölümünü doğrular; **gerçek Vivaldi üzerinde uçtan uca doğrulama yerine geçmez.**
+## Belgeler
 
-## Gizlilik ve lisans
+- [`CHANGELOG.md`](CHANGELOG.md): 0.5.2–0.5.8 tüm değişikliklerin dökümü
+- [`RELEASE_NOTES.md`](RELEASE_NOTES.md): bu sürümün yayın notları
+- [`YAYIN_ONCESI_KONTROL.md`](YAYIN_ONCESI_KONTROL.md): manuel doğrulama listesi
+- [`PRIVACY.md`](PRIVACY.md): veri işleme ve geçici depolama
+- [`snapshots/v0.5.7/README.md`](snapshots/v0.5.7/README.md): geri dönüş notu
 
-Özgün kod MIT lisanslıdır. Üçüncü taraf bileşenler ve font için [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), gizlilik için [PRIVACY.md](PRIVACY.md) ve test listesi için [YAYIN_ONCESI_KONTROL.md](YAYIN_ONCESI_KONTROL.md) belgelerine bakın. Hata raporlarında kişisel veya kurumsal belge paylaşmayın.
-
-## Güvenlik / WhatsApp PDF yakalama
-- Yalnız `https://web.whatsapp.com/*` için içerik betikleri kurulur; başka sohbet sitelerine uygulanmaz.
-- Bilgi ve dosya aktarımı otomatik değil, kullanıcı etkileşimi sonrası başlar; 32 MB sınır vardır.
-- Sadece PDF imzası `%PDF-` olan veri kabul edilir; rastgele sitelerin mesajlarına yanıt verilmez.
-- Geçici parçalar eklentinin IndexedDB deposunda tutulur ve belge açılınca silinir; başarısız/terk edilen aktarımın parçaları zaman aşımında temizlenir.
-- WhatsApp veya Meta ile resmî bir entegrasyon değildir. Eklenti WhatsApp markasıyla bağlantılı değildir.
+MIT lisansı, üçüncü taraf kütüphaneler için `THIRD_PARTY_NOTICES.md` geçerlidir. İşe özgü veya kişisel belge örneklerini GitHub Issues'a eklemeyin.

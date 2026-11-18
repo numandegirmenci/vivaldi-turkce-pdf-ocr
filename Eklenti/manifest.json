@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Türkçe PDF OCR (Chromium)",
-  "version": "0.5.1",
-  "description": "Yerel Türkçe PDF OCR, aranabilir PDF ve kullanıcı isteğiyle WhatsApp Web PDF yakalama.",
+  "version": "0.5.8",
+  "description": "Yerel Türkçe PDF OCR, WhatsApp yakalama ve konum bazlı OCR ayraç temizleme.",
   "permissions": [
     "tabs",
     "storage",

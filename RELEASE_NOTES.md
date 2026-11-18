@@ -1,18 +1,33 @@
-## Türkçe PDF OCR (Chromium) v0.5.1 — WhatsApp Web Hız ve Yeniden Açma Düzeltmesi (Beta)
+# Türkçe PDF OCR (Chromium) v0.5.8 — Beta
 
-Bu sürüm v0.5.0 üzerindeki gerçek kullanım geri bildirimleriyle hazırlandı.
+**Tarih:** 18 Kasım 2026
 
-### Düzeltmeler
-- Kullanıcı 45 saniyelik PDF yakalamayı başlattığında normal PDF önizlemesi, sonradan açılan blob bağlantıları, bağlantıya normal tıklama ve üstteki **PDF düzenle** akışı için daha fazla yakalama yolu.
-- WhatsApp'ın PDF bağlantısını açma/tıklama davranışı bekletilmez; önceki sürümün gecikmeye veya iki kez tıklamaya yol açabilen kancası değiştirildi.
-- **↻ Son PDF** düğmesi: Başarıyla açılan PDF, yalnız WhatsApp Web sekmesinin belleğinde 5 dakika saklanır; OCR sekmesi kapatılsa bile tek tıkla yeniden açılabilir.
-- İkinci PDF'yi yakalamak için normal **PDF OCR ile aç** düğmesine tekrar basılabilir.
-- Tekrar yakalama, native bağlantı ve iptal durumları için testler.
+Bu sürüm GitHub'daki v0.5.1 tabanını, yerel olarak denenmiş 0.5.2–0.5.8 geliştirmelerinin birleşik kaynak koduyla günceller.
 
-### Güncelleme
-Releases > Assets > `Turkce-PDF-OCR-Chromium-v0.5.1.zip` paketini indirip mevcut kurulumdaki aynı **Eklenti** klasörüne tüm dosyaları (vendor dahil) kopyalayın. Vivaldi `vivaldi://extensions` ekranında **Yeniden yükle** yapın ve WhatsApp Web sekmesini yenileyin.
+### Yeni özellikler
 
-### Beta sınırları
-- WhatsApp PDF dosyasını Blob olarak sunmadığında veya önizleyici yöntemini değiştirdiğinde yakalama başarısız olabilir; PDF'yi indirip **PDF seç** ile açabilirsiniz.
-- Gerçek WhatsApp Web uçtan uca tarayıcı testi yapılmalıdır.
-- Aranabilir PDF'ye metin eklenmesi, orijinal dijital imzaları geçersiz kılabilir; asıl dosyayı saklayın.
+- Sürekli fakat kullanıcı tarafından etkinleştirilen WhatsApp Web dosya yakalama; kapat-aç / farklı dosya / ilk dosyaya geri dönme akışları, beş öğelik geçici geçmiş, elle açık önizleme yakalama ve dosyadan seçme alternatifi.
+- Tek tıklamada gereksiz OCR sekmeleri açılmasını önlemeye yönelik yakalama oturumu sınırları.
+- DOCX, XLSX, PPTX, ODT, TXT/CSV/JSON/XML/HTML/RTF ve görseller için yerel belge açma.
+- Sol PDF metni seçildiğinde sağda gerçek metin seçimi ve iki yönlü sayfa hizalama.
+- Aynı PDF sayfasındaki başlıklı ücret tablosu ve farklı alan/değer kutularının ayrı ayrı tanınması.
+- Tablo hücresi düzenleme, Excel'e TSV kopyalama, CSV indirme; sayısal hesap denetimi.
+- Komşu satırların ayraç konumuyla OCR'nin `:` işaretini `1`, `3`, `I` olarak okumasına karşı ihtiyatlı temizlik.
+
+### Kurulum
+
+1. Release'in **Assets** bölümündeki `Turkce-PDF-OCR-Chromium-v0.5.8.zip` dosyasını kullanın (iş akışı tamamlandıktan sonra).
+2. Mevcut `Eklenti` klasörünün yedeğini alın; ZIP'teki tüm `Eklenti` içeriğini **Ctrl+C / Ctrl+V** ile üzerine kopyalayın. `vendor` klasörünü silmeyin.
+3. `vivaldi://extensions` → **Yeniden yükle**; WhatsApp Web → **F5**. CMD/PowerShell gerekmez.
+
+### Geri dönüş
+
+v0.5.7 test sürümü, ayraç düzeltmesi öncesindeki referanstır. Önceki kurulu eklentinizin yedeğini saklayın; `snapshots/v0.5.7/` yalnız ilgili tablo modülünün kaynak kodunu barındırır, tek başına tam uzantı değildir.
+
+### Sınırlamalar
+
+- Bu sürüm **Beta**'dır; gerçek Vivaldi ve canlı WhatsApp Web ile uçtan uca test tamamlanmadı.
+- Tesseract.js 5 kullanılıyor; yeni OCR motoru entegre edilmedi.
+- OCR ve tablo ayrıştırma sonucu özellikle resmi evrakın tarih, IBAN, sicil ve ödeme tutarlarında özgün belgeye göre doğrulanmalıdır.
+- Bazı WhatsApp önizlemeleri erişilebilir Blob sağlamaz; elle dosya seçin.
+- Dijital imzalı PDF'lerden yeni aranabilir PDF üretmek imzaları geçersiz kılabilir.

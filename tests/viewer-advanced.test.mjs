@@ -26,7 +26,7 @@ test('Arama, sayfa numarası, klavye ve PDF export kontrolleri mevcut',()=>{
   assert.match(tools,/key\.toLowerCase\(\)==='f'/);
   assert.match(exportPdf,/registerFontkit/);
   assert.match(exportPdf,/opacity:0/);
-  assert.match(source,/sourceBytes=bytes/);
+  assert.match(source,/sourceBytes=converted\.bytes/);
 });
 test('Paket Windows güncelleme dosyalarını içerir',()=>{
   const workflow=read('.github/workflows/release.yml');
