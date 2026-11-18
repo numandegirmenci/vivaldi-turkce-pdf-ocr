@@ -3,7 +3,7 @@
   'use strict';
   const DB_NAME = 'turkce-pdf-ocr-whatsapp-temporary-v1';
   const MAX_BYTES = 32 * 1024 * 1024;
-  const CHUNK_SIZE = 96 * 1024;
+  const CHUNK_SIZE = 256 * 1024; // Fewer MV3 messages for faster PDFs
   const MAX_AGE = 10 * 60 * 1000;
   const ALARM_NAME = 'turkce-pdf-ocr-wa-cleanup';
   let connectionPromise;

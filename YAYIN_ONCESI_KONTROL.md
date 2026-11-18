@@ -41,3 +41,13 @@ Aşağıdaki maddeler tamamlanana kadar Chrome, Edge veya Brave için **doğrula
 - [ ] Yakalamayı iptal et; daha sonraki PDF'lerin pasif olarak alınmadığını doğrula.
 - [ ] Uzun PDF aktarımında bellek ve geçici parça temizliğini kontrol et.
 - [ ] Önceden hazırlanmış seçilebilir PDF'lerde OCR katmanının bozulmadığını kontrol et.
+
+## v0.5.1 — Kullanıcı kaynaklı yakalama sorunları
+- [ ] Önce PDF OCR ile aç'a bas, sonra normal sohbet PDF belgesini aç. Mümkünse ilk denemede yakalanmalı.
+- [ ] Normal önizlemede yakalanmayan PDF için PDF düzenle ile açmayı dene.
+- [ ] Aynı PDF'yi OCR'de açıp OCR sekmesini kapat, WhatsApp'taki ↻ Son PDF ile tekrar aç.
+- [ ] ↻ Son PDF üzerinden ardışık 3 tekrar açılışı test et.
+- [ ] Farklı bir PDF için yeni PDF OCR ile aç akışını başlat; son PDF düğmesi yeni belgeyi açmalı.
+- [ ] 45 saniyeyi aş, iptal et; izin kapanınca başka belge kendiliğinden alınmamalı.
+- [ ] WhatsApp sekmesini yenile, eski PDF bellekte tutulmamalı.
+- [ ] Normal PDF indir / aç tıklamaları engellenmemeli veya çoğalmamalı.
