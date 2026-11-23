@@ -1,3 +1,4 @@
+import {planSelectiveRemoval,combineSelectiveLayers,validateTransparentPatch} from './selective-repair.mjs';
 /** Scan-aware matching of a replacement to surrounding lettering.
  * All work is local and uses rendered PDF canvas pixels. A scanned original
  * does not contain a recoverable font name, so this remains an estimate.
@@ -173,65 +174,49 @@ export function layoutScanReplacement(measure,edit,typography){
     ink:edit.ink,fill:edit.fill
   };
 }
-/** Use nearby ORIGINAL paper pixels to cover the scan, then print matching
- * typography with scanner-like antialiasing. Returns a self-contained PNG.
+/**
+ * Repair only the old glyph pixels and overlay the newly chosen text, leaving
+ * ALL other original pixels transparent/untouched. PNG alpha survives pdf-lib.
+ * On uncertainty this throws and the viewer keeps the original document.
  */
 export function renderScanReplacement(canvas,edit,typography){
-  if(!canvas)throw new Error('Orijinal sayfa görüntüsü bellekte yok.');
-  const box=edit.box;
-  const x0=Math.floor(box.x0),y0=Math.floor(box.y0);
-  const x1=Math.ceil(box.x1),y1=Math.ceil(box.y1);
-  const w=x1-x0,h=y1-y0;
-  if(w<5||h<4||w*h>1_250_000)throw new Error('Yazı alanı çok büyük veya küçük.');
-  const paper=document.createElement('canvas');
-  paper.width=w;paper.height=h;
-  const ctx=paper.getContext('2d',{willReadFrequently:true});
+  if(!canvas)throw new Error('Orijinal görüntü bulunamadı.');
+  const box=edit.box,x0=Math.floor(box.x0),y0=Math.floor(box.y0);
+  const x1=Math.ceil(box.x1),y1=Math.ceil(box.y1),w=x1-x0,h=y1-y0;
+  if(x0<0||y0<0||x1>canvas.width||y1>canvas.height||
+    w<8||h<7||w*h>1_200_000)
+    throw new Error('Düzenleme alanı sayfa sınırları dışında veya çok büyük.');
   const source=canvas.getContext('2d',{willReadFrequently:true});
-  if(!ctx||!source)throw new Error('Görsel düzenleme yapılamadı.');
-  const layout=layoutScanReplacement(ctx,edit,typography);
-  const raw=ctx.createImageData(w,h),fill=toRgb(edit.fill);
-  // Copy paper brightness/texture from just above and below each original glyph.
-  // This avoids an unnaturally pure-white rectangle on a gray scanned page.
-  const safeY=y=>bound(y,0,canvas.height-1);
-  const above=source.getImageData(bound(x0,0,canvas.width-1),safeY(y0-4),
-    Math.min(w,canvas.width-bound(x0,0,canvas.width-1)),1).data;
-  const below=source.getImageData(bound(x0,0,canvas.width-1),safeY(y1+4),
-    Math.min(w,canvas.width-bound(x0,0,canvas.width-1)),1).data;
-  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-    const t=(y+.5)/h,at=x*4,off=(y*w+x)*4;
-    const a=at+2<above.length?[above[at],above[at+1],above[at+2]]:fill;
-    const b=at+2<below.length?[below[at],below[at+1],below[at+2]]:fill;
-    // Strong ink outside the crop means another line/graphic: ignore it.
-    for(let c=0;c<3;c++){
-      const top=Math.abs(a[c]-fill[c])<45?a[c]:fill[c];
-      const bottom=Math.abs(b[c]-fill[c])<45?b[c]:fill[c];
-      const noise=(((x*31+y*17+13)%11)-5)*.19;
-      raw.data[off+c]=bound(Math.round(top*(1-t)+bottom*t+noise),0,255);
-    }
-    raw.data[off+3]=255;
-  }
-  ctx.putImageData(raw,0,0);
-  const ink=toRgb(edit.ink);
+  if(!source)throw new Error('Orijinal görüntü okunamadı.');
+  const selectedPixels=source.getImageData(x0,y0,w,h);
+  const cleanup=planSelectiveRemoval(selectedPixels,{ink:edit.ink,fill:edit.fill});
   const glyph=document.createElement('canvas');
   glyph.width=w;glyph.height=h;
   const gc=glyph.getContext('2d',{willReadFrequently:true});
-  gc.save();gc.translate(Math.max(.3,h*.025),layout.baseline);
+  if(!gc)throw new Error('Yazı çizilemedi.');
+  const layout=layoutScanReplacement(gc,edit,typography);
+  gc.save();
+  gc.translate(Math.max(.3,h*.025),layout.baseline);
   gc.scale(layout.scaleX,1);
   gc.font=layout.weight+' '+layout.fontSize+'px "'+layout.family+'"';
-  gc.fillStyle='#000';
-  // Soft scan edges; neither hard CSS text nor an exact artificial vector imprint.
-  gc.filter='blur(.22px)';
-  for(let i=0;i<layout.lines.length;i++)gc.fillText(layout.lines[i],0,i*layout.lineHeight);
+  gc.fillStyle='#000000';
+  for(let i=0;i<layout.lines.length;i++)
+    gc.fillText(layout.lines[i],0,i*layout.lineHeight);
   gc.restore();
-  const alpha=gc.getImageData(0,0,w,h);
-  for(let i=0;i<alpha.data.length;i+=4){
-    const a=alpha.data[i+3]/255,off=i;
-    if(!a)continue;
-    const grain=.94+.06*((((i/4)*13+7)%17)/16);
-    const weight=bound(a*grain,0,1);
-    for(let c=0;c<3;c++)raw.data[off+c]=
-      Math.round(raw.data[off+c]*(1-weight)+ink[c]*weight);
-  }
-  ctx.putImageData(raw,0,0);
-  return {png:paper.toDataURL('image/png'),layout};
+  const glyphPixels=gc.getImageData(0,0,w,h).data;
+  // Explicitly fail if no new text landed inside the patch.
+  if(!glyphPixels.some((value,index)=>index%4===3&&value>20))
+    throw new Error('Yeni yazı seçilen alanda çizilemedi; orijinal görüntü korundu.');
+  const result=combineSelectiveLayers(cleanup,glyphPixels,edit.ink);
+  validateTransparentPatch(result,cleanup,glyphPixels);
+  const output=document.createElement('canvas');
+  output.width=w;output.height=h;
+  const out=output.getContext('2d');
+  if(!out)throw new Error('Görüntü yaması oluşturulamadı.');
+  const image=out.createImageData(w,h);
+  image.data.set(result.data);
+  out.putImageData(image,0,0);
+  return {png:output.toDataURL('image/png'),layout,
+    repairedPixels:cleanup.oldGlyphPixels,
+    transparency:'selective',confidence:cleanup.sourceUniformity};
 }
