@@ -1,5 +1,5 @@
 import {clampBox,normalizeVisibleEdit,fitVisibleText,textWithVisibleEdits} from './visual-edits.mjs';
-import {SCAN_FONTS,nearestSameLineWord,findUnselectedOverlap,analyzeScanTypography,renderScanReplacement} from './scan-typography.mjs';
+import {SCAN_FONTS,nearestSameLineWord,findUnselectedOverlap,fullySelectedWords,analyzeScanTypography,renderScanReplacement} from './scan-typography.mjs';
 import {formatOcrWords} from './text-utils.mjs';
 import {createEditedPdf,saveBytesAsPdf} from './export-pdf.mjs';
 import {sampleCanvasTextStyle} from './text-style.mjs';
@@ -147,15 +147,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     }catch(error){status('Alan seçilemedi: '+error.message,true);}
   }
   function getOriginalForBox(view,box){
-    const hits=[];
-    for(let i=0;i<(view.words||[]).length;i++){
-      const w=view.words[i];
-      if(!w.bbox)continue;
-      const centerX=(w.bbox.x0+w.bbox.x1)/2,centerY=(w.bbox.y0+w.bbox.y1)/2;
-      if(centerX>=box.x0&&centerX<=box.x1&&centerY>=box.y0&&centerY<=box.y1)hits.push(i);
-    }
-    const words=hits.map(i=>view.words[i].text);
-    return {sourceIndices:hits,original:words.join(' ')};
+    return fullySelectedWords(view.words,box);
   }
   function attach(view){
     view.edits=[];
@@ -274,6 +266,10 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         item.box=clampBox({x0:item.box.x0-pad,y0:item.box.y0-pad,
           x1:item.box.x1+pad,y1:item.box.y1+pad},view.width,view.height);
       }
+      // Align the display and exported PNG to the exact canvas pixel grid.
+      // Fractional OCR rectangles otherwise stretch a PNG by up to two pixels.
+      item.box=clampBox({x0:Math.floor(item.box.x0),y0:Math.floor(item.box.y0),
+        x1:Math.ceil(item.box.x1),y1:Math.ceil(item.box.y1)},view.width,view.height);
       const items=existing?view.edits.map(e=>e.id===item.id?item:e):[...view.edits,item];
       const duplicate=items.some(e=>e.id!==item.id&&e.box.x0<item.box.x1&&e.box.x1>item.box.x0&&
         e.box.y0<item.box.y1&&e.box.y1>item.box.y0);
