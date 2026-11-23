@@ -35,8 +35,8 @@ async function captureOcrAttachment({id, sourceUrl = ''}) {
     if (!result?.ok) throw new Error(result?.error || 'Aktarım reddedildi.');
     return result;
   };
+  let address = sourceUrl || '';
   try {
-    let address = sourceUrl || '';
     if (!address && /^(application\/pdf|image\/(?:png|jpeg|webp|gif|bmp))$/i.test(document.contentType || ''))
       address = location.href;
     if (!address) address = selectedEmbedded();
@@ -91,6 +91,6 @@ async function captureOcrAttachment({id, sourceUrl = ''}) {
     }
     return {ok:true, name};
   } catch (error) {
-    return {ok:false, error:String(error?.message || error)};
+    return {ok:false, error:String(error?.message || error), sourceUrl:/^(https?:|file:)/i.test(address) ? address : ''};
   }
 }
