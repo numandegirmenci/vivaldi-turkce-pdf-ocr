@@ -85,7 +85,9 @@ export function matchScanFont(canvas,reference,inkHex,fillHex){
     // Text is estimated from real ink height, NOT shrunken to text box width.
     const m=fontSettings(ctx,reference.text,family,weight,rawH*.94);
     const fitX=rawW/m.w;
-    if(fitX<.43||fitX>1.9)continue;
+    // Reject candidates requiring grotesque horizontal stretching/squeezing.
+    // The prior 0.43 allowance caused thin, extremely tall headings.
+    if(fitX<.82||fitX>1.22)continue;
     ctx.clearRect(0,0,scratch.width,scratch.height);
     ctx.save();
     ctx.fillStyle='#000';
@@ -104,14 +106,15 @@ export function matchScanFont(canvas,reference,inkHex,fillHex){
       mismatch+=value!==actual.mask[i]?1:0;
     }
     const score=mismatch/Math.max(1,actual.count+predCount)+
-      .045*Math.abs(Math.log(fitX))+
-      .025*Math.abs(Math.log((m.asc+m.desc)/rawH));
+      .28*Math.abs(Math.log(fitX))+
+      .08*Math.abs(Math.log((m.asc+m.desc)/rawH));
     if(!best||score<best.score)best={
       family,weight,scaleX:fitX,fontSize:m.size,score,
       refHeight:rawH,referenceText:reference.text
     };
   }
-  return best;
+  // A score too high is not a trustworthy font match; return the safe fallback.
+  return best&&best.score<=.48?best:null;
 }
 /** Prefer a same-line word so the resulting size/weight matches the line.
  * Fallback to the original word when OCR cannot find a neighbor.
@@ -134,16 +137,19 @@ export function layoutScanReplacement(measure,edit,typography){
   const settings=glyphMetrics(measure,lines.reduce((a,b)=>a.length>=b.length?a:b,''),typography.family,typography.weight,targetFont);
   const border=Math.min(2,Math.max(.3,height*.025));
   const maxWidth=width-border*2;
-  const scaleX=Math.min(bound(typography.scaleX,.52,1.6),maxWidth/Math.max(1,settings.w));
-  // Keep cap height rather than silently shrinking it to fit a longer word.
-  if(scaleX<.48)throw new Error('Yeni yazı özgün yüksekliğini koruyarak seçili alana sığmıyor. Daha geniş bir alan işaretle.');
+  const rawWidthRatio=maxWidth/Math.max(1,settings.w);
+  // Refuse destructive compression. A tiny, tall, narrow word is worse than
+  // a clear warning; users can enlarge the selected region instead.
+  const scaleX=Math.min(bound(typography.scaleX,.84,1.16),rawWidthRatio);
+  if(scaleX<.84)throw new Error('Yeni yazı özgün yazı kalınlığında bu alana sığmıyor. Daha geniş bir alan işaretle.');
   const lineH=targetFont*1.12;
   const textH=lines.length===1?settings.asc+settings.desc:
     (lines.length-1)*lineH+settings.asc+settings.desc;
   if(textH>height*1.15)throw new Error('Metin bu satır yüksekliğine sığmıyor. Daha geniş bir alan seç.');
   return {
     family:typography.family,weight:typography.weight,
-    fontSize:targetFont,scaleX,baseline:Math.max(settings.asc,(height-textH)/2+settings.asc),
+    fontSize:targetFont,scaleX,
+    baseline:bound((height-textH)/2+settings.asc,border+settings.asc,height-border-settings.desc),
     lineHeight:lineH,lines,
     ink:edit.ink,fill:edit.fill
   };
