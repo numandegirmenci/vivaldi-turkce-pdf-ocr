@@ -1,5 +1,15 @@
 # Değişiklik geçmişi
 
+## v0.6.2 — 23 Kasım 2026 · Taranan belgedeki yazı stilini aynı satırdan örnekleme (Beta)
+
+- “BELEDİYE / BAŞKANLIĞI” testindeki gibi sonradan eklenmiş görünen, kısa/ince yazı problemini ele alma.
+- Aynı satırdaki özgün kelimeyi örnekleyip OCR piksel şekliyle beş font ailesini eşleştirme; harf yüksekliğini koruyarak yatay sığdırma.
+- Önizleme ve PDF çıktısında aynı raster yazı yamasını kullanma; taranmış kağıt tonunu ve gürültüsünü koruyan arka plan tahmini.
+- Önizlemede sürekli kesikli mavi çerçeveyi kaldırma; aşırı uzun yazılarda uyarı.
+- Açık lisanslı yerel fontları ve lisans metinlerini kurulum paketine dahil etme.
+- Font eşleştirme yaklaşık sonuçtur; arka plan dokusu tam onarılmaz, resmi PDF'lerde kaynak belgenin aslı saklanmalıdır.
+
+
 ## v0.6.1 — 23 Kasım 2026 · Yazının özgün renk ve kalınlığına otomatik uyarlama (Beta)
 
 - Önceden elle girilen yazı rengi, arka plan rengi ve boyut seçenekleri kaldırıldı: belge üzerindeki özgün harf/zemin piksellerinden otomatik örnekleme.
