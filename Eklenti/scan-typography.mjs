@@ -1,4 +1,4 @@
-import {planSelectiveRemoval,combineSelectiveLayers,validateTransparentPatch} from './selective-repair.mjs';
+import {planSelectiveRemoval,combineSelectiveLayers,validateTransparentPatch,assertGlyphNotClipped} from './selective-repair.mjs';
 /** Scan-aware matching of a replacement to surrounding lettering.
  * All work is local and uses rendered PDF canvas pixels. A scanned original
  * does not contain a recoverable font name, so this remains an estimate.
@@ -207,6 +207,7 @@ export function renderScanReplacement(canvas,edit,typography){
   // Explicitly fail if no new text landed inside the patch.
   if(!glyphPixels.some((value,index)=>index%4===3&&value>20))
     throw new Error('Yeni yazı seçilen alanda çizilemedi; orijinal görüntü korundu.');
+  assertGlyphNotClipped(glyphPixels,w,h);
   const result=combineSelectiveLayers(cleanup,glyphPixels,edit.ink);
   validateTransparentPatch(result,cleanup,glyphPixels);
   const output=document.createElement('canvas');
