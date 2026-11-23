@@ -10,6 +10,16 @@ export function prepareEditGeometry({box,pageWidth,pageHeight,words=[],sourceInd
   const original=clampBox(box,pageWidth,pageHeight);
   const targetHeight=original.y1-original.y0;
   const source=[...new Set([...(sourceIndices||[]),sourceIndex].filter(Number.isInteger))];
+  const selected=new Set(source);
+  // Even a one-pixel overlap is unsafe when the repair region could touch a
+  // neighbor. The generic OCR guard uses a >13% threshold which is too loose
+  // for auto-expansion.
+  const touchesOtherWord=candidate=>words.some((w,index)=>{
+    if(selected.has(index)||!w?.bbox||!String(w.text||'').trim())return false;
+    const r=w.bbox;
+    return Math.min(candidate.x1,r.x1)-Math.max(candidate.x0,r.x0)>.15 &&
+      Math.min(candidate.y1,r.y1)-Math.max(candidate.y0,r.y0)>.15;
+  });
   let expanded=original,padding=0;
   if(sourceKind==='ocr'){
     const desired=Math.max(4,Math.min(14,Math.ceil(targetHeight*.20)));
@@ -18,7 +28,7 @@ export function prepareEditGeometry({box,pageWidth,pageHeight,words=[],sourceInd
         x0:Math.floor(original.x0-delta),y0:Math.floor(original.y0-delta),
         x1:Math.ceil(original.x1+delta),y1:Math.ceil(original.y1+delta)
       },pageWidth,pageHeight);
-      if(findUnselectedOverlap(words,candidate,source,null).length)break;
+      if(touchesOtherWord(candidate))break;
       expanded=candidate;padding=delta;
     }
     if(padding<2){
