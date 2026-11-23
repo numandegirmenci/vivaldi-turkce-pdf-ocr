@@ -288,7 +288,9 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
           continue;
         }
         try{
-          typography=analyzeScanTypography(view.canvas,view.words,item.box,
+          // Detect typography from the ORIGINAL glyph box, not from the
+          // enlarged safety crop (whose whitespace would distort the match).
+          typography=analyzeScanTypography(view.canvas,view.words,chosen.box,
             chosen.original||item.original,{ink:item.ink,fill:item.fill,bold:item.bold});
           typography.targetHeight=geometry.targetHeight;
           rendered=renderScanReplacement(view.canvas,item,typography);
