@@ -69,6 +69,12 @@ export async function createEditedPdf(sourceBytes,views,report=()=>{}) {
   const response=await fetch(chrome.runtime.getURL('vendor/NotoSans-Regular.ttf'));
   if(!response.ok)throw new Error('Türkçe yazı fontu yüklenemedi.');
   const font=await pdf.embedFont(await response.arrayBuffer(),{subset:true});
+  let boldFont=null;
+  if(edited.some(view=>view.edits.some(edit=>edit.bold))){
+    const boldResponse=await fetch(chrome.runtime.getURL('vendor/NotoSans-Bold.ttf'));
+    if(!boldResponse.ok)throw new Error('Kalın Türkçe yazı fontu yüklenemedi.');
+    boldFont=await pdf.embedFont(await boldResponse.arrayBuffer(),{subset:true});
+  }
   let count=0;
   for(const view of edited){
     if(!view.viewport)throw new Error('Sayfa koordinatları bulunamadı.');
@@ -86,7 +92,8 @@ export async function createEditedPdf(sourceBytes,views,report=()=>{}) {
       const pxW=edit.box.x1-edit.box.x0;
       const pointRatio=width/pxW;
       const preferred=edit.fontSize*pointRatio;
-      const plan=fitVisibleText(edit.text,width,height,preferred,line=>font.widthOfTextAtSize(line,1));
+      const matchingFont=edit.bold&&boldFont?boldFont:font;
+      const plan=fitVisibleText(edit.text,width,height,preferred,line=>matchingFont.widthOfTextAtSize(line,1));
       // Opaque patch visually replaces old print; do not claim secure document redaction.
       page.drawRectangle({x,y,width,height,color:lib.rgb(...fill),opacity:1});
       const baselineTop=y+height-plan.padding-plan.fontSize*.98;
@@ -94,7 +101,7 @@ export async function createEditedPdf(sourceBytes,views,report=()=>{}) {
         page.drawText(plan.lines[i],{
           x:x+plan.padding,
           y:baselineTop-i*plan.lineHeight,
-          font,size:plan.fontSize,color:lib.rgb(...ink)
+          font:matchingFont,size:plan.fontSize,color:lib.rgb(...ink)
         });
       }
       count++;
