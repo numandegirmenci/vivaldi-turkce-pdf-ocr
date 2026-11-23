@@ -107,3 +107,13 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 .sample-swatch{display:inline-block;width:19px;height:19px;flex:none;border:1px solid #64748b;border-radius:4px}
 #editInkPreview{background:#172b3d}
 #editFillPreview{background:#fff}
+
+
+/* v0.6.2: local, open-source scan-font candidates */
+@font-face{font-family:'OCRRobotoCondensed';src:url('vendor/OCR-RobotoCondensed.ttf') format('truetype');font-weight:100 900;font-display:swap}
+@font-face{font-family:'OCROswald';src:url('vendor/OCR-Oswald.ttf') format('truetype');font-weight:100 900;font-display:swap}
+@font-face{font-family:'OCRAnton';src:url('vendor/OCR-Anton.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'OCRArchivoNarrow';src:url('vendor/OCR-ArchivoNarrow.ttf') format('truetype');font-weight:100 900;font-display:swap}
+/* Borders are visible only on hover, not a permanent box around the corrected word. */
+.visual-edit-enabled .visual-edit-box{outline:none}
+.visual-edit-enabled .visual-edit-box:hover,.visual-edit-enabled .visual-edit-box:focus-visible{outline:2px dashed #087baf}
