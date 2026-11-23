@@ -123,6 +123,19 @@ export function combineSelectiveLayers(cleanup,glyphPixels,inkHex='#111111'){
   }
   return {width:w,height:h,data:out};
 }
+/** Prevent a replacement from visually cutting off its own letters at the crop edges. */
+export function assertGlyphNotClipped(glyphPixels,width,height){
+  if(!glyphPixels||glyphPixels.length!==width*height*4)
+    throw new Error('Yeni yazı görüntüsü okunamadı.');
+  let hits=0;
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    if(x>1&&x<width-2&&y>1&&y<height-2)continue;
+    if(glyphPixels[(y*width+x)*4+3]>50)hits++;
+  }
+  if(hits>2)throw new Error('Yeni yazının harfleri seçili alanın dışında kesiliyor. Daha geniş alan seç.');
+  return true;
+}
+
 /** Precisely confirm that pixels outside both change masks remain transparent. */
 export function validateTransparentPatch(patch,cleanup,glyphPixels){
   for(let k=3;k<patch.data.length;k+=4){
