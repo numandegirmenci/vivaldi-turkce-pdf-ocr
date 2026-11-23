@@ -36,6 +36,25 @@ export function nearestSameLineWord(words,box){
     return {word:w,score};
   }).sort((a,b)=>a.score-b.score)[0]?.word||null;
 }
+/** Return adjacent OCR words which would be partly erased by the patch.
+ * Manual region selection must contain the WHOLE recognized word, not just part.
+ */
+export function findUnselectedOverlap(words,box,sourceIndices=[],sourceIndex=null){
+  const keep=new Set(sourceIndices.filter(Number.isInteger));
+  if(Number.isInteger(sourceIndex))keep.add(sourceIndex);
+  if(!Array.isArray(words))return [];
+  return words.flatMap((w,index)=>{
+    if(keep.has(index)||!w?.bbox||!String(w.text||'').trim())return [];
+    const r=w.bbox;
+    const x=Math.max(0,Math.min(box.x1,r.x1)-Math.max(box.x0,r.x0));
+    const y=Math.max(0,Math.min(box.y1,r.y1)-Math.max(box.y0,r.y0));
+    const area=Math.max(1,(r.x1-r.x0)*(r.y1-r.y0));
+    const overlap=x*y/area;
+    // Tiny OCR geometry overlaps are normal. A substantial crop is not.
+    return overlap>.13&&x>2&&y>2?[{index,word:String(w.text),overlap}]:[];
+  });
+}
+
 function glyphMetrics(ctx,word,family,weight,size){
   ctx.font=weight+' '+size+'px "'+family+'"';
   const m=ctx.measureText(word);
