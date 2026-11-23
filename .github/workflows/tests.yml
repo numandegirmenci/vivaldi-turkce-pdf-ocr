@@ -25,6 +25,7 @@ jobs:
           node --check Eklenti/whatsapp-page.js
           node --check Eklenti/whatsapp-content.js
           node --check Eklenti/whatsapp-transfer.js
+          node --check Eklenti/attachment-capture.js
       - name: Birim ve görünüm testleri
         run: npm test
       - name: Dağıtım dosyalarını hazırla
