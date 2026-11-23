@@ -12,7 +12,7 @@ test('Manifest V3 sürümü yayımlanan paketle eşleşir', () => {
 });
 
 test('Eklenti Chromium standart API izinleriyle yapılandırılmıştır', () => {
-  assert.deepEqual([...manifest.permissions].sort(), ['alarms', 'storage', 'tabs', 'webRequest'].sort());
+  assert.deepEqual([...manifest.permissions].sort(), ['alarms', 'contextMenus', 'scripting', 'storage', 'tabs', 'webRequest'].sort());
   assert.equal(manifest.background.service_worker, 'background.js');
   assert.equal(manifest.action.default_popup, 'popup.html');
   for (const host of ['http://*/*', 'https://*/*', 'file:///*']) {
