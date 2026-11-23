@@ -88,6 +88,22 @@ export async function createEditedPdf(sourceBytes,views,report=()=>{}) {
       const x=Math.min(a[0],b[0]),y=Math.min(a[1],b[1]);
       const width=Math.abs(b[0]-a[0]),height=Math.abs(b[1]-a[1]);
       if(width<1||height<1)throw new Error('PDF üzerinde düzenleme alanı çok küçük.');
+      if(typeof raw.patchPng==='string'&&raw.patchPng.startsWith('data:image/png;base64,')){
+        // Exact image of the already-approved on-screen preview, including
+        // scanner paper texture and a same-line typography match.
+        const patch=await pdf.embedPng(raw.patchPng);
+        page.drawImage(patch,{x,y,width,height});
+        // The new word remains selectable/searchable, unlike an image-only patch.
+        const word=edit.text.replace(/[\r\n]+/g,' ').trim();
+        if(word){
+          const glyphW=font.widthOfTextAtSize(word,1);
+          const size=Math.max(.6,Math.min(height*.66,width/Math.max(.01,glyphW)));
+          page.drawText(word,{x,y:y+Math.max(0,(height-size)/3),
+            size,font,opacity:0});
+        }
+        count++;
+        continue;
+      }
       const fill=colorComponents(edit.fill),ink=colorComponents(edit.ink);
       const pxW=edit.box.x1-edit.box.x0;
       const pointRatio=width/pxW;

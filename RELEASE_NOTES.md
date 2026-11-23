@@ -1,32 +1,32 @@
-# Türkçe PDF OCR (Chromium) v0.6.1 — Beta
+# Türkçe PDF OCR (Chromium) v0.6.2 — Beta
 
 **Tarih:** 23 Kasım 2026
 
-## Görseldeki özgün metne göre otomatik düzenleme
+## Düzeltme: Taranan sayfada yeni yazı eski yazıyla uyuşmuyor
 
-- Kullanıcının yazı ve arka plan rengini ya da kalınlığını elle seçmesine gerek kalmaz.
-- Bir OCR sözcüğüne tıklanır veya bir yazı bölgesi işaretlenir. Uygulama **orijinal PDF sayfasının piksellerini** okuyarak çevre zeminini ve harflerin rengini otomatik tahmin eder.
-- Yazı kutusunun boyutundan yaklaşık font büyüklüğü çıkarılır; yoğunluğuna göre normal/kalın yazı tahmin edilir.
-- Açık/koyu zemin üzerindeki farklı renkli yazılar için görüntüden örneklemeli renk algılama uygulanır.
-- Düzenleme paneli yalnızca **Yeni yazı → Uygula** adımını ister. Algılanan özgün renkler bilgilendirme amacıyla gösterilir.
-- **Düzenlenmiş PDF** çıktısında renkler kullanılır; algılanan kalın yazılar için Türkçe karakter destekli Noto Sans Bold fontu eklenmiştir.
-- Eski OCR kelimesinin yeni PDF'nin görünmez metin katmanında yanlışlıkla tekrar eklenmesini önleyen v0.6.0 sistemi korunur.
-- OneDrive/Outlook/WhatsApp dosya yakalama, OCR, tablo ve mevcut görünüm korunur.
+Kullanıcı testindeki “BELEDİYE / BAŞKANLIĞI” örneğinde yeni yazı fazla temiz, küçük ve farklı karakter yapısındaydı. Önceki sürüm yalnızca renk ve basit kalınlık tahmini yapıyor, uzun metinleri kutuya sığdırırken font boyutunu küçültüyordu.
 
-## Kurulum
+Bu sürümde:
+- Seçilen metnin **aynı satırındaki yakın OCR sözcüğü**, örneğin “BELEDİYE”, otomatik yazı stili referansı olarak seçilir.
+- Dört ek açık lisanslı font ailesi (Anton, Oswald, Roboto Condensed, Archivo Narrow) ile Noto Sans, özgün taranmış harflerin **piksel şekline göre** karşılaştırılır. Yazı ailesi ve kalınlık için en yakın aday tahmin edilir.
+- Uzun metinlerde **harf yüksekliği korunur**, yazı yalnız yatay olarak sığdırılır. Sığmayan metin yerine küçük ve uyumsuz yazı üretmek yerine “daha geniş alan seç” uyarısı verilir.
+- Beyaz dikdörtgen görünümü yerine, yazı kutusunun üst ve altından **özgün sayfa kağıt tonunu ve küçük tarama gürültüsünü** örnekleyen yerel görüntü yaması hazırlanır.
+- Önizleme HTML/CSS metni değil, **özgün görüntü dokusuyla hazırlanmış bir PNG yaması** kullanır. Düzenlenmiş PDF **aynı PNG yamasını** içerir; önizleme ve çıktı farklı görünmez.
+- Yeni yazı PDF'nin aranabilir metin katmanına da eklenir; düzenlenen OCR sözcüğünün eski hali ayrıca eklenmez.
+- Sürekli mavi kesikli seçim çerçevesi kaldırıldı, çerçeve düzenleme modunda yalnız işaretlenince görünür.
 
-1. GitHub Release Assets bölümündeki `Turkce-PDF-OCR-Chromium-v0.6.1.zip` dosyasını indirin.
-2. Mevcut `Eklenti` klasörünün **yedek kopyasını** alın; ZIP'teki `Eklenti` içeriğini kurulu klasör üzerine kopyalayın.
-3. `vivaldi://extensions` adresinde eklentiyi yeniden yükleyin. WhatsApp Web açıksa F5 uygulayın.
+## Kullanım ve kurulum
 
-## Kullanım
+1. `Turkce-PDF-OCR-Chromium-v0.6.2.zip` indirip `Eklenti` klasörünü mevcut kurulumun üzerine kopyalayın (önce yedeğini alın).
+2. `vivaldi://extensions` → Yeniden yükle.
+3. PDF/fotoğrafı açın → **Görünen yazıyı düzenle** → sözcüğü tıklayın veya alan seçin → yeni metni girin → **Uygula** → **Düzenlenmiş PDF**.
+4. En iyi sonuç için değiştirilecek sözcüğün bulunduğu satırda başka bir örnek yazı bulunması faydalıdır.
 
-**Görünen yazıyı düzenle** düğmesine basın, değiştirmek istediğiniz özgün yazıyı tıklayın veya alan seçin. Panelde yeni metni yazıp **Uygula** deyin. Sonucu **Düzenlenmiş PDF** ile kaydedin.
+## Sınırlamalar
 
-## Dikkat
-
-- Görselden font ailesini, italik stili veya orijinal baskı tekniklerini **kusursuz belirlemek mümkün değildir**. Renk, yaklaşık boyut ve kalınlık görüntüden otomatik tahmin edilir; PDF çıktısı destekli Noto Sans fontlarıyla oluşturulur.
-- Dokulu, damgalı veya fotoğraflı arka planlarda düz renk kapama birebir onarım sağlamaz. Renk örneklemesi düşük güven düzeyinde sonuç verebilir.
-- Bu **güvenli redaksiyon değildir**; eski dijital PDF metni altta kalabilir. Belgedeki gizli bilgileri kalıcı silmek için kullanılmamalıdır.
-- Döndürülmüş sayfalarda görsel metin düzenleme desteklenmez. Dijital imzalı PDF'nin yeni çıktısında imzalar geçersiz olabilir.
-- Otomatik testler canlı Vivaldi ve gerçek Outlook/OneDrive oturumlarında uçtan uca kullanımın yerini tutmaz.
+- Bu otomatik **yakın font eşleştirmesidir**; taranmış belgede kaybolmuş orijinal fontun kesin kimliği elde edilemez. Sonuç her zaman birebir aynı olmayabilir.
+- Yazı stilinin resimden analizi karmaşık yerleşimler, dokulu/renkli kağıtlar, logolar, kaşeler ve damgalarda hata yapabilir; görüntü onarımı gerçek yapay zeka inpainting değildir.
+- Bir satırda metin kutusuna sığmayan daha uzun yazıyı küçültmek yerine uygulama kullanıcıdan alanı genişletmesini ister.
+- Bu özellik **güvenli redaksiyon / gizli veri silme değildir**. Eski dijital PDF içerikleri katmanlarda kalabilir. Resmi belgelerde değişiklikler doğrulanmalı ve belge aslı saklanmalıdır.
+- PDF dijital imzaları yeni kopyada geçersiz olabilir. Döndürülmüş sayfalar görsel yazı düzenleme kapsamında değildir.
+- Otomatik testlerin başarılı olması, gerçek OneDrive/Outlook oturumu ve tarayıcı ekranıyla manuel kalite testini tamamlamaz.
