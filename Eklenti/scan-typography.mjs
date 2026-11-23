@@ -173,7 +173,10 @@ export function layoutScanReplacement(measure,edit,typography){
   const box=edit.box,width=box.x1-box.x0,height=box.y1-box.y0;
   if(width<5||height<4)throw new Error('Yazı alanı çok küçük.');
   const lines=String(edit.text||'').split('\n');
-  const targetFont=bound(typography.fontSize*height/Math.max(1,typography.refHeight),5,200);
+  // OCR boxes are expanded for safe paper sampling. The font MUST retain the
+  // original ink height, not scale up because of the added blank crop margin.
+  const referenceHeight=Number(typography.targetHeight)||height;
+  const targetFont=bound(typography.fontSize*referenceHeight/Math.max(1,typography.refHeight),5,200);
   const settings=glyphMetrics(measure,lines.reduce((a,b)=>a.length>=b.length?a:b,''),typography.family,typography.weight,targetFont);
   const border=Math.min(2,Math.max(.3,height*.025));
   const maxWidth=width-border*2;
