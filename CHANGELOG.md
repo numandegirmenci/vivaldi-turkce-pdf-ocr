@@ -1,5 +1,15 @@
 # Değişiklik geçmişi
 
+## v0.6.3 — 23 Kasım 2026 · Görsel OCR düzeltmede taşma ve vurgu hatalarını önleme (Beta)
+
+- Yanlış daraltma sonucu “AVCILAR” gibi başlıkların aşırı uzun/dar görünmesine yol açan yatay ölçekler engellendi.
+- OCR kelimeleri arasındaki kısmi alan örtüşmelerinde komşu yazıyı kapatmak yerine açık hata gösterme.
+- Kağıt rengini, yakındaki örnek yazı yerine doğrudan değiştirilen metnin kendi konumundan alma.
+- Arama sonuçlarının sarı vurgusunu düzenleme modunda kaldırma; bunun renk örneklemesi ve kullanıcı önizlemesiyle karışmasını önleme.
+- OCR kelime kutusu kısa geldiğinde Shift+fare sürüklemesiyle bilinçli ve daha geniş seçim imkanı.
+- Tarayıcıda görsel kalite birebir doğrulanmış değildir; otomatik testler regresyon kontrolleri içindir.
+
+
 ## v0.6.2 — 23 Kasım 2026 · Taranan belgedeki yazı stilini aynı satırdan örnekleme (Beta)
 
 - “BELEDİYE / BAŞKANLIĞI” testindeki gibi sonradan eklenmiş görünen, kısa/ince yazı problemini ele alma.
