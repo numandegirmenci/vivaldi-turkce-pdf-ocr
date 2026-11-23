@@ -67,7 +67,8 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 
 
 /* v0.6.0: user-triggered visible PDF/image text corrections. */
-@font-face{font-family:'NotoSansOcr';src:url('vendor/NotoSans-Regular.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'NotoSansOcr';src:url('vendor/NotoSans-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'NotoSansOcr';src:url('vendor/NotoSans-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
 #editVisible[aria-pressed="true"]{background:#c7f6df;border-color:#5bd8a0;color:#06452c}
 #exportEdited:not(:disabled){background:#156184;color:#fff;border-color:#36a7d5}
 .visual-editor-panel{background:#f3f9fd;border:1px solid #acd1e9;border-radius:9px;padding:11px;display:flex;flex-direction:column;gap:9px}
@@ -99,3 +100,10 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 .visual-edit-enabled .visual-edit-box:hover{outline:2px solid #087baf}
 .visual-edit-ghost{position:absolute;z-index:7;border:2px dashed #1c94d0;background:#2db6fd26;
   pointer-events:none}
+
+/* v0.6.1: document-driven colors replace manual palette and size controls. */
+.detected-style{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #d2e5f1;border-radius:7px;padding:8px}
+.detected-style small{line-height:1.45;font-size:11px;color:#405e71}
+.sample-swatch{display:inline-block;width:19px;height:19px;flex:none;border:1px solid #64748b;border-radius:4px}
+#editInkPreview{background:#172b3d}
+#editFillPreview{background:#fff}

@@ -30,17 +30,17 @@
         <div class="edit-panel-title"><strong>✏️ Görsel üzerindeki yazı</strong><small id="editLocation">Bir yazı veya alan seç</small></div>
         <label for="editText">Yeni yazı</label>
         <textarea id="editText" maxlength="300" rows="3" placeholder="Belgede görünecek yeni yazıyı gir" spellcheck="false"></textarea>
-        <div class="edit-grid">
-          <label for="editSize">Yazı boyutu <input id="editSize" type="number" min="5" max="180" step="1" value="12"></label>
-          <label for="editInk">Yazı rengi <input id="editInk" type="color" value="#172b3d"></label>
-          <label for="editFill">Arka plan <input id="editFill" type="color" value="#ffffff"></label>
+        <div class="detected-style" aria-live="polite">
+          <span class="sample-swatch" id="editInkPreview" aria-hidden="true"></span>
+          <span class="sample-swatch" id="editFillPreview" aria-hidden="true"></span>
+          <small id="editDetectedStyle">Yazı rengi, zemin ve kalınlık belgeden otomatik okunur.</small>
         </div>
         <div class="edit-actions">
           <button id="editApply" class="edit-primary">Uygula</button>
           <button id="editRemove" hidden>Değişikliği kaldır</button>
           <button id="editCancel">Vazgeç</button>
         </div>
-        <small class="edit-warning">Bu bir görsel metin düzenlemesidir. Karmaşık arka planlar birebir onarılamaz; gizli bilgileri güvenle silme işlemi değildir.</small>
+        <small class="edit-warning">Renk, zemin ve kalınlık orijinal görüntüden otomatik tahmin edilir. Kullanıcı sadece yeni metni yazar. Yazı tipi birebir tanınamayabilir; fotoğraflı/desenli zemin kusursuz onarılmaz. Güvenli redaksiyon değildir.</small>
       </div>
       <div class="edit-summary"><span id="editCount">Henüz değişiklik yok</span><button id="editUndo" disabled>↶ Geri al</button></div>
       <div class="search-bar"><label for="searchInput">PDF içinde ara</label><input id="searchInput" type="search" placeholder="Ctrl+F ile ara"><div class="search-actions"><button id="searchPrevious" title="Önceki sonuç">↑</button><button id="searchNext" title="Sonraki sonuç">↓</button><button id="searchAll" title="Taranmış sayfaları da OCR ile ara">Tüm sayfalarda ara</button></div><small id="searchInfo">Ctrl+F: Ara</small></div>

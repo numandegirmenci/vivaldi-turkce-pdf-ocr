@@ -1,12 +1,14 @@
 import {clampBox,normalizeVisibleEdit,fitVisibleText,textWithVisibleEdits} from './visual-edits.mjs';
 import {formatOcrWords} from './text-utils.mjs';
 import {createEditedPdf,saveBytesAsPdf} from './export-pdf.mjs';
+import {sampleCanvasTextStyle} from './text-style.mjs';
 
 /** User-triggered, reversible visual edits. No network calls or automatic document rewriting. */
 export function installVisualEditor({$,state,status,updateExtractedText,refreshText}) {
   let enabled=false, selection=null, undoStack=[];
   const mode=$('editVisible'),panel=$('visualEditor'),label=$('editLocation');
-  const text=$('editText'),size=$('editSize'),ink=$('editInk'),fill=$('editFill');
+  const text=$('editText'),detected=$('editDetectedStyle');
+  const inkPreview=$('editInkPreview'),fillPreview=$('editFillPreview');
   const save=$('editApply'),remove=$('editRemove'),cancel=$('editCancel');
   const exportButton=$('exportEdited'),undo=$('editUndo');
   const measure=document.createElement('canvas').getContext('2d');
@@ -65,24 +67,6 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       x1:(r.right-page.left)*view.width/page.width,
       y1:(r.bottom-page.top)*view.height/page.height},view.width,view.height);
   }
-  function sampleFill(view,box) {
-    if(!view.canvas)return '#ffffff';
-    try{
-      const ctx=view.canvas.getContext('2d',{willReadFrequently:true});
-      const points=[
-        [box.x0-3,box.y0-3],[box.x1+3,box.y0-3],
-        [box.x0-3,box.y1+3],[box.x1+3,box.y1+3],
-        [(box.x0+box.x1)/2,box.y0-3],[(box.x0+box.x1)/2,box.y1+3]
-      ];
-      const samples=points.map(([x,y])=>{
-        const p=ctx.getImageData(Math.max(0,Math.min(view.canvas.width-1,Math.round(x))),Math.max(0,Math.min(view.canvas.height-1,Math.round(y))),1,1).data;
-        return [p[0],p[1],p[2]];
-      });
-      const median=values=>values.sort((a,b)=>a-b)[Math.floor(values.length/2)];
-      const rgb=[0,1,2].map(c=>median(samples.map(s=>s[c])));
-      return '#'+rgb.map(c=>Math.round(c).toString(16).padStart(2,'0')).join('');
-    }catch{return '#ffffff';}
-  }
   function select(view,choice){
     if(!enabled)return;
     if(view.rotation||view.page.rotate){
@@ -90,13 +74,31 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     }
     try{
       const box=clampBox(choice.box,view.width,view.height);
-      selection={view,...choice,box};
       const existing=choice.id?view.edits.find(e=>e.id===choice.id):null;
+      // Sample ORIGINAL page pixels; visible replacements never contaminate detection.
+      let sampled={ink:'#172b3d',fill:'#ffffff',bold:false,confidence:0,texture:false};
+      if(!existing) {
+        try{sampled=sampleCanvasTextStyle(view.canvas,box,choice.original||'');}
+        catch(error){console.warn('Yazı görünümü tahmin edilemedi:',error);}
+      }
+      const style=existing?{
+        ink:existing.ink,fill:existing.fill,bold:existing.bold,
+        confidence:existing.styleConfidence,texture:existing.texturedBackground
+      }:sampled;
+      selection={view,...choice,box,
+        fontSize:existing?.fontSize||Math.max(8,Math.min(48,(box.y1-box.y0)*.80)),
+        ink:style.ink,fill:style.fill,bold:Boolean(style.bold),
+        styleConfidence:style.confidence||0,texturedBackground:Boolean(style.texture)};
       text.value=existing?.text??choice.original??'';
-      size.value=String(Math.round(existing?.fontSize||Math.max(8,Math.min(48,(box.y1-box.y0)*.73))));
-      ink.value=existing?.ink||'#172b3d';
-      fill.value=existing?.fill||sampleFill(view,box);
-      label.textContent='Sayfa '+view.index+' · '+(existing?'Değişikliği düzenle':choice.sourceKind==='manual'?'Seçilen alan':'Tanınan yazı');
+      inkPreview.style.backgroundColor=style.ink;
+      fillPreview.style.backgroundColor=style.fill;
+      const confidence=style.confidence>=.55?'yaklaşık eşleşme':'belirsiz örnek';
+      detected.textContent='Belgeden otomatik: '+style.ink.toUpperCase()+
+        ' yazı · '+style.fill.toUpperCase()+' zemin · '+
+        (style.bold?'kalın':'normal')+' · '+confidence+
+        (style.texture?' · dokulu zemin':'');
+      label.textContent='Sayfa '+view.index+' · '+
+        (existing?'Değişikliği düzenle':choice.sourceKind==='manual'?'Seçilen alan':'Tanınan yazı');
       remove.hidden=!existing;panel.hidden=false;
       text.focus({preventScroll:true});text.select();
     }catch(error){status('Alan seçilemedi: '+error.message,true);}
@@ -181,6 +183,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       el.style.left=box.x0+'px';el.style.top=box.y0+'px';
       el.style.width=w+'px';el.style.height=h+'px';
       el.style.backgroundColor=edit.fill;el.style.color=edit.ink;
+      el.style.fontWeight=edit.bold?'700':'400';
       try{
         const plan=fitVisibleText(edit.text,w,h,edit.fontSize,measureAtOne);
         el.style.padding=plan.padding+'px';
@@ -203,7 +206,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     try{
       const existing=selection.id?view.edits.find(e=>e.id===selection.id):null;
       const item=normalizeVisibleEdit({...selection,id:existing?.id||crypto.randomUUID(),
-        text:text.value,fontSize:Number(size.value),ink:ink.value,fill:fill.value},view.width,view.height);
+        text:text.value},view.width,view.height);
       // Avoid placing a new rectangle over the same text without an explicit edit.
       const items=existing?view.edits.map(e=>e.id===item.id?item:e):[...view.edits,item];
       const duplicate=items.some(e=>e.id!==item.id&&e.box.x0<item.box.x1&&e.box.x1>item.box.x0&&
@@ -212,7 +215,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       fitVisibleText(item.text,item.box.x1-item.box.x0,item.box.y1-item.box.y0,item.fontSize,measureAtOne);
       mutate(view,items);
       panel.hidden=true;selection=null;
-      status('Sayfa '+view.index+' üzerinde yazı değiştirildi. Orijinal belge henüz değiştirilmedi.');
+      status('Sayfa '+view.index+' üzerinde yazı, özgün renklere göre değiştirildi. Orijinal dosya korundu.');
     }catch(error){status('Yazı uygulanamadı: '+error.message,true);}
   });
   remove.addEventListener('click',()=>{

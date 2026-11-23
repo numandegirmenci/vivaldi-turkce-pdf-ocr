@@ -41,6 +41,17 @@ if (!fs.existsSync(fontOut)) {
   fs.writeFileSync(fontOut,binary);
   console.log('✓ NotoSans-Regular.ttf');
 }
+// Kalın yazı algılandığında düzenlenmiş PDF'de aynı kalınlığı gösterebilmek için.
+const boldFontOut=path.join(dst,'NotoSans-Bold.ttf');
+if(!fs.existsSync(boldFontOut)){
+  const fontUrl='https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Bold.ttf';
+  const response=await fetch(fontUrl,{signal:AbortSignal.timeout(120000)});
+  if(!response.ok)throw new Error('Kalın Türkçe yazı fontu indirilemedi (HTTP '+response.status+').');
+  const bytes=Buffer.from(await response.arrayBuffer());
+  if(bytes.length<100000)throw new Error('Kalın yazı fontu beklenenden küçük.');
+  fs.writeFileSync(boldFontOut,bytes);
+  console.log('✓ NotoSans-Bold.ttf');
+}
 const fontLicense=path.join(dst,'Noto-OFL.txt');
 if (!fs.existsSync(fontLicense)) {
   const licenseUrl='https://raw.githubusercontent.com/notofonts/noto-fonts/main/LICENSE';
