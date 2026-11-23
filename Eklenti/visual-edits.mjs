@@ -38,7 +38,11 @@ export function normalizeVisibleEdit(input, pageWidth, pageHeight) {
     sourceIndices:Array.isArray(input.sourceIndices)?[...new Set(input.sourceIndices.filter(n=>Number.isInteger(n)&&n>=0))].slice(0,200):[],
     fontSize:Number.isFinite(fontSize)?Math.max(5,Math.min(180,fontSize)):Math.max(8,Math.min(36,(box.y1-box.y0)*.76)),
     ink:hexColor(input.ink,'#172b3d'),
-    fill:hexColor(input.fill,'#ffffff')
+    fill:hexColor(input.fill,'#ffffff'),
+    bold:input.bold===true,
+    styleConfidence:Number.isFinite(Number(input.styleConfidence))
+      ?Math.max(0,Math.min(1,Number(input.styleConfidence))):0,
+    texturedBackground:input.texturedBackground===true
   };
 }
 export function fitVisibleText(text, width, height, preferredSize, measureAtOne) {
