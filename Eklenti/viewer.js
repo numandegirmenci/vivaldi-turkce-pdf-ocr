@@ -5,7 +5,7 @@ import { createSearchablePdf, saveBytesAsPdf } from './export-pdf.mjs';
 
 import {normalizeToPdf} from './document-input.mjs';
 import {prepareOcrSurface,remapOcrWords} from './ocr-quality.mjs';
-import {chooseBestOcrResult} from './ocr-ranker.mjs';
+import {chooseBestOcrResult,ocrPassPlan} from './ocr-ranker.mjs';
 import {installSelectionSync} from './selection-sync.mjs';
 import {installVisualEditor} from './visual-editor.mjs';
 
@@ -121,7 +121,7 @@ async function prepareWorker() {
         }
       },
     }).then(async worker => {
-      await worker.setParameters({ preserve_interword_spaces: '1' });
+      await worker.setParameters({ preserve_interword_spaces: '1',user_defined_dpi:'300' });
       return worker;
     }).catch(err => {
       state.workerPromise = null; // Bir sonraki denemede tekrar oluşturulabilir.
@@ -148,14 +148,21 @@ function recognizeSerially(view, stillCurrent, enhanced=false) {
       await run(3,normal);
       if(!stillCurrent())return null;
       const first=candidates[0]?.result?.data||{};
-      const count=collectOcrWords(first).length;
-      const confidence=Number(first.confidence)||0;
-      if(enhanced||count<18||confidence<72)await run(6,normal);
+      const firstWords=collectOcrWords(first);
+      const plan=ocrPassPlan(first,firstWords,enhanced);
+      // PSM 3: ordinary page; PSM 6: single uniform text block;
+      // PSM 11: sparse headings, captions and separate field labels.
+      // Add passes automatically only for weak/uncertain readings.
+      if(plan.runLayoutBlock)await run(6,normal);
       if(!stillCurrent())return null;
-      if(enhanced||(count<12&&confidence<70)){
-        const contrast=await prepareOcrSurface(view,true); inputs.push(contrast);
+      if(plan.runSparseText)await run(11,normal);
+      if(!stillCurrent())return null;
+      if(plan.runContrast){
+        const contrast=await prepareOcrSurface(view,true);inputs.push(contrast);
         await run(6,contrast);
-        if(enhanced&&collectOcrWords(first).length<7)await run(11,contrast);
+        if(!stillCurrent())return null;
+        if(enhanced)await run(3,contrast);
+        if(plan.runSparseContrast)await run(11,contrast);
       }
       if(!stillCurrent())return null;
       const best=chooseBestOcrResult(candidates,collectOcrWords);
