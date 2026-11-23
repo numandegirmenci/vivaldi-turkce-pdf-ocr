@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {estimatePaper,planSelectiveRemoval,combineSelectiveLayers,
-  validateTransparentPatch} from '../Eklenti/selective-repair.mjs';
+  validateTransparentPatch,assertGlyphNotClipped} from '../Eklenti/selective-repair.mjs';
 
 function scannedWord(w=108,h=46,opts={}){
   const data=new Uint8ClampedArray(w*h*4);
@@ -77,4 +77,18 @@ test('dokulu görselin tamamını beyaz kapamak yerine değiştirme reddedilir',
     }
   }
   assert.throws(()=>planSelectiveRemoval(image,{ink:'#1a1a1a',fill:'#f7f7f7'}));
+});
+
+test('yeni yazı görüntü kenarından kesilirse önce kontrol edilir, görüntü değişmez',()=>{
+  const glyph=new Uint8ClampedArray(40*20*4);
+  glyph[(10*40+39)*4+3]=255;glyph[(11*40+39)*4+3]=255;
+  glyph[(12*40+39)*4+3]=255;
+  assert.throws(()=>assertGlyphNotClipped(glyph,40,20),/Daha geniş alan/);
+});
+test('saydam yama yoksa çevredeki görüntüyü değiştiren bir alan kabul edilmez',()=>{
+  const clean={width:8,height:8,data:new Uint8ClampedArray(8*8*4)};
+  const glyph=new Uint8ClampedArray(8*8*4);
+  const output=combineSelectiveLayers(clean,glyph);
+  assert.equal(output.data.reduce((a,b)=>a+b,0),0);
+  assert.equal(validateTransparentPatch(output,clean,glyph),true);
 });
