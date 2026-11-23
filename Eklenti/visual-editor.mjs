@@ -36,7 +36,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       $('searchInput').dispatchEvent(new Event('input'));
     }
     if(!enabled){selection=null;panel.hidden=true;}
-    status(enabled?'Düzenleme açık: bir kelimeye tıkla veya metin alanını fareyle işaretle.':'Yazı düzenleme kapatıldı.');
+    status(enabled?'Düzenleme açık: kelimeye tıkla. Özel alan için Shift tuşunu basılı tutup fareyle sürükle.':'Yazı düzenleme kapatıldı.');
   };
   mode.addEventListener('click',()=>toggle(!enabled));
   function syncControls(){
@@ -171,7 +171,10 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     const clearGhost=()=>{ghost?.remove();ghost=null;};
     view.surface.addEventListener('pointerdown',event=>{
       if(!enabled||event.button!==0||!view.canvas)return;
-      if(event.target.closest?.('.ocr-layer span, .textLayer span, [data-visible-edit-id]'))return;
+      // Shift+drag deliberately starts a custom region over OCR text.
+      // Without Shift, a plain click still edits the whole detected word.
+      if(event.target.closest?.('[data-visible-edit-id]'))return;
+      if(!event.shiftKey&&event.target.closest?.('.ocr-layer span, .textLayer span'))return;
       if(view.rotation||view.page.rotate){status('Döndürülmüş sayfada alan seçimi desteklenmiyor.',true);return;}
       start={...getPoint(view,event),pointerId:event.pointerId};
       clearGhost();
