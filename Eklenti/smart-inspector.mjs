@@ -29,7 +29,9 @@ export function installSmartInspector({$,state,status,ensurePage,runOcrJobs,
   const setBusy=value=>{
     busy=value;
     for(const b of [ui.read,ui.htr,ui.detect,ui.select,ui.add])
-      b.disabled=value||(!current&&(b===ui.read||b===ui.htr||b===ui.add));
+      b.disabled=value||(!current&&(b===ui.read||b===ui.htr||b===ui.add))||
+        (b===ui.htr&&ui.type.value!=='handwriting')||
+        (b===ui.read&&ui.type.value==='signature');
   };
   function drawPreview(source,destination){
     destination.width=source.width;
@@ -267,7 +269,7 @@ export function installSmartInspector({$,state,status,ensurePage,runOcrJobs,
   ui.type.addEventListener('change',()=>{
     if(!current)return;
     current.guess={kind:ui.type.value,certainty:1,manual:true,reason:'Kullanıcı seçimi'};
-    refreshEnhanced();
+    refreshEnhanced();setBusy(false);
   });
   ui.read.addEventListener('click',readCurrent);
   ui.htr.addEventListener('click',readHandwritten);
