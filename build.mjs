@@ -52,6 +52,33 @@ if(!fs.existsSync(boldFontOut)){
   fs.writeFileSync(boldFontOut,bytes);
   console.log('✓ NotoSans-Bold.ttf');
 }
+// Font candidates are local, open licensed and used ONLY to match scan typography.
+// Each OFL license ships alongside its font. No external call occurs in the viewer.
+for(const [filename,folder,remote,license] of [
+  ['OCR-RobotoCondensed.ttf','robotocondensed','RobotoCondensed%5Bwght%5D.ttf','RobotoCondensed-OFL.txt'],
+  ['OCR-Oswald.ttf','oswald','Oswald%5Bwght%5D.ttf','Oswald-OFL.txt'],
+  ['OCR-Anton.ttf','anton','Anton-Regular.ttf','Anton-OFL.txt'],
+  ['OCR-ArchivoNarrow.ttf','archivonarrow','ArchivoNarrow%5Bwght%5D.ttf','ArchivoNarrow-OFL.txt'],
+]){
+  const target=path.join(dst,filename);
+  if(!fs.existsSync(target)){
+    const url='https://raw.githubusercontent.com/google/fonts/main/ofl/'+folder+'/'+remote;
+    const response=await fetch(url,{signal:AbortSignal.timeout(120000)});
+    if(!response.ok)throw new Error('OCR yazı tipi indirilemedi: '+filename+' HTTP '+response.status);
+    const bytes=Buffer.from(await response.arrayBuffer());
+    if(bytes.length<10000)throw new Error('OCR yazı tipi dosyası geçersiz: '+filename);
+    fs.writeFileSync(target,bytes);
+    console.log('✓ '+filename);
+  }
+  const licenseFile=path.join(dst,license);
+  if(!fs.existsSync(licenseFile)){
+    const licenseUrl='https://raw.githubusercontent.com/google/fonts/main/ofl/'+folder+'/OFL.txt';
+    const response=await fetch(licenseUrl,{signal:AbortSignal.timeout(120000)});
+    if(!response.ok)throw new Error('OCR font lisansı indirilemedi: '+license);
+    fs.writeFileSync(licenseFile,await response.text());
+    console.log('✓ '+license);
+  }
+}
 const fontLicense=path.join(dst,'Noto-OFL.txt');
 if (!fs.existsSync(fontLicense)) {
   const licenseUrl='https://raw.githubusercontent.com/notofonts/noto-fonts/main/LICENSE';
