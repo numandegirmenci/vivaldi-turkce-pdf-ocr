@@ -1,30 +1,25 @@
-# Türkçe PDF OCR (Chromium) v0.6.4 — Görsel düzenleme güvenliği (Beta)
+# Türkçe PDF OCR (Chromium) v0.6.5 — Görsel yazı düzenleme “Uygula” düzeltmesi (Beta)
 
-## Yeniden tasarlanan görsel metin düzeltme motoru
+## Düzeltilen davranış
 
-Önceki sürümlerde yeni yazı için seçilen OCR alanı, tümüyle opak bir dikdörtgen olarak kapatılabiliyordu. Bu yaklaşım bir kelimenin yanındaki harfleri ve sayfanın zeminini de bozabiliyordu.
+Gerçek Vivaldi ekranındaki örnekte kullanıcı **AVCILAR → AKCIKAR** yazıyor, **Uygula** düğmesine basıyor ancak sayfa ve **Henüz değişiklik yok** yazısı değişmiyordu. Bu, son sürümün güvenlik kontrollerinin uygulamayı reddetmesine rağmen yalnızca ekranın en üstündeki durum çubuğuna hata yazmasından kaynaklanabiliyordu. Önceki sürümde tam olarak hangi kontrolün reddettiği ekranda görünmediği için sorun belirsizdi.
 
-v0.6.4'te:
+- **Uygula hatası artık görünür:** Sağdaki metin düzenleme panelinde, düğmenin hemen altında anlaşılır kırmızı uyarı görüntülenir. Örneğin seçim alanı darsa “daha geniş alan seç”, sayfa görünmüyorsa “OCR işlemini tamamla” gibi doğrudan öneri vardır. Düzenleme başarılı olursa panel kapanır ve değişiklik sayacı artar.
+- **Dar OCR kelimesine otomatik güvenli pay:** OCR kelimeleri çoğu zaman tam harf sınırlarında kesilir. Yeni sistem kelime alanını çevresinde komşu kelime bulunmayan boşluk kadar otomatik büyütür. Diğer OCR kelimelerinin bir piksel bile üstüne çıkmadan genişletme yapar.
+- **Harf boyutu artık seçim alanı büyüyünce büyümez:** Font boyutu gerçek kelime yüksekliğine sabitlenir. Önceki sürümde harfleri korumak için kutu genişletmek yeni metni de büyütüyor ve tekrar alan dışına taşıyordu.
+- **Orijinal / Düzenlenmiş görüntü:** Başarılı Uygula işleminden sonra eğer “Orijinali göster” açık kalmışsa düzenlenmiş görüntüye otomatik geri döner.
+- **Gerçek kullanıcı örneğine yakın regresyon testleri:** “AVCILAR → AKCIKAR” için OCR geometri, güvenli genişletme, orijinal yazı yüksekliğini koruma ve saydam piksel yaması testleri eklendi.
+- **Başarısız işlem belgeyi değiştirmez:** Önceki v0.6.4 saydam piksel korumaları, komşu kelime kontrolü ve ayrı PDF çıktısı korunur.
 
-- **Saydam düzeltme katmanı:** Orijinal sayfa görüntüsünü silip yeniden çizmek yerine, yalnız eski yazının yüksek kontrastla ayrıştırılabilen piksel maskesi temizlenir ve yeni harfler aynı saydam katmanda oluşturulur.
-- **Dokunulmayan piksel korunur:** Algılanan eski harf maskesi ve yeni yazı maskesi dışındaki pikseller şeffaf kalır. Kaynak PDF ve orijinal sayfa görüntüsü değiştirilmez.
-- **Güvenilir değilse işlem yapılmaz:** Harfler alanın kenarından taşarsa, zemin çok desenliyse, harf-zemin kontrastı yeterli değilse, yeni metin kesiliyorsa ya da OCR kutusu komşu kelimeyi örtüyorsa düzenleme iptal edilip sebebi gösterilir. Bu, yanlış ve geri alınamaz görsel değişiklik üretmekten daha güvenlidir.
-- **OCR seçim payı:** Tek kelime seçildiğinde dar OCR kutusuna küçük bir güvenlik payı eklenir. Daha büyük bir alan gerektiğinde `Shift` + fareyle alan seçilebilir.
-- **Önce / Sonra:** Sağ panelde **Orijinali göster / Düzenlenmişi göster** düğmesiyle orijinal sayfa ile geçici düzenleme karşılaştırılır.
-- **PDF çıktısı:** Oluşturulan saydam PNG düzeltme yaması aynı şekilde PDF'ye eklenir; yeni yazı PDF'de aranabilir kalır. Görsel PDF dışa aktarımı artık opak dikdörtgen alternatifine düşmez.
-- **Otomatik görsel sınır testleri:** Temiz taranmış yazı, bozuk zemin, düşük kontrast, alan kenarı, harf kesilmesi ve dokunulmayan piksellerin korunması için RGBA piksel testleri eklendi.
+## Kullanım
 
-### Kullanım
+1. ZIP paketindeki `Eklenti` içeriğini mevcut kurulumun üstüne kopyalayın ve `vivaldi://extensions` sayfasında **Yeniden yükle** seçin.
+2. Bozulmadan saklanmış orijinal PDF/fotoğrafı OCR ile açın, **Görünen yazıyı düzenle** modunu başlatın.
+3. Kelimeye tıklayıp yeni metni girin, **Uygula** deyin. Yeni düzenleme uygulandıysa değişiklik sayacı artar. Reddedilirse **nedenini artık aynı sağ panelde göreceksiniz.**
+4. Başarılı düzenlemeyi **Orijinali göster** ile kontrol edin; **Düzenlenmiş PDF** olarak ayrı kaydedin.
 
-1. Orijinal PDF veya fotoğrafı OCR ile aç.
-2. **Görünen yazıyı düzenle** modunu aç; kelimeye tıkla. OCR alanı darsa **Shift + sürükle** ile uygun bir bölge seç.
-3. Yeni metni gir ve **Uygula**. Motorun güvenli bulmadığı bölgeye müdahale edilmez.
-4. **Orijinali göster** ile kontrol et. Uygunsa **Düzenlenmiş PDF** ile orijinale dokunmadan ayrı bir kopya kaydet.
+## Sınırlamalar
 
-### Sınırlar ve dikkat edilmesi gerekenler
-
-- Yeni motor, *garanti edilmiş Adobe Scan düzeyinde font tanıma veya yapay zeka görüntü onarımı değildir*. Orijinal harflerin biçiminden yakın font tahmini yapar; karmaşık zeminleri ve el yazısını güvenilir biçimde onaramıyorsa değişiklik yapmaz.
-- Şeffaf piksel yaması yalnız tespit edilen harflere müdahale eder. OCR eksik veya hatalıysa, sistemin reddettiği alanı zorla düzenleme özelliği yoktur.
-- Yeni PDF güvenli redaksiyon değildir; eski dijital içerik altta kalabilir. Kaynak belgelerin aslı saklanmalı, değişiklikler kontrol edilmelidir.
-- Daha önce v0.6.0–v0.6.3 ile bozulup PDF olarak kaydedilmiş dosyaların piksel kaybı otomatik geri getirilemez; **orijinal dosyadan çalışın**.
-- Otomatik piksel testleri ve PDF entegrasyon testleri gerçek Vivaldi/Outlook/OneDrive oturumunda yapılan manuel görsel kalite testlerinin yerine geçmez.
+- Bu sürüm, kaynak görüntüdeki yazıya yakın bir stil oluşturma girişimidir. OCR koordinatlarının hatalı olduğu, arka planın desenli olduğu, metnin tanınamadığı veya alana sığmadığı durumlarda güvenli koruma mekanizmaları işlemi reddedebilir. Her belgenin başarıyla düzenleneceği garantisi yoktur.
+- Eski PDF içine veri silme / güvenli redaksiyon değildir; orijinal PDF nesneleri altta kalabilir. Resmi belge asılları saklanmalı, düzenlenmiş kopya kontrol edilmelidir.
+- Testlerin geçmesi gerçek Vivaldi ekranındaki aynı belge üzerinde uçtan uca görsel doğrulamanın yerini tutmaz.
