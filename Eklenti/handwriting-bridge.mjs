@@ -10,7 +10,7 @@ let handwrittenPipeline=null;
 env.allowRemoteModels=true;
 env.allowLocalModels=false;
 env.useBrowserCache=true;
-env.backends.onnx.wasm.wasmPaths=chrome.runtime.getURL('vendor/ort/');
+env.backends.onnx.wasm.wasmPaths=globalThis.chrome?.runtime?.getURL?.('vendor/ort/')||'/Eklenti/vendor/ort/';
 env.backends.onnx.wasm.numThreads=1;
 
 export async function recognizeHandwriting(dataUrl,progress=()=>{}){
