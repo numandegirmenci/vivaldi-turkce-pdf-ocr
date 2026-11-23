@@ -6,6 +6,7 @@
 import {prepareEditCandidates} from '/Eklenti/edit-geometry.mjs';
 import {normalizeVisibleEdit} from '/Eklenti/visual-edits.mjs';
 import {analyzeScanTypography,renderScanReplacement} from '/Eklenti/scan-typography.mjs';
+import {planPaperRestoration,compositeCleanup} from '/Eklenti/paper-restoration.mjs';
 
 function assert(condition,message){if(!condition)throw new Error(message);}
 async function imageFromData(data){
@@ -55,8 +56,19 @@ try{
     }catch(error){failed.push(error.message);}
   }
   assert(patch!==null,'all crop candidates rejected: '+failed.join(' | '));
-  assert(patch.transparency==='selective','opaque patch is forbidden');
+  assert(patch.transparency==='bounded-restoration','ghost-free restoration not used');
   assert(patch.repairedPixels>50,'old printed characters were not removed');
+  const selected=context.getImageData(edit.box.x0,edit.box.y0,
+    edit.box.x1-edit.box.x0,edit.box.y1-edit.box.y0);
+  const repair=planPaperRestoration(selected,{ink:edit.ink,fill:edit.fill});
+  const cleaned=compositeCleanup(selected,repair);
+  let ghosts=0;
+  for(let y=repair.height*.18|0;y<repair.height*.82;y++)
+    for(let x=repair.width*.06|0;x<repair.width*.94;x++){
+      const k=(y*repair.width+x)*4;
+      if(cleaned.data[k]<170)ghosts++;
+    }
+  assert(ghosts===0,'old glyph strokes remain visible after cleanup: '+ghosts);
   const before=context.getImageData(0,0,800,300).data;
   const approved=await imageFromData(patch.png);
   context.drawImage(approved,edit.box.x0,edit.box.y0);
@@ -73,7 +85,7 @@ try{
   }
   assert(changed>60,'new text did not visibly change any pixels');
   assert(damage===0,'unchanged outside-area pixels were damaged: '+damage);
-  document.querySelector('#result').textContent='PASS: '+changed+' pixels changed, outside damage = 0, attempts='+options.length;
+  document.querySelector('#result').textContent='PASS: '+changed+' pixels changed, old ghost pixels = 0, outside damage = 0, attempts='+options.length;
   document.querySelector('#result').dataset.result='pass';
 }catch(error){
   document.querySelector('#result').textContent='FAIL: '+error.stack;
