@@ -6,7 +6,7 @@ import {findUnselectedOverlap} from './scan-typography.mjs';
  * antialiased edge outside it. The repair engine needs a little safe whitespace.
  * Enlarge only inside the page and ONLY when it does not cover another OCR word.
  */
-export function prepareEditGeometry({box,pageWidth,pageHeight,words=[],sourceIndices=[],sourceIndex=null,sourceKind='ocr'}){
+export function prepareEditGeometry({box,pageWidth,pageHeight,words=[],sourceIndices=[],sourceIndex=null,sourceKind='ocr',maxPadding=null}){
   const original=clampBox(box,pageWidth,pageHeight);
   const targetHeight=original.y1-original.y0;
   const source=[...new Set([...(sourceIndices||[]),sourceIndex].filter(Number.isInteger))];
@@ -22,7 +22,9 @@ export function prepareEditGeometry({box,pageWidth,pageHeight,words=[],sourceInd
   });
   let expanded=original,padding=0;
   if(sourceKind==='ocr'){
-    const desired=Math.max(4,Math.min(14,Math.ceil(targetHeight*.20)));
+    const desired=Math.max(2,Math.min(
+      Number.isFinite(maxPadding)?Math.max(2,Math.floor(maxPadding)):14,
+      Math.max(4,Math.ceil(targetHeight*.20))));
     for(let delta=1;delta<=desired;delta++){
       const candidate=clampBox({
         x0:Math.floor(original.x0-delta),y0:Math.floor(original.y0-delta),
@@ -43,4 +45,23 @@ export function prepareEditGeometry({box,pageWidth,pageHeight,words=[],sourceInd
   if(findUnselectedOverlap(words,adjusted,source,null).length)
     throw new Error('Seçim alanı başka bir kelimeyi kesiyor. Alanı yeniden seç.');
   return {box:adjusted,targetHeight,padding};
+}
+
+
+/** Try larger and smaller safe crops: too-wide OCR padding can accidentally
+ * include glyphs from another line even when the OCR neighbor box is wrong.
+ * A render candidate is accepted only if its pixel-safety checks pass.
+ */
+export function prepareEditCandidates(args){
+  if(args.sourceKind!=='ocr')return [prepareEditGeometry(args)];
+  const widest=prepareEditGeometry(args);
+  const out=[],seen=new Set();
+  for(let padding=widest.padding;padding>=2;padding--){
+    try{
+      const candidate=prepareEditGeometry({...args,maxPadding:padding});
+      const key=JSON.stringify(candidate.box);
+      if(!seen.has(key)){seen.add(key);out.push(candidate);}
+    }catch{ /* too narrow: wider candidates were already checked */ }
+  }
+  return out;
 }
