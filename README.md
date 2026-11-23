@@ -1,10 +1,10 @@
-# Türkçe PDF OCR — Chromium / Vivaldi (v0.6.3 Beta)
+# Türkçe PDF OCR — Chromium / Vivaldi (v0.6.4 Beta)
 
-Vivaldi öncelikli; Chrome, Edge ve Brave üzerinde deneysel kullanılabilen, yerel çalışan Türkçe PDF OCR ve belge inceleme uzantısı. **v0.6.3 beta**; gerçek WhatsApp Web/Vivaldi uçtan uca doğrulaması tamamlanmamıştır.
+Vivaldi öncelikli; Chrome, Edge ve Brave üzerinde deneysel kullanılabilen, yerel çalışan Türkçe PDF OCR ve belge inceleme uzantısı. **v0.6.4 beta**; gerçek WhatsApp Web/Vivaldi uçtan uca doğrulaması tamamlanmamıştır.
 
 ## Kurulum — CMD gerekmez
 
-1. [Releases](https://github.com/numandegirmenci/vivaldi-turkce-pdf-ocr/releases) sayfasındaki **v0.6.3 hazır ZIP** yayınlandıysa onu indirin. Kaynak kod ZIP'ini değil, **Assets** altındaki `Turkce-PDF-OCR-Chromium-v0.6.3.zip` dosyasını kullanın. Otomatik Release başarılı olmadan bağlantıyı hazır saymayın.
+1. [Releases](https://github.com/numandegirmenci/vivaldi-turkce-pdf-ocr/releases) sayfasındaki **v0.6.4 hazır ZIP** yayınlandıysa onu indirin. Kaynak kod ZIP'ini değil, **Assets** altındaki `Turkce-PDF-OCR-Chromium-v0.6.4.zip` dosyasını kullanın. Otomatik Release başarılı olmadan bağlantıyı hazır saymayın.
 2. ZIP'i sabit bir klasöre çıkarın. Eski `Eklenti` klasörünü önce **yedekleyin**.
 3. Daha önce kurulmuş uzantı varsa yeni `Eklenti` içeriğini (özellikle `vendor` klasörü dahil) aynı etkin klasörün üzerine **Ctrl+C / Ctrl+V** ile kopyalayın; eski klasörü silmeyin.
 4. `vivaldi://extensions` adresinde **Yeniden yükle** düğmesine basın ve WhatsApp Web sekmesini F5 ile yenileyin. İlk kez kuruyorsanız **Geliştirici modu → Paketlenmemiş öğe yükle → Eklenti** yolunu izleyin.
@@ -19,7 +19,7 @@ Vivaldi öncelikli; Chrome, Edge ve Brave üzerinde deneysel kullanılabilen, ye
 - **Ayraç hatası:** `:` işaretinin OCR tarafından `1`, `3`, `I` veya `|` gibi okunmasını, yalnız birden fazla alanın geometrik kanıt sunduğu konumlarda tablonun hücresinde temizleme. **OCR metninin orijinali değiştirilmez; gerçek rakamlar rastgele silinmez.**
 - **WhatsApp Web:** Yalnız kullanıcı etkinleştirince WhatsApp Web PDF/belge yakalama; yakalama açıkken normal sohbeti taramaz. Bir etkileşim için tek aktarım; otomatik yakalama başarısızsa **Açık PDF önizlemesini yakala** veya **Dosyadan seç**. Son dosyalar geçici sekme belleğinde tutulur.
 - **Outlook ve OneDrive:** Doğrudan açılan görsellerin OCR görüntüleyicisine yönlendirilmesi; ek fotoğraf veya PDF bağlantısı üzerinde sağ tık → **PDF / görseli OCR ile aç**. Eklenti menüsündeki **Bu sekmedeki belgeyi OCR ile aç** seçeneği sekmeyi kapatmadan dosyayı okumayı dener. OneDrive yalnızca HTML önizleme sunuyorsa **İndir → PDF seç** kullanın.
-- **Görünen yazıyı düzenle (v0.6.3):** PDF veya taranmış görselde OCR sözcüğüne tıklayın ya da fareyle alan seçin; yalnızca yeni yazıyı girip **Uygula** deyin. Renk ve zemin görüntüden, yazı ailesi ve kalınlığı ise aynı satırdaki başka bir sözcükten otomatik tahmin edilir. Yeni yazı özgün harf yüksekliğinde, taranmış kağıt dokusuna benzer bir yama üzerinde gösterilir. Bu yaklaşık bir eşleşmedir. Önizlemeden sonra **Düzenlenmiş PDF** ile yeni dosyaya kaydedin. Sadece düz renkli alan kapama kullanır; orijinal PDF korunur. **Güvenli redaksiyon değildir**, desenli yüzeyleri tam onarmaz ve döndürülmüş sayfalarda desteklenmez.
+- **Görünen yazıyı düzenle (v0.6.4):** PDF veya taranmış görselde OCR sözcüğüne tıklayın ya da fareyle alan seçin; yalnızca yeni yazıyı girip **Uygula** deyin. Renk ve zemin görüntüden, yazı ailesi ve kalınlığı ise aynı satırdaki başka bir sözcükten otomatik tahmin edilir. Yeni yazı özgün harf yüksekliğinde, taranmış kağıt dokusuna benzer bir yama üzerinde gösterilir. Bu yaklaşık bir eşleşmedir. Önizlemeden sonra **Düzenlenmiş PDF** ile yeni dosyaya kaydedin. Sadece düz renkli alan kapama kullanır; orijinal PDF korunur. **Güvenli redaksiyon değildir**, desenli yüzeyleri tam onarmaz ve döndürülmüş sayfalarda desteklenmez.
 - **Dosya türleri:** PDF, PNG/JPEG/WebP/GIF/BMP, DOCX, XLSX, PPTX, ODT, TXT, CSV/TSV, MD/LOG, JSON/XML/HTML, RTF. Word/Excel/PowerPoint dosyalarında biçim birebir korunmayabilir; eski DOC/XLS ve şifreli dosyalar desteklenmez.
 - **Arama ve dışa aktarma:** Ctrl+F, F3, görünür sayfa tabanlı yükleme, sayfa gezgini, yakınlaştırma, döndürme, aranabilir PDF kaydetme. Dijital imzalar yeni PDF'de geçersiz olabilir.
 
@@ -60,6 +60,11 @@ Otomatik testler gerçek WhatsApp Web/Vivaldi uçtan uca testinin yerine geçmez
 MIT lisansı, üçüncü taraf kütüphaneler için `THIRD_PARTY_NOTICES.md` geçerlidir. İşe özgü veya kişisel belge örneklerini GitHub Issues'a eklemeyin.
 
 
-### Görsel yazı düzeltme notu (v0.6.3)
+### Görsel yazı düzeltme notu (v0.6.4)
 
 Belgedeki yazıyı orijinal haliyle korumak önceliklidir. Yeni metin alanı çok dar kalırsa program harfleri orantısız daraltmak yerine hata verir. Daha geniş alan gerektiğinde **Görünen yazıyı düzenle** modunda **Shift tuşunu basılı tutup fareyi sürükleyin**. Alanın kısmen kapattığı başka bir OCR sözcüğü varsa kaydetme engellenir. Sarı arama işaretleri düzenleme modunda gizlenir; bunlar gerçek belge rengi değildir.
+
+
+### v0.6.4 — Saydam onarım ve özgün görüntü karşılaştırma
+
+Görsel düzenleme artık eski yazı alanının tamamını beyaz bir dikdörtgenle kaplamaz. Algılanan eski harf piksellerini temizleyip yeni harfleri saydam bir katmanla gösterir; seçilen alan dışında ve harf maskesinin dışında orijinal görüntü değişmez. **Orijinali göster** düğmesiyle geri dönüp karşılaştır. Harflerin alan kenarına dayanması, komşu OCR yazısını kapatması veya desenli arka plan güvenli analiz edilememesi halinde işlem reddedilir. Bu saydam düzenleme gerçek AI inpainting değildir ve güvenli redaksiyon için kullanılamaz.

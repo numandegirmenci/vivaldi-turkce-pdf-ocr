@@ -7,6 +7,7 @@ import {PDFDocument,rgb} from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import {createEditedPdf} from '../Eklenti/export-pdf.mjs';
 
+const patch='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFUlEQVR4nGP89evXfwYGBgYmBigAAD0IA/GtclJYAAAAAElFTkSuQmCC';
 const fontPath=path.join(path.dirname(fileURLToPath(import.meta.url)),'../Eklenti/vendor/NotoSans-Regular.ttf');
 test('taranan PDF üzerindeki OCR kelimesi görünür Türkçe yazıya dönüştürülür',
   {skip:!fs.existsSync(fontPath)},async()=>{
@@ -31,7 +32,7 @@ test('taranan PDF üzerindeki OCR kelimesi görünür Türkçe yazıya dönüşt
         ],
         viewport:{convertToPdfPoint:(x,y)=>[x,842-y]},
         edits:[{id:'test',text:'Çeşme İZMİR',original:'ESKİ',sourceKind:'ocr',
-          sourceIndex:0,sourceIndices:[0],fontSize:19,ink:'#172b3d',fill:'#ffffff',box}]
+          sourceIndex:0,sourceIndices:[0],fontSize:19,ink:'#172b3d',fill:'#ffffff',box,patchPng:patch}]
       };
       const result=await createEditedPdf(source,[view]);
       assert.equal(result.count,1);

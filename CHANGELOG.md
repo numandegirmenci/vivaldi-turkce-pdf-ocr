@@ -1,5 +1,15 @@
 # Değişiklik geçmişi
 
+## v0.6.4 — 23 Kasım 2026 · Tarama üzerinde saydam, piksel seçici metin düzeltme (Beta)
+
+- Opak bir dikdörtgenle tüm OCR alanını kapama yaklaşımı kaldırıldı: yalnız maskelenebilen eski harf pikselleri ve yeni yazı pikselleri içeren saydam PNG onarım katmanı.
+- Kullanılmayan görüntü piksellerinin sıfır alfa kalmasını denetleyen RGBA testleri.
+- Düşük kontrast, desenli zemin, seçili alan kenarındaki harf, kesilen yeni yazı ve komşu OCR yazı korumaları.
+- Tek sözcük OCR kutularına küçük güvenlik payı; kullanıcıya orijinal/düzenlenmiş görüntü arasında karşılaştırma düğmesi.
+- PDF dışa aktarımında opak dikdörtgen yedek yolunu kaldırma; kaynak PDF görüntüsünün korunması.
+- Tam Adobe Scan kalitesi garanti edilmez; başarısız yazı bölgesi, orijinal sayfa korunarak reddedilir.
+
+
 ## v0.6.3 — 23 Kasım 2026 · Görsel OCR düzeltmede taşma ve vurgu hatalarını önleme (Beta)
 
 - Yanlış daraltma sonucu “AVCILAR” gibi başlıkların aşırı uzun/dar görünmesine yol açan yatay ölçekler engellendi.

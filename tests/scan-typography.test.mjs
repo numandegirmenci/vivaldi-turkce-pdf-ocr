@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {nearestSameLineWord,findUnselectedOverlap,layoutScanReplacement,SCAN_FONTS} from '../Eklenti/scan-typography.mjs';
+import {nearestSameLineWord,findUnselectedOverlap,fullySelectedWords,layoutScanReplacement,SCAN_FONTS} from '../Eklenti/scan-typography.mjs';
 
 test('düzeltilen BAŞKANLIĞI yazısı için BELEDİYE aynı satırdan referans seçilir',()=>{
   const selected={x0:374,y0:260,x1:691,y1:323};
@@ -79,4 +79,13 @@ test('yüksekliği koruyan kısa metin için yatay ölçek güvenli kalır',()=>
     {family:'OCRRobotoCondensed',weight:700,scaleX:.96,fontSize:59,refHeight:54});
   assert.ok(out.scaleX>=.84);
   assert.ok(out.scaleX<=1.16);
+});
+
+test('manuel seçim kelimenin yalnız yarısını içerirse komşu harflerin silinmesi önlenir',()=>{
+  const words=[{text:'KOZMETİK',bbox:{x0:10,y0:10,x1:110,y1:40}},
+    {text:'ÜRÜNLER',bbox:{x0:119,y0:10,x1:205,y1:40}}];
+  assert.throws(()=>fullySelectedWords(words,{x0:40,y0:5,x1:150,y1:45}),/tamamını kapsayan/);
+  const valid=fullySelectedWords(words,{x0:8,y0:8,x1:112,y1:42});
+  assert.deepEqual(valid.sourceIndices,[0]);
+  assert.equal(valid.original,'KOZMETİK');
 });
