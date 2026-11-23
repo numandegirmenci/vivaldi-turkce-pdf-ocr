@@ -123,3 +123,11 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 .visual-edit-enabled .search-layer,
 .visual-edit-enabled .sheet.search-page{outline:none!important}
 .visual-edit-enabled .search-layer{display:none!important}
+
+/* v0.6.4: transparent pixel-selective OCR editing and original/edited comparison. */
+#pages.show-original .visual-edit-layer{display:none!important}
+.edit-summary-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+#editCompare{font-size:11px;padding:4px 8px}
+#editCompare[aria-pressed="true"]{background:#def4ff;border-color:#3d9aca;color:#124f6f}
+.visual-edit-layer .visual-edit-box{background:none!important;padding:0!important}
+.visual-edit-layer .visual-edit-box img{image-rendering:auto}
