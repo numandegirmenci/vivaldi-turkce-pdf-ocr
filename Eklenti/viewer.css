@@ -64,3 +64,38 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 .selection-sync-preview{white-space:pre-wrap;overflow:auto;max-height:155px;min-height:36px;padding:8px;background:white;border:1px solid #cce3f0;border-radius:5px;font:12px/1.5 'Segoe UI',sans-serif;color:#15394d;user-select:text;overflow-wrap:anywhere}
 .selection-sync-meta{color:#47718c;font-size:11px}
 .sync-target-page{outline:3px solid #0a99c0!important;outline-offset:2px}
+
+
+/* v0.6.0: user-triggered visible PDF/image text corrections. */
+@font-face{font-family:'NotoSansOcr';src:url('vendor/NotoSans-Regular.ttf') format('truetype');font-display:swap}
+#editVisible[aria-pressed="true"]{background:#c7f6df;border-color:#5bd8a0;color:#06452c}
+#exportEdited:not(:disabled){background:#156184;color:#fff;border-color:#36a7d5}
+.visual-editor-panel{background:#f3f9fd;border:1px solid #acd1e9;border-radius:9px;padding:11px;display:flex;flex-direction:column;gap:9px}
+.visual-editor-panel[hidden]{display:none}
+.visual-editor-panel .edit-panel-title{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px}
+.visual-editor-panel strong{font-size:13px;color:#143c55}
+.visual-editor-panel small{font-size:11px;color:#426579}
+.visual-editor-panel label{font-size:12px;font-weight:600;color:#21485e}
+#editText{width:100%;flex:none;min-height:66px;max-height:145px;resize:vertical;font:14px/1.4 'NotoSansOcr','Segoe UI',sans-serif;padding:8px;background:white}
+.edit-grid{display:flex;flex-wrap:wrap;gap:11px}
+.edit-grid label{display:flex;align-items:center;flex-direction:column;gap:4px}
+.edit-grid input[type="number"]{width:74px;border:1px solid #a6c3d4;border-radius:5px;padding:5px}
+.edit-grid input[type="color"]{width:52px;height:34px;cursor:pointer;padding:2px;border:1px solid #a6c3d4;border-radius:5px;background:white}
+.edit-actions{display:flex;gap:6px;flex-wrap:wrap}
+.edit-actions button{font-size:12px;padding:6px 9px}
+.edit-actions .edit-primary{background:#145f80;color:white;border-color:#145f80}
+.edit-actions .edit-primary:hover{background:#0f4a64}
+.edit-warning{line-height:1.4;color:#82612c!important}
+.edit-summary{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12px;color:#4e728a}
+.edit-summary button{padding:3px 8px;font-size:11px}
+.visual-edit-enabled .page-surface{cursor:crosshair}
+.visual-edit-enabled .ocr-layer span,.visual-edit-enabled .textLayer span{cursor:pointer!important}
+.visual-edit-enabled .ocr-layer span:hover,.visual-edit-enabled .textLayer span:hover{background:#38bdf855}
+.visual-edit-layer{position:absolute;inset:0;pointer-events:none;z-index:5}
+.visual-edit-box{position:absolute;white-space:pre;overflow:hidden;text-overflow:clip;
+  font-family:'NotoSansOcr',Arial,sans-serif;font-weight:400;box-sizing:border-box;
+  user-select:none;pointer-events:none}
+.visual-edit-enabled .visual-edit-box{pointer-events:auto;cursor:pointer;outline:1px dashed #138cb5}
+.visual-edit-enabled .visual-edit-box:hover{outline:2px solid #087baf}
+.visual-edit-ghost{position:absolute;z-index:7;border:2px dashed #1c94d0;background:#2db6fd26;
+  pointer-events:none}
