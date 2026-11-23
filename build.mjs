@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { build as bundle } from 'esbuild';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 process.chdir(here);
@@ -89,4 +90,23 @@ if (!fs.existsSync(fontLicense)) {
   fs.writeFileSync(fontLicense,licenseText);
   console.log('✓ Noto-OFL.txt');
 }
+// Optional local TrOCR runtime. Only JavaScript/WASM is bundled in ZIP;
+// large ONNX model weights are user-triggered downloads and cached by browser.
+await bundle({
+  entryPoints:['Eklenti/handwriting-bridge.mjs'],
+  outfile:'Eklenti/vendor/handwriting-runtime.mjs',
+  bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,
+  conditions:['browser'],mainFields:['browser','module','main'],
+  logLevel:'warning',
+});
+const ortDist=path.resolve('node_modules/onnxruntime-web/dist');
+const ortOutput=path.join(dst,'ort');fs.mkdirSync(ortOutput,{recursive:true});
+const wasmAssets=fs.readdirSync(ortDist).filter(name=>
+  /^ort-wasm.*\.(?:wasm|mjs)$/.test(name));
+if(!wasmAssets.some(name=>name.endsWith('.wasm')))
+  throw new Error('El yazısı modeli için ONNX WASM dosyaları bulunamadı.');
+for(const file of wasmAssets){
+  fs.copyFileSync(path.join(ortDist,file),path.join(ortOutput,file));
+}
+console.log('✓ TrOCR runtime ve '+wasmAssets.length+' yerel ONNX bileşeni');
 console.log('\nHAZIR: Eklenti klasörünü tarayıcınızın uzantı sayfası > Geliştirici modu > Paketlenmemiş öğe yükle ile seç.');
