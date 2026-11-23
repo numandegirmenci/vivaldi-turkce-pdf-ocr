@@ -117,3 +117,9 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 /* Borders are visible only on hover, not a permanent box around the corrected word. */
 .visual-edit-enabled .visual-edit-box{outline:none}
 .visual-edit-enabled .visual-edit-box:hover,.visual-edit-enabled .visual-edit-box:focus-visible{outline:2px dashed #087baf}
+
+/* v0.6.3: search results are UI highlights, never paper ink.
+   Suppress them during document editing so highlighted words do not look yellow. */
+.visual-edit-enabled .search-layer,
+.visual-edit-enabled .sheet.search-page{outline:none!important}
+.visual-edit-enabled .search-layer{display:none!important}

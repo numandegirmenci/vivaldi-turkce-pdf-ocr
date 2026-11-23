@@ -1,5 +1,5 @@
 import {clampBox,normalizeVisibleEdit,fitVisibleText,textWithVisibleEdits} from './visual-edits.mjs';
-import {SCAN_FONTS,nearestSameLineWord,analyzeScanTypography,renderScanReplacement} from './scan-typography.mjs';
+import {SCAN_FONTS,nearestSameLineWord,findUnselectedOverlap,analyzeScanTypography,renderScanReplacement} from './scan-typography.mjs';
 import {formatOcrWords} from './text-utils.mjs';
 import {createEditedPdf,saveBytesAsPdf} from './export-pdf.mjs';
 import {sampleCanvasTextStyle} from './text-style.mjs';
@@ -29,8 +29,14 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     mode.setAttribute('aria-pressed',String(enabled));
     mode.textContent=enabled?'✓ Yazı düzenleme açık':'✏️ Görünen yazıyı düzenle';
     $('pages').classList.toggle('visual-edit-enabled',enabled);
+    // A search highlight made BELEDİYE look yellow in the screenshot.
+    // Editing must show only original pixels, not the yellow search overlay.
+    if(enabled&&$('searchInput')?.value){
+      $('searchInput').value='';
+      $('searchInput').dispatchEvent(new Event('input'));
+    }
     if(!enabled){selection=null;panel.hidden=true;}
-    status(enabled?'Düzenleme açık: bir kelimeye tıkla veya metin alanını fareyle işaretle.':'Yazı düzenleme kapatıldı.');
+    status(enabled?'Düzenleme açık: kelimeye tıkla. Özel alan için Shift tuşunu basılı tutup fareyle sürükle.':'Yazı düzenleme kapatıldı.');
   };
   mode.addEventListener('click',()=>toggle(!enabled));
   function syncControls(){
@@ -83,13 +89,27 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       const existing=choice.id?view.edits.find(e=>e.id===choice.id):null;
       // Sample the closest word on the SAME line. A neighboring heading word
       // is a better typography reference than a short or malformed OCR target.
-      const reference=nearestSameLineWord(view.words,box);
-      const sampleBox=reference?.bbox||box;
-      let sampled={ink:'#172b3d',fill:'#ffffff',bold:false,confidence:0,texture:false};
+      const untouchedWords=(view.words||[]).filter(word=>!(view.edits||[]).some(edit=>{
+        const r=word?.bbox,e=edit.box;
+        return r&&e&&r.x0<e.x1&&r.x1>e.x0&&r.y0<e.y1&&r.y1>e.y0;
+      }));
+      const reference=nearestSameLineWord(untouchedWords,box);
+      // Paper color MUST come from the target, not from an unrelated nearby
+      // text region (or the yellow search highlight painted on top of the canvas).
+      let targetStyle={ink:'#172b3d',fill:'#ffffff',bold:false,confidence:0,texture:false};
+      let referenceStyle=null;
       if(!existing){
-        try{sampled=sampleCanvasTextStyle(view.canvas,sampleBox,reference?.text||choice.original||'');}
-        catch(error){console.warn('Yazı görünümü tahmin edilemedi:',error);}
+        try{targetStyle=sampleCanvasTextStyle(view.canvas,box,choice.original||'');}
+        catch(error){console.warn('Hedef yazı görünümü okunamadı:',error);}
+        if(reference){
+          try{referenceStyle=sampleCanvasTextStyle(view.canvas,reference.bbox,reference.text);}
+          catch(error){console.warn('Aynı satır örneği okunamadı:',error);}
+        }
       }
+      const sampled={...targetStyle,
+        ink:referenceStyle?.confidence>=.55?referenceStyle.ink:targetStyle.ink,
+        bold:referenceStyle?.confidence>=.55?referenceStyle.bold:targetStyle.bold,
+        confidence:Math.max(targetStyle.confidence,referenceStyle?.confidence||0)};
       const style=existing?{
         ink:existing.ink,fill:existing.fill,bold:existing.bold,
         confidence:existing.styleConfidence,texture:existing.texturedBackground
@@ -151,7 +171,10 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     const clearGhost=()=>{ghost?.remove();ghost=null;};
     view.surface.addEventListener('pointerdown',event=>{
       if(!enabled||event.button!==0||!view.canvas)return;
-      if(event.target.closest?.('.ocr-layer span, .textLayer span, [data-visible-edit-id]'))return;
+      // Shift+drag deliberately starts a custom region over OCR text.
+      // Without Shift, a plain click still edits the whole detected word.
+      if(event.target.closest?.('[data-visible-edit-id]'))return;
+      if(!event.shiftKey&&event.target.closest?.('.ocr-layer span, .textLayer span'))return;
       if(view.rotation||view.page.rotate){status('Döndürülmüş sayfada alan seçimi desteklenmiyor.',true);return;}
       start={...getPoint(view,event),pointerId:event.pointerId};
       clearGhost();
@@ -233,6 +256,9 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       const duplicate=items.some(e=>e.id!==item.id&&e.box.x0<item.box.x1&&e.box.x1>item.box.x0&&
         e.box.y0<item.box.y1&&e.box.y1>item.box.y0);
       if(duplicate)throw new Error('Bu yazı alanında başka bir düzenleme var. Önce onu kaldır.');
+      const intruders=findUnselectedOverlap(view.words,item.box,item.sourceIndices,item.sourceIndex);
+      if(intruders.length)throw new Error('Seçili alan "'+intruders[0].word+
+        '" yazısını da kısmen kapatıyor. Yazı alanını diğer kelimelere taşmadan seç.');
       const typography=analyzeScanTypography(view.canvas,view.words,item.box,
         chosen.original||item.original,{ink:item.ink,fill:item.fill,bold:item.bold});
       // Keep the full-height glyph and fit its width. No shrinking the entire
