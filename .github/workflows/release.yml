@@ -35,6 +35,9 @@ jobs:
       - name: Eklenti ve Turkce OCR modelini hazirla
         run: npm run build
 
+      - name: Chromium görsel yazı Uygula testi
+        run: node tests/run-browser-visual-edit.mjs
+
       - name: WhatsApp JS soz dizimini dogrula
         run: |
           node --check Eklenti/whatsapp-page.js
