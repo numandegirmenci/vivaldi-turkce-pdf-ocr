@@ -3,12 +3,18 @@ import {SCAN_FONTS,nearestSameLineWord,findUnselectedOverlap,fullySelectedWords,
 import {formatOcrWords} from './text-utils.mjs';
 import {createEditedPdf,saveBytesAsPdf} from './export-pdf.mjs';
 import {sampleCanvasTextStyle} from './text-style.mjs';
+import {prepareEditGeometry} from './edit-geometry.mjs';
 
 /** User-triggered, reversible visual edits. No network calls or automatic document rewriting. */
 export function installVisualEditor({$,state,status,updateExtractedText,refreshText}) {
   let enabled=false, selection=null, undoStack=[];
   const mode=$('editVisible'),panel=$('visualEditor'),label=$('editLocation');
-  const text=$('editText'),detected=$('editDetectedStyle');
+  const text=$('editText'),detected=$('editDetectedStyle'),feedback=$('editFeedback');
+  const reportEdit=(message,isError=false)=>{
+    feedback.textContent=message;
+    feedback.hidden=!message;
+    feedback.classList.toggle('edit-feedback-error',isError);
+  };
   const inkPreview=$('editInkPreview'),fillPreview=$('editFillPreview');
   const save=$('editApply'),remove=$('editRemove'),cancel=$('editCancel');
   const exportButton=$('exportEdited'),undo=$('editUndo'),compare=$('editCompare');
@@ -133,6 +139,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         ink:style.ink,fill:style.fill,bold:Boolean(style.bold),
         styleConfidence:style.confidence||0,texturedBackground:Boolean(style.texture)};
       text.value=existing?.text??choice.original??'';
+      reportEdit('');
       inkPreview.style.backgroundColor=style.ink;
       fillPreview.style.backgroundColor=style.fill;
       const confidence=style.confidence>=.55?'yaklaşık eşleşme':'belirsiz örnek';
@@ -251,7 +258,9 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     if(!selection)return;
     const chosen=selection,view=chosen.view;
     save.disabled=true;
+    reportEdit('Yazı görüntüye uygulanıyor...');
     try{
+      if(!view.canvas)throw new Error('Sayfa görüntüsü hazır değil. Belgeyi tekrar açıp OCR işlemini tamamla.');
       await ensureFonts();
       if(selection!==chosen)return;
       const existing=chosen.id?view.edits.find(e=>e.id===chosen.id):null;
@@ -259,17 +268,11 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         text:text.value},view.width,view.height);
       if(item.original.trim()===item.text.trim())
         throw new Error('Yeni yazı orijinaliyle aynı. Değişiklik yapılmadı.');
-      // OCR bounding boxes sometimes touch ink edges. Give each word a small
-      // safety margin; never do this repeatedly when editing an existing patch.
-      if(!existing&&item.sourceKind==='ocr'){
-        const pad=Math.min(5,Math.max(3,(item.box.y1-item.box.y0)*.065));
-        item.box=clampBox({x0:item.box.x0-pad,y0:item.box.y0-pad,
-          x1:item.box.x1+pad,y1:item.box.y1+pad},view.width,view.height);
-      }
-      // Align the display and exported PNG to the exact canvas pixel grid.
-      // Fractional OCR rectangles otherwise stretch a PNG by up to two pixels.
-      item.box=clampBox({x0:Math.floor(item.box.x0),y0:Math.floor(item.box.y0),
-        x1:Math.ceil(item.box.x1),y1:Math.ceil(item.box.y1)},view.width,view.height);
+      const geometry=prepareEditGeometry({box:item.box,
+        pageWidth:view.width,pageHeight:view.height,words:view.words,
+        sourceIndices:item.sourceIndices,sourceIndex:item.sourceIndex,
+        sourceKind:existing?'manual':item.sourceKind});
+      item.box=geometry.box;
       const items=existing?view.edits.map(e=>e.id===item.id?item:e):[...view.edits,item];
       const duplicate=items.some(e=>e.id!==item.id&&e.box.x0<item.box.x1&&e.box.x1>item.box.x0&&
         e.box.y0<item.box.y1&&e.box.y1>item.box.y0);
@@ -279,6 +282,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         '" yazısını da kısmen kapatıyor. Yazı alanını diğer kelimelere taşmadan seç.');
       const typography=analyzeScanTypography(view.canvas,view.words,item.box,
         chosen.original||item.original,{ink:item.ink,fill:item.fill,bold:item.bold});
+      typography.targetHeight=geometry.targetHeight;
       // Keep the full-height glyph and fit its width. No shrinking the entire
       // typeface to fit a long word: that was the cause in the screenshot.
       const rendered=renderScanReplacement(view.canvas,item,typography);
@@ -288,10 +292,21 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       item.typography=typography;
       item.fontSize=rendered.layout.fontSize;
       mutate(view,items);
+      // Showing-original is a deliberate comparison mode. After a successful
+      // edit, show the corrected image or it looks like Uygula did nothing.
+      if(showingOriginal){
+        showingOriginal=false;$('pages').classList.remove('show-original');
+        compare.setAttribute('aria-pressed','false');
+      }
       panel.hidden=true;selection=null;
-      status('Sayfa '+view.index+': yalnızca algılanan yazı pikselleri düzenlendi ('+
-        rendered.repairedPixels+' piksel). Orijinal dosya korundu.');
-    }catch(error){status('Yazı uygulanamadı: '+error.message,true);}
+      reportEdit('');
+      status('Sayfa '+view.index+': değişiklik uygulandı ('+
+        rendered.repairedPixels+' eski yazı pikseli düzeltildi). Orijinal dosya korundu.');
+    }catch(error){
+      const reason=error?.message||'Bilinmeyen düzenleme hatası';
+      reportEdit('Uygulanamadı: '+reason,true);
+      status('Görsel yazı uygulanamadı: '+reason,true);
+    }
     finally{save.disabled=false;}
   });
   remove.addEventListener('click',()=>{
