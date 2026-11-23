@@ -1,4 +1,5 @@
 import {clampBox,normalizeVisibleEdit,fitVisibleText,textWithVisibleEdits} from './visual-edits.mjs';
+import {SCAN_FONTS,nearestSameLineWord,analyzeScanTypography,renderScanReplacement} from './scan-typography.mjs';
 import {formatOcrWords} from './text-utils.mjs';
 import {createEditedPdf,saveBytesAsPdf} from './export-pdf.mjs';
 import {sampleCanvasTextStyle} from './text-style.mjs';
@@ -12,6 +13,11 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
   const save=$('editApply'),remove=$('editRemove'),cancel=$('editCancel');
   const exportButton=$('exportEdited'),undo=$('editUndo');
   const measure=document.createElement('canvas').getContext('2d');
+  // Loading font faces before measuring prevents browser fallback from distorting edits.
+  let fontReady=null;
+  const ensureFonts=()=>fontReady||(fontReady=Promise.allSettled(
+    SCAN_FONTS.map(({family,weight})=>document.fonts.load(weight+' 24px "'+family+'"'))
+  ));
   const hasEdits=()=>state.sheets.some(v=>v.edits?.length);
   const measureAtOne=value=>{
     if(!measure)return String(value).length*.54;
@@ -75,10 +81,13 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     try{
       const box=clampBox(choice.box,view.width,view.height);
       const existing=choice.id?view.edits.find(e=>e.id===choice.id):null;
-      // Sample ORIGINAL page pixels; visible replacements never contaminate detection.
+      // Sample the closest word on the SAME line. A neighboring heading word
+      // is a better typography reference than a short or malformed OCR target.
+      const reference=nearestSameLineWord(view.words,box);
+      const sampleBox=reference?.bbox||box;
       let sampled={ink:'#172b3d',fill:'#ffffff',bold:false,confidence:0,texture:false};
-      if(!existing) {
-        try{sampled=sampleCanvasTextStyle(view.canvas,box,choice.original||'');}
+      if(!existing){
+        try{sampled=sampleCanvasTextStyle(view.canvas,sampleBox,reference?.text||choice.original||'');}
         catch(error){console.warn('Yazı görünümü tahmin edilemedi:',error);}
       }
       const style=existing?{
@@ -86,7 +95,8 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         confidence:existing.styleConfidence,texture:existing.texturedBackground
       }:sampled;
       selection={view,...choice,box,
-        fontSize:existing?.fontSize||Math.max(8,Math.min(48,(box.y1-box.y0)*.80)),
+        sampleReference:reference?.text||null,
+        fontSize:existing?.fontSize||Math.max(8,Math.min(80,(box.y1-box.y0)*1.1)),
         ink:style.ink,fill:style.fill,bold:Boolean(style.bold),
         styleConfidence:style.confidence||0,texturedBackground:Boolean(style.texture)};
       text.value=existing?.text??choice.original??'';
@@ -95,8 +105,8 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       const confidence=style.confidence>=.55?'yaklaşık eşleşme':'belirsiz örnek';
       detected.textContent='Belgeden otomatik: '+style.ink.toUpperCase()+
         ' yazı · '+style.fill.toUpperCase()+' zemin · '+
-        (style.bold?'kalın':'normal')+' · '+confidence+
-        (style.texture?' · dokulu zemin':'');
+        (reference?'Aynı satırdan örnek: '+reference.text+' · ':'')+
+        confidence+(style.texture?' · dokulu zemin':'');
       label.textContent='Sayfa '+view.index+' · '+
         (existing?'Değişikliği düzenle':choice.sourceKind==='manual'?'Seçilen alan':'Tanınan yazı');
       remove.hidden=!existing;panel.hidden=false;
@@ -182,14 +192,23 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       el.dataset.visibleEditId=edit.id;
       el.style.left=box.x0+'px';el.style.top=box.y0+'px';
       el.style.width=w+'px';el.style.height=h+'px';
-      el.style.backgroundColor=edit.fill;el.style.color=edit.ink;
-      el.style.fontWeight=edit.bold?'700':'400';
-      try{
-        const plan=fitVisibleText(edit.text,w,h,edit.fontSize,measureAtOne);
-        el.style.padding=plan.padding+'px';
-        el.style.fontSize=plan.fontSize+'px';el.style.lineHeight=plan.lineHeight+'px';
-        el.textContent=edit.text;
-      }catch(error){console.warn('Görsel yazı yerleşimi:',error);el.textContent=edit.text;}
+      if(edit.patchPng?.startsWith('data:image/png;base64,')){
+        const img=document.createElement('img');
+        img.src=edit.patchPng;img.alt='Düzenlenmiş yazı';
+        img.width=Math.ceil(w);img.height=Math.ceil(h);
+        img.style.cssText='width:100%;height:100%;display:block;pointer-events:none';
+        el.append(img);
+      }else{
+        // Legacy v0.6.1 edit fallback; new edits use a scan-matched PNG patch.
+        el.style.backgroundColor=edit.fill;el.style.color=edit.ink;
+        el.style.fontWeight=edit.bold?'700':'400';
+        try{
+          const plan=fitVisibleText(edit.text,w,h,edit.fontSize,measureAtOne);
+          el.style.padding=plan.padding+'px';
+          el.style.fontSize=plan.fontSize+'px';el.style.lineHeight=plan.lineHeight+'px';
+          el.textContent=edit.text;
+        }catch(error){console.warn('Eski görsel yazı yerleşimi:',error);el.textContent=edit.text;}
+      }
       layer.append(el);
     }
     view.surface.append(layer);view.editLayer=layer;
@@ -200,23 +219,33 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     view.edits=edits;
     syncPage(view);
   }
-  save.addEventListener('click',()=>{
+  save.addEventListener('click',async()=>{
     if(!selection)return;
-    const view=selection.view;
+    const chosen=selection,view=chosen.view;
+    save.disabled=true;
     try{
-      const existing=selection.id?view.edits.find(e=>e.id===selection.id):null;
-      const item=normalizeVisibleEdit({...selection,id:existing?.id||crypto.randomUUID(),
+      await ensureFonts();
+      if(selection!==chosen)return;
+      const existing=chosen.id?view.edits.find(e=>e.id===chosen.id):null;
+      const item=normalizeVisibleEdit({...chosen,id:existing?.id||crypto.randomUUID(),
         text:text.value},view.width,view.height);
-      // Avoid placing a new rectangle over the same text without an explicit edit.
       const items=existing?view.edits.map(e=>e.id===item.id?item:e):[...view.edits,item];
       const duplicate=items.some(e=>e.id!==item.id&&e.box.x0<item.box.x1&&e.box.x1>item.box.x0&&
         e.box.y0<item.box.y1&&e.box.y1>item.box.y0);
-      if(duplicate)throw new Error('Bu yazı alanında başka bir düzenleme var. Önce onu düzenle veya kaldır.');
-      fitVisibleText(item.text,item.box.x1-item.box.x0,item.box.y1-item.box.y0,item.fontSize,measureAtOne);
+      if(duplicate)throw new Error('Bu yazı alanında başka bir düzenleme var. Önce onu kaldır.');
+      const typography=analyzeScanTypography(view.canvas,view.words,item.box,
+        chosen.original||item.original,{ink:item.ink,fill:item.fill,bold:item.bold});
+      // Keep the full-height glyph and fit its width. No shrinking the entire
+      // typeface to fit a long word: that was the cause in the screenshot.
+      const rendered=renderScanReplacement(view.canvas,item,typography);
+      item.patchPng=rendered.png;
+      item.typography=typography;
+      item.fontSize=rendered.layout.fontSize;
       mutate(view,items);
       panel.hidden=true;selection=null;
-      status('Sayfa '+view.index+' üzerinde yazı, özgün renklere göre değiştirildi. Orijinal dosya korundu.');
+      status('Sayfa '+view.index+': metin, aynı satırın yazı yapısına göre işlendi. Orijinal dosya korundu.');
     }catch(error){status('Yazı uygulanamadı: '+error.message,true);}
+    finally{save.disabled=false;}
   });
   remove.addEventListener('click',()=>{
     if(!selection?.id)return;
