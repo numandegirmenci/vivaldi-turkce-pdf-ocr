@@ -1,28 +1,34 @@
-# Türkçe PDF OCR (Chromium) v0.5.9 — Beta
+# Türkçe PDF OCR (Chromium) v0.6.0 — Beta
 
 **Tarih:** 23 Kasım 2026
 
-v0.5.8 üzerinde çalışan OCR, WhatsApp ve tablo özellikleri korunarak Outlook e-posta görselleri ve OneDrive PDF bağlantıları için yeni yakalama yolları eklendi.
+### Yeni: Görsel üzerindeki yazıyı düzenleme
 
-### Değişiklikler
-
-- Sekmede doğrudan açılan JPEG, PNG, WebP, GIF ve BMP görselleri PDF gibi otomatik OCR ekranına yönlendirilebilir.
-- Outlook'ta fotoğrafa veya OneDrive'da erişilebilir PDF bağlantısına sağ tıklayıp **PDF / görseli OCR ile aç** seçilebilir.
-- Eklentinin **Bu sekmedeki belgeyi OCR ile aç** komutu OneDrive/Outlook sekmesini değiştirmeden dosya aktarımını dener.
-- Kullanıcı tarafından seçilen ek, 32 MB sınırı, dosya imzası kontrolü, kaynak sekme/çerçeve yetkisi ve 10 dakikalık geçici depolamayla açılır.
-- Giriş gerektiren ve farklı alan adlarında sunulan dosyalarda önce sayfa içi erişim, gerekli olduğunda eklenti kaynağından yeniden indirme denenir.
-- Doğrudan PDF baytları yerine yalnızca HTML önizleme döndüren OneDrive/Outlook sayfalarında anlaşılır hata ve **İndir → PDF seç** yolu gösterilir.
+- PDF ve taranmış görseller üzerinde **Görünen yazıyı düzenle** düğmesi.
+- OCR ile tanınmış sözcüğe tıklayıp yeni yazıyı girme; OCR tanımı başarısızsa fareyle alan çizip birden fazla kelime veya satır için metin yerleştirme.
+- Yazı boyutu, yazı rengi ve kapatılacak alanın arka plan rengini ayarlama; görselin çevresinden yaklaşık arka plan rengi örnekleme.
+- Değişikliklerin belge üzerinde önizlemesi; değişikliği kaldırma ve **Geri al**.
+- **Düzenlenmiş PDF** ile orijinal dosyayı değiştirmeden, yeni adla çıktı alma. Değiştirilen taranmış OCR kelimeleri yeni PDF'nin görünmez metin katmanına eski haliyle eklenmez.
+- Mevcut v0.5.9 Outlook, OneDrive, WhatsApp yakalama, OCR, tablo, metin seçimi ve aranabilir PDF özellikleri korunur.
 
 ### Kurulum
 
-1. GitHub Release **Assets** bölümünden `Turkce-PDF-OCR-Chromium-v0.5.9.zip` dosyasını indirin.
-2. Önceki kurulu `Eklenti` klasörünü yedekleyin. ZIP'teki `Eklenti` içeriğini aynı klasörün üzerine kopyalayın; `vendor` klasörünü koruyun.
-3. `vivaldi://extensions` sayfasında eklentiyi **Yeniden yükle** ile yenileyin. WhatsApp Web açıksa F5 yapın.
-4. Outlook veya OneDrive'da ekin kendisini açın ya da bağlantı/görsel üzerinde sağ tıklayın. Dosya aktarılmıyorsa **İndir → PDF seç** kullanın.
+1. GitHub Release Assets altından **Turkce-PDF-OCR-Chromium-v0.6.0.zip** dosyasını indirin.
+2. Mevcut eklenti klasörünün yedeğini alın ve yeni ZIP'in **Eklenti** klasör içeriğini eskisinin üzerine kopyalayın.
+3. Vivaldi'de **vivaldi://extensions** adresinden **Yeniden yükle**; WhatsApp Web açıksa F5.
 
-### Bilinen sınırlamalar
+### Kullanım
 
-- OneDrive ve Outlook'un kimlik doğrulama gerektiren bazı **HTML önizleme sayfaları**, orijinal PDF/görsel baytlarını tarayıcıya erişilebilir URL olarak sunmaz. Bu durumda otomatik yakalama mümkün olmayabilir; dosyayı indirip elle seçmek gerekir.
-- Canlı Outlook/OneDrive oturumlarıyla uçtan uca test yapılmadı; otomatik birim ve paketleme testleri ayrıdır.
-- OCR sonuçları ve resmi belge verileri mutlaka aslıyla karşılaştırılmalıdır. Dijital imzalı PDF'yi yeniden üretmek imzayı geçersiz kılabilir.
-- Mevcut WhatsApp iş akışındaki erişilemeyen Blob önizlemeleri için manuel dosya seçimi geçerlidir.
+1. PDF veya fotoğrafı OCR ile açın.
+2. Üstte **Görünen yazıyı düzenle** düğmesine basın.
+3. Yazıya tıklayın veya alan seçmek için fareyle sürükleyin.
+4. Metni düzenleyin, renk/boyutu ayarlayın ve **Uygula** deyin.
+5. **Düzenlenmiş PDF** ile sonucu kaydedin.
+
+### Önemli sınırlamalar
+
+- Bu özellik Adobe'nin görüntü onarma algoritmasının birebir kopyası değildir. Eski harfleri düz renkli bir alanla kapatıp yeni yazıyı yerleştirir. Desenli/fotoğraflı zeminler kusursuz onarılamaz.
+- **Güvenli karartma/redaksiyon değildir.** Düzenlenmiş görünür PDF'de dijital PDF'nin eski metni veya nesneleri içerikte kalabilir. Hassas bilgileri silmek için kullanılmamalıdır.
+- Döndürülmüş sayfalar görsel düzenleme için henüz desteklenmez.
+- Görsel ve metin yerleşimi tahminidir; resmi evrakta sonuç özgün belgeyle mutlaka kontrol edilmelidir. PDF dijital imzaları yeni dosyada geçersiz olabilir.
+- Canlı Vivaldi/Outlook/OneDrive oturumlarıyla uçtan uca test henüz yapılmamıştır. Otomatik testler gerçek uygulama testinin yerine geçmez.
