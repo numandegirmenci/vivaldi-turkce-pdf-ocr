@@ -53,7 +53,15 @@ async function captureTarget(tabId, frameId=0, sourceUrl='') {
       func:captureOcrAttachment,
       args:[{id,sourceUrl}]
     });
-    return result?.[0]?.result || {ok:false,error:'Sayfadan dosya yanıtı alınamadı.'};
+    const outcome=result?.[0]?.result || {ok:false,error:'Sayfadan dosya yanıtı alınamadı.'};
+    // Same-origin fetch can fail for a signed cross-origin CDN URL. The extension
+    // has host permissions and can retry that explicit document URL itself.
+    if(!outcome.ok && !/önizleme HTML/i.test(outcome.error||'') &&
+       isSupportedUrl(outcome.sourceUrl||sourceUrl)){
+      await chrome.tabs.create({url:chrome.runtime.getURL('viewer.html')+'?src='+encodeURIComponent(outcome.sourceUrl||sourceUrl),active:true});
+      return {ok:true,via:'extensionFetch'};
+    }
+    return outcome;
   } catch (error) {
     return {ok:false,error:'Sayfa içeriğine erişilemedi: '+String(error?.message||error)};
   }
