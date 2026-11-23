@@ -196,8 +196,19 @@ export function discoverRegions(bitmap,words=[],maxRegions=30){
   if(!w||!h)return [];
   const fromOcr=groupWordRegions(words,w,h);
   const ink=detectInkRegions(bitmap,'blue',12);
-  // Prefer OCR line rectangles and uncovered colored-pen regions.
-  const extras=ink.filter(candidate=>fromOcr.every(r=>
+  const dark=detectInkRegions(bitmap,'dark',28);
+  // Dark connected components can contain round seals missed by normal OCR.
+  // Only add roughly square candidates with sufficient circular perimeter.
+  const potentialSeals=dark.filter(candidate=>{
+    const r=candidate.box,cw=r.x1-r.x0,ch=r.y1-r.y0;
+    if(Math.min(cw,ch)<40||cw/ch<.65||cw/ch>1.60)return false;
+    const clipData=new Uint8ClampedArray(cw*ch*4);
+    for(let row=0;row<ch;row++)clipData.set(
+      bitmap.data.subarray(((r.y0+row)*w+r.x0)*4,
+        ((r.y0+row)*w+r.x0+cw)*4),row*cw*4);
+    return circularSealScore({width:cw,height:ch,data:clipData})>.42;
+  }).slice(0,5);
+  const extras=[...ink,...potentialSeals].filter(candidate=>fromOcr.every(r=>
     intersect(r.box,candidate.box)/Math.min(area(r.box),area(candidate.box))<.55));
   const raw=[...fromOcr,...extras].slice(0,maxRegions);
   return raw.map((r,i)=>{
