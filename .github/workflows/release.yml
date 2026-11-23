@@ -27,7 +27,7 @@ jobs:
           node-version: '22'
 
       - name: Bagimliliklari yukle
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund --onnxruntime-node-install-cuda=skip
 
       - name: Otomatik testleri calistir
         run: npm test
