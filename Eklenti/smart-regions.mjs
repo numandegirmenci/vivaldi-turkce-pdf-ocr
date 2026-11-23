@@ -42,7 +42,7 @@ export function circularSealScore(bitmap){
   let best=0;
   for(const ox of centers)for(const oy of centers){
     const cx=w/2+ox*size,cy=h/2+oy*size;
-    for(const radiusRatio of [.29,.36,.43,.48]){
+    for(const radiusRatio of [.26,.29,.32,.35,.375,.40,.43,.46,.49]){
       const r=size*radiusRatio;
       if(r<12)continue;
       const angles=72;
@@ -53,7 +53,15 @@ export function circularSealScore(bitmap){
         if(x<0||x>=w||y<0||y>=h)continue;
         const j=(y*w+x)*4;
         valid++;
-        if(luma(data[j],data[j+1],data[j+2])<145)dark++;
+        let edge=false;
+        for(let dr=-2;dr<=2;dr++){
+          const px=Math.round(cx+(r+dr)*Math.cos(t));
+          const py=Math.round(cy+(r+dr)*Math.sin(t));
+          if(px<0||px>=w||py<0||py>=h)continue;
+          const q=(py*w+px)*4;
+          if(luma(data[q],data[q+1],data[q+2])<145){edge=true;break;}
+        }
+        if(edge)dark++;
       }
       if(valid>angles*.92)best=Math.max(best,dark/valid);
     }
