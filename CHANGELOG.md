@@ -1,5 +1,15 @@
 # Değişiklik geçmişi
 
+## v0.6.7 — 23 Kasım 2026 · Akıllı Bölge Analizi (Beta)
+
+- PDF'de bölge önerileri: basılı yazı, mavi kalem el yazısı, dairesel kaşe, imza ve belirsiz görüntü alanları.
+- Orijinalden yüksek çözünürlüklü bölge kesme; OCR ön işlemi ile özgün görüntüyü yan yana gösterme ve elle alan seçimi.
+- El yazısı, kaşe ve basılı metin için bölgeye özgü birden fazla Tesseract PSM okuma adayı, filigran azaltma ve dairesel kaşe şerit açılımı.
+- Düşük güvenli/uyuşmayan OCR sonuçlarında metin uydurmama; kullanıcı doğrulamalı metin notları.
+- İsteğe bağlı, ilk kullanımda indirilen ONNX TrOCR small handwritten modeli: yerel cihazda çıkarım, Türkçe doğruluğu garanti edilmez.
+- OCR ve el yazısı analizinde orijinal belge görüntüsü korunur.
+
+
 ## v0.6.6 — 23 Kasım 2026 · Eski yazı izi temizliği ve Türkçe OCR güven puanı
 
 - Antialias ve JPEG gölgelerini eksik silen eski seçici maske yerine, yalnızca doğrulanmış temiz kağıt üzerinde tüm yazı alanını örnekleme ve kenar yumuşatma ile onarma.
