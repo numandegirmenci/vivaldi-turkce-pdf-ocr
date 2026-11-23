@@ -7,6 +7,7 @@ import {normalizeToPdf} from './document-input.mjs';
 import {prepareOcrSurface,remapOcrWords} from './ocr-quality.mjs';
 import {chooseBestOcrResult} from './ocr-ranker.mjs';
 import {installSelectionSync} from './selection-sync.mjs';
+import {installVisualEditor} from './visual-editor.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('vendor/pdf.worker.mjs');
 const $ = id => document.getElementById(id);
@@ -28,6 +29,7 @@ $('file').onchange = async event => {
   const file = event.target.files?.[0];
   event.target.value = '';
   if (!file) return;
+  if(visualEditor.hasEdits() && !window.confirm('Kaydedilmemiş görsel yazı değişiklikleri var. Yeni dosya açılırsa bu değişiklikler kaybolacak. Devam edilsin mi?'))return;
   $('original').hidden = true; $('original').removeAttribute('href');
   // PDF bağlantısındaki geç yüklenen bir istek, seçilen dosyanın üzerine yazmasın.
   const request = ++state.run;
@@ -46,8 +48,14 @@ $('original').onclick = async event => {
     if (!result?.ok) status('Orijinal PDF açılamadı: ' + (result?.error || 'Bilinmeyen hata'), true);
   } catch (error) { status('Orijinal PDF açılamadı: ' + error.message, true); }
 };
-$('reocr').onclick = () => state.pdf && scanAll(true);
-$('native').onclick = () => state.pdf && renderDocument(false);
+$('reocr').onclick = () => {
+  if(visualEditor.hasEdits()){status('Önce düzenlenmiş PDF\'yi kaydet ve düzenlemeleri geri al; yeniden OCR mevcut alanları değiştirebilir.',true);return;}
+  if(state.pdf)scanAll(true);
+};
+$('native').onclick = () => {
+  if(visualEditor.hasEdits()){status('Görsel düzenlemeler varken PDF metnine dönüş kapalı. Değişiklikleri ayrı PDF olarak kaydet.',true);return;}
+  if(state.pdf)renderDocument(false);
+};
 $('zoomOut').onclick = () => setZoom(state.zoom / 1.25);
 $('zoomIn').onclick = () => setZoom(state.zoom * 1.25);
 $('fit').onclick = () => { state.viewMode='page'; state.zoom=1; applyZoom(); };
@@ -60,6 +68,7 @@ const viewerTools = installViewerTools({
 
 
 const selectionSync=installSelectionSync({pages:$('pages'),text:$('text'),status});
+const visualEditor=installVisualEditor({$,state,status,updateExtractedText,refreshText:()=>viewerTools.refresh()});
 
 async function copyText() {
   try {
@@ -183,11 +192,12 @@ function addWordsLayer(surface, data, width, height) {
   // getBoundingClientRect() 0 dönüyordu ve OCR seçimi kayıyordu.
   surface.append(layer);
   const words = collectOcrWords(data);
-  for (const word of words) {
+  for (const [wordIndex,word] of words.entries()) {
     const { x0, y0, x1, y1 } = word.bbox;
     const span = document.createElement('span');
     const fontHeight = Math.max(7, y1 - y0);
     span.textContent = word.text + ' ';
+    span.dataset.ocrIndex=String(wordIndex);
     span.style.left = `${x0}px`;
     span.style.top = `${y0}px`;
     span.style.fontSize = `${fontHeight * 0.89}px`;
@@ -237,9 +247,10 @@ function createPageView(page, index, count) {
     words:[],textSource:null,processed:false,processing:false,loadPromise:null,
     rotation:0,lastUsed:0};
   state.sheets.push(view);
+  visualEditor.attach(view);
   originalBtn.disabled=ocrBtn.disabled=true;
-  originalBtn.onclick=async()=>{if(!state.busy){await renderPage(view,state.run);await processPageText(view,false,state.run);}};
-  ocrBtn.onclick=async()=>{if(!state.busy){await renderPage(view,state.run);await processPageText(view,true,state.run);}};
+  originalBtn.onclick=async()=>{if(!state.busy&&!visualEditor.hasPageEdits(view)){await renderPage(view,state.run);await processPageText(view,false,state.run);}};
+  ocrBtn.onclick=async()=>{if(!state.busy&&!visualEditor.hasPageEdits(view)){await renderPage(view,state.run);await processPageText(view,true,state.run);}};
   rotateBtn.onclick=()=>rotatePage(view);
   state.observer?.observe(sheet);
   applyZoom();
@@ -256,6 +267,7 @@ function goToPage(number) {
 
 function rotatePage(view) {
   if(state.busy || view.processing)return;
+  if(visualEditor.hasPageEdits(view)){status('Görsel yazı düzenlenen sayfa döndürülemez. Önce düzenlenmiş PDF\'yi kaydet.',true);return;}
   view.rotation=(view.rotation+90)%360;
   const scale=getSafeRenderScale(view.page.getViewport({scale:1,rotation:view.page.rotate+view.rotation}),1);
   view.viewport=view.page.getViewport({scale,rotation:view.page.rotate+view.rotation});
@@ -320,6 +332,7 @@ async function renderPage(view,run,forceOcr=false) {
         view.currentLayer=addWordsLayer(view.surface,{words:view.words},canvas.width,canvas.height).layer;
         view.line.textContent='OCR metni korunuyor. Yazı seçilebilir.';
         viewerTools.paint(view);
+        visualEditor.paint(view);
       } else {
         await processPageText(view,forceOcr,run);
       }
@@ -344,6 +357,7 @@ function enqueuePage(view,run){
 
 async function scanAll(forceOcr=false) {
   if(!state.pdf)return;
+  if(forceOcr&&visualEditor.hasEdits()){status('Görsel değişiklikler varken zorunlu OCR uygulanamaz.',true);return;}
   if(state.scanPromise)return state.scanPromise;
   const run=state.run;
   state.busy=true;
@@ -381,6 +395,7 @@ async function scanAll(forceOcr=false) {
 
 async function saveSearchablePdf(){
   if(!state.pdf || state.busy)return;
+  if(visualEditor.hasEdits())return visualEditor.saveEdited();
   $('exportPdf').disabled=true;
   try{
     await scanAll(false);
@@ -394,9 +409,9 @@ async function saveSearchablePdf(){
 
 function updatePageButtons(view) {
   const locked = state.busy || view.processing;
-  view.originalBtn.disabled = locked || !hasUsablePdfText(view.nativeContent);
-  view.ocrBtn.disabled = locked;
-  view.rotateBtn.disabled = locked;
+  view.originalBtn.disabled = locked || visualEditor.hasPageEdits(view) || !hasUsablePdfText(view.nativeContent);
+  view.ocrBtn.disabled = locked || visualEditor.hasPageEdits(view);
+  view.rotateBtn.disabled = locked || visualEditor.hasPageEdits(view);
 }
 
 async function processPageText(view, forceOcr, run) {
@@ -451,8 +466,10 @@ async function processPageText(view, forceOcr, run) {
     if (!isCurrent()) { newLayer?.remove(); return; }
     if (previousLayer && previousLayer !== newLayer) previousLayer.remove();
     view.currentLayer = newLayer;
-    state.pages[view.index - 1] = pageText;
+    view.baseText=pageText;
+    state.pages[view.index - 1] = visualEditor.pageText(view);
     view.processed=true;
+    visualEditor.paint(view);
     view.lastUsed=Date.now();
     updateExtractedText();
     viewerTools.refresh();
@@ -511,12 +528,13 @@ async function renderDocument() {
   state.busy=false;
   state.allTextReady=false;
   state.scanPromise=null;
+  visualEditor.reset();
   state.pages=Array(state.pdf.numPages).fill('');
   state.sheets=[];
   state.renderQueue=Promise.resolve();
   $('pages').replaceChildren();$('counter').textContent='';
   updateExtractedText();
-  for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf']){
+  for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf','editVisible']){
     $(id).disabled=false;
   }
   $('totalPages').textContent='/ '+state.pdf.numPages;
@@ -543,6 +561,7 @@ async function renderDocument() {
     if(index%12===0)await new Promise(resolve=>setTimeout(resolve,0));
   }
   if(run===state.run){
+    visualEditor.syncControls();
     viewerTools.refresh();
     $('counter').textContent=count+'/'+state.pdf.numPages+' sayfa hazır';
     status('PDF açıldı. Görünen sayfalar yükleniyor; tüm sayfalar için "Tüm metni hazırla" kullanılabilir.');

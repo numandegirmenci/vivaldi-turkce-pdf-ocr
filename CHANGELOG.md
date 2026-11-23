@@ -1,5 +1,12 @@
 # Değişiklik geçmişi
 
+## v0.6.0 — 23 Kasım 2026 · Görselde görünen yazıyı düzenleme (Beta)
+
+- Tanınan OCR sözcüğüne tıklayarak veya alan seçerek görsel PDF metnini değiştirme; yazı rengi, boyut ve zemin rengi.
+- Yerinde önizleme, değişikliği kaldırma ve geri al; orijinal dosyayı bozmadan `-duzenlenmis.pdf` dışa aktarma.
+- Düzenlenen taranmış OCR kelimelerinin görünmez eski metin olarak PDF'ye yeniden eklenmesini engelleme.
+- Önemli: görünür düz renk yamadır; desenli zemini otomatik tamamlamaz, güvenli redaksiyon değildir, döndürülmüş sayfa desteği yoktur.
+
 ## v0.5.9 — 23 Kasım 2026 · OneDrive PDF ve Outlook görsel ekleri (Beta)
 
 - Doğrudan açılan PDF ve yaygın fotoğraf türlerini OCR ile yakalama.
