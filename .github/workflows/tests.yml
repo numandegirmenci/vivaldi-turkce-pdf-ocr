@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '22'
       - name: Bagimliliklari yukle
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund --onnxruntime-node-install-cuda=skip
       - name: WhatsApp entegrasyon JS sözdizimini doğrula
         run: |
           node --check Eklenti/whatsapp-page.js
