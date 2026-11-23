@@ -8,6 +8,7 @@ import {prepareOcrSurface,remapOcrWords} from './ocr-quality.mjs';
 import {chooseBestOcrResult,ocrPassPlan} from './ocr-ranker.mjs';
 import {installSelectionSync} from './selection-sync.mjs';
 import {installVisualEditor} from './visual-editor.mjs';
+import {installSmartInspector} from './smart-inspector.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('vendor/pdf.worker.mjs');
 const $ = id => document.getElementById(id);
@@ -69,6 +70,11 @@ const viewerTools = installViewerTools({
 
 const selectionSync=installSelectionSync({pages:$('pages'),text:$('text'),status});
 const visualEditor=installVisualEditor({$,state,status,updateExtractedText,refreshText:()=>viewerTools.refresh()});
+const smartInspector=installSmartInspector({
+  $,state,status,ensurePage:async view=>renderPage(view,state.run),
+  runOcrJobs:recognizeRegionSerially,disableVisualEditor:()=>visualEditor.toggle(false),
+  updateExtractedText,getCurrentPageText:view=>visualEditor.pageText(view)
+});
 
 async function copyText() {
   try {
@@ -173,6 +179,20 @@ function recognizeSerially(view, stillCurrent, enhanced=false) {
   return task;
 }
 
+/** Share the same Tesseract worker safely with normal page OCR.
+ * Region-specific OCR never changes state.pages or view.words.
+ */
+function recognizeRegionSerially(job){
+  const task=state.ocrQueue.then(async()=>{
+    const worker=await prepareWorker();
+    await worker.setParameters({tessedit_pageseg_mode:String(job.psm)});
+    const result=await worker.recognize(job.canvas,{}, {text:true,blocks:true,tsv:true});
+    return result.data||{};
+  });
+  state.ocrQueue=task.catch(()=>{});
+  return task;
+}
+
 /** Seçmeli form/tablo OCR: kontrastı ölçülü artır, orijinali değiştirme. */
 function improveImage(canvas) {
   const output=document.createElement('canvas');
@@ -255,6 +275,7 @@ function createPageView(page, index, count) {
     rotation:0,lastUsed:0};
   state.sheets.push(view);
   visualEditor.attach(view);
+  smartInspector.attach(view);
   originalBtn.disabled=ocrBtn.disabled=true;
   originalBtn.onclick=async()=>{if(!state.busy&&!visualEditor.hasPageEdits(view)){await renderPage(view,state.run);await processPageText(view,false,state.run);}};
   ocrBtn.onclick=async()=>{if(!state.busy&&!visualEditor.hasPageEdits(view)){await renderPage(view,state.run);await processPageText(view,true,state.run);}};
@@ -291,6 +312,7 @@ function rotatePage(view) {
 }
 
 function releaseCanvas(view) {
+  view.smartMark?.remove();view.smartMark=null;
   view.currentLayer?.remove();view.currentLayer=null;
   view.searchLayer?.remove();view.searchLayer=null;
   view.canvas?.remove();
@@ -474,7 +496,7 @@ async function processPageText(view, forceOcr, run) {
     if (previousLayer && previousLayer !== newLayer) previousLayer.remove();
     view.currentLayer = newLayer;
     view.baseText=pageText;
-    state.pages[view.index - 1] = visualEditor.pageText(view);
+    state.pages[view.index - 1] = visualEditor.pageText(view)+smartInspector.getNotes(view);
     view.processed=true;
     visualEditor.paint(view);
     view.lastUsed=Date.now();
@@ -536,12 +558,13 @@ async function renderDocument() {
   state.allTextReady=false;
   state.scanPromise=null;
   visualEditor.reset();
+  smartInspector.reset();
   state.pages=Array(state.pdf.numPages).fill('');
   state.sheets=[];
   state.renderQueue=Promise.resolve();
   $('pages').replaceChildren();$('counter').textContent='';
   updateExtractedText();
-  for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf','editVisible']){
+  for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf','editVisible','smartAnalyze']){
     $(id).disabled=false;
   }
   $('totalPages').textContent='/ '+state.pdf.numPages;
