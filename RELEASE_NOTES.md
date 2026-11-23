@@ -1,25 +1,39 @@
-# Türkçe PDF OCR (Chromium) v0.6.5 — Görsel yazı düzenleme “Uygula” düzeltmesi (Beta)
+# Türkçe PDF OCR (Chromium) v0.6.6 — Eski yazı izi temizliği ve OCR iyileştirmesi (Beta)
 
-## Düzeltilen davranış
+## Sorun ve düzeltme
 
-Gerçek Vivaldi ekranındaki örnekte kullanıcı **AVCILAR → AKCIKAR** yazıyor, **Uygula** düğmesine basıyor ancak sayfa ve **Henüz değişiklik yok** yazısı değişmiyordu. Bu, son sürümün güvenlik kontrollerinin uygulamayı reddetmesine rağmen yalnızca ekranın en üstündeki durum çubuğuna hata yazmasından kaynaklanabiliyordu. Önceki sürümde tam olarak hangi kontrolün reddettiği ekranda görünmediği için sorun belirsizdi.
+Gerçek kullanıcı görüntüsünde “ÇALIŞMA BELGESİ” satırındaki eski harflerin gölgeleri/izleri kalıyor, yeni yazı eski yazının üzerine basılmış gibi görünüyordu.
 
-- **Uygula hatası artık görünür:** Sağdaki metin düzenleme panelinde, düğmenin hemen altında anlaşılır kırmızı uyarı görüntülenir. Örneğin seçim alanı darsa “daha geniş alan seç”, sayfa görünmüyorsa “OCR işlemini tamamla” gibi doğrudan öneri vardır. Düzenleme başarılı olursa panel kapanır ve değişiklik sayacı artar.
-- **Dar OCR kelimesine otomatik güvenli pay:** OCR kelimeleri çoğu zaman tam harf sınırlarında kesilir. Yeni sistem kelime alanını çevresinde komşu kelime bulunmayan boşluk kadar otomatik büyütür. Diğer OCR kelimelerinin bir piksel bile üstüne çıkmadan genişletme yapar.
-- **Harf boyutu artık seçim alanı büyüyünce büyümez:** Font boyutu gerçek kelime yüksekliğine sabitlenir. Önceki sürümde harfleri korumak için kutu genişletmek yeni metni de büyütüyor ve tekrar alan dışına taşıyordu.
-- **Orijinal / Düzenlenmiş görüntü:** Başarılı Uygula işleminden sonra eğer “Orijinali göster” açık kalmışsa düzenlenmiş görüntüye otomatik geri döner.
-- **Gerçek kullanıcı örneğine yakın regresyon testleri:** “AVCILAR → AKCIKAR” için OCR geometri, güvenli genişletme, orijinal yazı yüksekliğini koruma ve saydam piksel yaması testleri eklendi.
-- **Başarısız işlem belgeyi değiştirmez:** Önceki v0.6.4 saydam piksel korumaları, komşu kelime kontrolü ve ayrı PDF çıktısı korunur.
+**Sorunun kökü:** v0.6.5 eski yazının yalnız yüksek kontrastlı harf piksellerini şeffaf yama ile kapatıyordu. Baskı yumuşatması, tarama gürültüsü ve JPEG kaynaklı düşük kontrastlı eski harf çevresi temizlenmiyor, eklenen harflerle birlikte görünüyordu.
+
+### v0.6.6 düzeltme motoru
+
+- Tek tek eski harf maskesini temizlemek yerine, **yalnızca düz ve temiz kağıt olduğu doğrulanan OCR kelime alanının tamamı** çevre kağıt örneklerinden yeniden oluşturuluyor. Böylece eski yazının hem çekirdeği hem de soluk kenarları kaldırılıyor.
+- Kenarlardaki kağıt renkleri yatay konuma göre örneklenip yumuşatılıyor; küçük kağıt tonu farkı ve tarama grisi korunmaya çalışılıyor.
+- Onarım alanı sayfa dışında hiçbir pikseli değiştirmiyor. Kenarlardaki pikseller kademeli saydamlıkla bağlanıyor.
+- Yakındaki başka bir kelime, çizgi, kaşe, logolu/desenli zemin, güçlü ton farklılığı veya harflerin seçim kenarına taşması durumunda **işlem güvenli biçimde reddediliyor**. Karmaşık desenler için gerçek görüntü tamamlama henüz uygulanmıyor.
+- Mevcut özgün görüntü karşılaştırma, geri alma ve orijinale dokunmadan ayrı PDF dışa aktarma özellikleri korunuyor.
+- Birim testlerine, eski yazının koyu çekirdeği kadar **soluk anti-alias/JPEG izlerinin de sıfıra indirilmesi** testi; Chromium uçtan uca testine eski iz kalıntısı kontrolü eklendi.
+
+### Türkçe OCR doğruluğu
+
+- Tesseract `tessdata_best/tur` yüksek kalite Türkçe modeli korunuyor. Daha küçük veya düşük kalite modele geçilmedi.
+- OCR kelimesi güven puanı artık Tesseract sonuçlarından ve TSV'den saklanıyor.
+- Belge düzeni (PSM 3), metin bloğu (PSM 6), seyrek metin ve başlık (PSM 11) okumaları, belgenin gerçek OCR başarısına göre otomatik seçiliyor.
+- Zayıf veya eksik tanınan sayfalarda kontrastlı ikinci okumalar otomatik olarak deneniyor; yüksek güvenli uzun sayfalara gereksiz tekrar uygulanmıyor.
+- OCR sonucu sıralaması sadece “en çok karakteri okuyan” yaklaşımından çıkarılıp **sayfa ve kelime güven puanı, okunabilir sözcük sayısı, satır yapısı ve hatalı karakterlerin cezalandırılması** ile güncellendi.
+- OCR çözünürlüğü yüksek kalıyor; Tesseract'a 300 DPI okuma bilgisi veriliyor.
 
 ## Kullanım
 
-1. ZIP paketindeki `Eklenti` içeriğini mevcut kurulumun üstüne kopyalayın ve `vivaldi://extensions` sayfasında **Yeniden yükle** seçin.
-2. Bozulmadan saklanmış orijinal PDF/fotoğrafı OCR ile açın, **Görünen yazıyı düzenle** modunu başlatın.
-3. Kelimeye tıklayıp yeni metni girin, **Uygula** deyin. Yeni düzenleme uygulandıysa değişiklik sayacı artar. Reddedilirse **nedenini artık aynı sağ panelde göreceksiniz.**
-4. Başarılı düzenlemeyi **Orijinali göster** ile kontrol edin; **Düzenlenmiş PDF** olarak ayrı kaydedin.
+1. Yeni ZIP'teki `Eklenti` klasörünü kurulu eklentiye kopyalayın (önce yedeğini alın).
+2. `vivaldi://extensions` sayfasında eklentiyi yeniden yükleyin.
+3. Orijinal taranmış PDF veya fotoğrafı açın. OCR işlemi tamamlandıktan sonra **Görünen yazıyı düzenle** → kelimeyi seç → yeni metni gir → **Uygula**.
+4. **Orijinali göster** ile sonucu kontrol edin. Uygunsa **Düzenlenmiş PDF** ile kopyasını kaydedin.
 
 ## Sınırlamalar
 
-- Bu sürüm, kaynak görüntüdeki yazıya yakın bir stil oluşturma girişimidir. OCR koordinatlarının hatalı olduğu, arka planın desenli olduğu, metnin tanınamadığı veya alana sığmadığı durumlarda güvenli koruma mekanizmaları işlemi reddedebilir. Her belgenin başarıyla düzenleneceği garantisi yoktur.
-- Eski PDF içine veri silme / güvenli redaksiyon değildir; orijinal PDF nesneleri altta kalabilir. Resmi belge asılları saklanmalı, düzenlenmiş kopya kontrol edilmelidir.
-- Testlerin geçmesi gerçek Vivaldi ekranındaki aynı belge üzerinde uçtan uca görsel doğrulamanın yerini tutmaz.
+- Düz kağıt üzerinde metin onarımı daha iyi hedeflenmiştir. **Desenli/renkli/filigranlı zeminlerde kusursuz iz temizliği veya fontun birebir eşleştirilmesi garanti değildir; sistem güvenilir değilse işlemi reddeder.**
+- Bu dijital PDF içerisinde güvenli redaksiyon değildir. Eski PDF nesneleri içerikte kalabilir; resmî belgelerin aslı saklanmalıdır.
+- Yeni sürüm, daha önce bozulmuş ve kaydedilmiş PDF'yi otomatik olarak orijinal hale getiremez. Değişiklikleri özgün belge üzerinde test edin.
+- Otomatik Chromium görüntü ve OCR testleri geçse dahi kullanıcının kendi PDF'siyle gerçek Vivaldi oturumundaki gözlemi ayrıca gereklidir.

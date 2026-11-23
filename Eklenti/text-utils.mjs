@@ -79,7 +79,12 @@ export function collectOcrWords(data) {
     const {x0,y0,x1,y1}=raw.bbox;
     if (![x0,y0,x1,y1].every(Number.isFinite) || x1<=x0 || y1<=y0) return;
     const key=`${x0},${y0},${x1},${y1},${raw.text}`;
-    if (!seen.has(key)) {seen.add(key);words.push({text:raw.text,bbox:{x0,y0,x1,y1}});}
+    if (!seen.has(key)) {
+      seen.add(key);
+      const c=Number(raw.confidence??raw.conf);
+      words.push({text:raw.text,bbox:{x0,y0,x1,y1},
+        ...(Number.isFinite(c)?{confidence:Math.max(0,Math.min(100,c))}:{})});
+    }
   };
   if (Array.isArray(data?.words) && data.words.length) data.words.forEach(add);
   if (!words.length && Array.isArray(data?.blocks)) {
@@ -102,7 +107,8 @@ export function collectOcrWords(data) {
         if (row[col('level')]!=='5') continue;
         const x=Number(row[col('left')]),y=Number(row[col('top')]);
         const width=Number(row[col('width')]),height=Number(row[col('height')]);
-        add({text:row.slice(col('text')).join('\t'),bbox:{x0:x,y0:y,x1:x+width,y1:y+height}});
+        add({text:row.slice(col('text')).join('\t'),bbox:{x0:x,y0:y,x1:x+width,y1:y+height},
+          confidence:col('conf')>=0?Number(row[col('conf')]):undefined});
       }
     }
   }

@@ -30,6 +30,9 @@ jobs:
           node --check Eklenti/text-style.mjs
           node --check Eklenti/scan-typography.mjs
           node --check Eklenti/selective-repair.mjs
+          node --check Eklenti/paper-restoration.mjs
+          node --check Eklenti/ocr-ranker.mjs
+          node --check Eklenti/ocr-quality.mjs
           node --check Eklenti/edit-geometry.mjs
           node --check Eklenti/visual-editor.mjs
           node --check Eklenti/export-pdf.mjs

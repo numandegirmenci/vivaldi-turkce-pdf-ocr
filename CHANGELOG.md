@@ -1,5 +1,14 @@
 # Değişiklik geçmişi
 
+## v0.6.6 — 23 Kasım 2026 · Eski yazı izi temizliği ve Türkçe OCR güven puanı
+
+- Antialias ve JPEG gölgelerini eksik silen eski seçici maske yerine, yalnızca doğrulanmış temiz kağıt üzerinde tüm yazı alanını örnekleme ve kenar yumuşatma ile onarma.
+- Harf kalıntısı temizleme, seçim dışı piksel koruma, kenar/filigran reddi ve gerçek Chromium görsel testi.
+- Tesseract tessdata_best/tur modelini koruyarak otomatik PSM 3 / 6 / 11 ve kontrastlı alternatif okuma stratejisi.
+- OCR sonucu değerlendirmesinde sözcük güven puanı, sahte uzun okuma cezaları ve satır düzeni puanı.
+- Önceki v0.6.5 görsel düzenleme güvenlik kuralları ve karşılaştırma korunur.
+
+
 ## v0.6.5 — 23 Kasım 2026 · Görsel yazı Uygula düğmesi ve hata görünürlüğü (Beta)
 
 - Uygula reddedilirse nedenini yukarıdaki görünmeyen durum satırı yerine doğrudan sağ düzenleme panelinde gösterme.

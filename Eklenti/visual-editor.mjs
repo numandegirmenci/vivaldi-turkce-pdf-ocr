@@ -303,7 +303,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       }
       if(!rendered)throw lastFailure||new Error('Kelimeyi güvenli biçimde değiştirecek bir alan bulunamadı.');
       item.patchPng=rendered.png;
-      item.transparency='selective';
+      item.transparency='bounded-restoration';
       item.repairedPixels=rendered.repairedPixels;
       item.typography=typography;
       item.fontSize=rendered.layout.fontSize;
@@ -316,7 +316,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       }
       panel.hidden=true;selection=null;
       reportEdit('');
-      status('Sayfa '+view.index+': değişiklik uygulandı ('+
+      status('Sayfa '+view.index+': temiz kağıt üzerinde iz bırakmayan düzeltme uygulandı ('+
         rendered.repairedPixels+' eski yazı pikseli düzeltildi). Orijinal dosya korundu.');
     }catch(error){
       const reason=error?.message||'Bilinmeyen düzenleme hatası';

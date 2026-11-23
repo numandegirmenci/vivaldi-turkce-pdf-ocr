@@ -1,4 +1,5 @@
-import {planSelectiveRemoval,combineSelectiveLayers,validateTransparentPatch,assertGlyphNotClipped} from './selective-repair.mjs';
+import {combineSelectiveLayers,validateTransparentPatch,assertGlyphNotClipped} from './selective-repair.mjs';
+import {planPaperRestoration} from './paper-restoration.mjs';
 /** Scan-aware matching of a replacement to surrounding lettering.
  * All work is local and uses rendered PDF canvas pixels. A scanned original
  * does not contain a recoverable font name, so this remains an estimate.
@@ -212,7 +213,10 @@ export function renderScanReplacement(canvas,edit,typography){
   const source=canvas.getContext('2d',{willReadFrequently:true});
   if(!source)throw new Error('Orijinal görüntü okunamadı.');
   const selectedPixels=source.getImageData(x0,y0,w,h);
-  const cleanup=planSelectiveRemoval(selectedPixels,{ink:edit.ink,fill:edit.fill});
+  // Replace the ENTIRE old text crop (only on verified clean paper),
+  // including antialiased outlines and JPEG haloes. Previous sparse masking
+  // left the old lettering visible under the replacement.
+  const cleanup=planPaperRestoration(selectedPixels,{ink:edit.ink,fill:edit.fill});
   const glyph=document.createElement('canvas');
   glyph.width=w;glyph.height=h;
   const gc=glyph.getContext('2d',{willReadFrequently:true});
@@ -242,5 +246,5 @@ export function renderScanReplacement(canvas,edit,typography){
   out.putImageData(image,0,0);
   return {png:output.toDataURL('image/png'),layout,
     repairedPixels:cleanup.oldGlyphPixels,
-    transparency:'selective',confidence:cleanup.sourceUniformity};
+    transparency:'bounded-restoration',confidence:cleanup.sourceUniformity};
 }
