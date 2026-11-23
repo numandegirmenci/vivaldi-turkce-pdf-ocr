@@ -29,6 +29,7 @@ $('file').onchange = async event => {
   const file = event.target.files?.[0];
   event.target.value = '';
   if (!file) return;
+  if(visualEditor.hasEdits() && !window.confirm('Kaydedilmemiş görsel yazı değişiklikleri var. Yeni dosya açılırsa bu değişiklikler kaybolacak. Devam edilsin mi?'))return;
   $('original').hidden = true; $('original').removeAttribute('href');
   // PDF bağlantısındaki geç yüklenen bir istek, seçilen dosyanın üzerine yazmasın.
   const request = ++state.run;
