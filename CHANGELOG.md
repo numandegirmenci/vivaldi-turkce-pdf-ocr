@@ -1,5 +1,14 @@
 # Değişiklik geçmişi
 
+## v0.6.5 — 23 Kasım 2026 · Görsel yazı Uygula düğmesi ve hata görünürlüğü (Beta)
+
+- Uygula reddedilirse nedenini yukarıdaki görünmeyen durum satırı yerine doğrudan sağ düzenleme panelinde gösterme.
+- Dar OCR kelime kutularını, komşu kelimelere dokunmadan otomatik boşluk alanına doğru genişletme.
+- Kutu genişletildiğinde yeni fontun orijinal harf boyutunu koruma; “AVCILAR → AKCIKAR” regresyon testi.
+- Başarılı değişiklikte yanlışlıkla açık kalan orijinal karşılaştırma modunu kapatıp sonucu görünür kılma.
+- Şeffaf piksel tabanlı v0.6.4 korumaları ve orijinal PDF'ye dokunmadan dışa aktarma devam eder.
+
+
 ## v0.6.4 — 23 Kasım 2026 · Tarama üzerinde saydam, piksel seçici metin düzeltme (Beta)
 
 - Opak bir dikdörtgenle tüm OCR alanını kapama yaklaşımı kaldırıldı: yalnız maskelenebilen eski harf pikselleri ve yeni yazı pikselleri içeren saydam PNG onarım katmanı.

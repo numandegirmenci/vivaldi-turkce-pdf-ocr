@@ -131,3 +131,8 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 #editCompare[aria-pressed="true"]{background:#def4ff;border-color:#3d9aca;color:#124f6f}
 .visual-edit-layer .visual-edit-box{background:none!important;padding:0!important}
 .visual-edit-layer .visual-edit-box img{image-rendering:auto}
+
+/* v0.6.5: visible feedback for edit rejection; top status is often offscreen. */
+.edit-feedback{padding:9px 10px;border:1px solid #9bcadf;border-radius:6px;background:#e7f5ff;color:#234a60;font:12px/1.5 system-ui,sans-serif;white-space:pre-wrap}
+.edit-feedback[hidden]{display:none}
+.edit-feedback.edit-feedback-error{color:#8a1720;border-color:#e8a2a8;background:#fff0f1;font-weight:600}

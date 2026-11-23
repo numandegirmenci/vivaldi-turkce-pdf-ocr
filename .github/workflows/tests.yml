@@ -30,6 +30,7 @@ jobs:
           node --check Eklenti/text-style.mjs
           node --check Eklenti/scan-typography.mjs
           node --check Eklenti/selective-repair.mjs
+          node --check Eklenti/edit-geometry.mjs
           node --check Eklenti/visual-editor.mjs
           node --check Eklenti/export-pdf.mjs
           node --check Eklenti/viewer.js
@@ -37,5 +38,8 @@ jobs:
         run: npm test
       - name: Dağıtım dosyalarını hazırla
         run: npm run build
+      - name: Chromium görsel yazı Uygula testi
+        run: node tests/run-browser-visual-edit.mjs
+
       - name: Gerçek PDF ve Türkçe font entegrasyon testleri
         run: npm test
