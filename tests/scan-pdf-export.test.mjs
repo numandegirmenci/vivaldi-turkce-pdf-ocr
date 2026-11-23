@@ -11,7 +11,7 @@ const fontPath=path.join(path.dirname(fileURLToPath(import.meta.url)),'../Eklent
 const patch='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFUlEQVR4nGP89evXfwYGBgYmBigAAD0IA/GtclJYAAAAAElFTkSuQmCC';
 test('PDF çıktısı önizlemedeki raster düzeltmeyi ve yeni aranabilir metni içerir',
   {skip:!fs.existsSync(fontPath)},async()=>{
-  const original=await PDFDocument.create();original.addPage([595,842]);
+  const original=await PDFDocument.create();original.addPage([900,842]);
   const previousFetch=globalThis.fetch,previousLib=globalThis.PDFLib,
     previousKit=globalThis.fontkit,previousChrome=globalThis.chrome;
   globalThis.PDFLib={PDFDocument,rgb};
@@ -23,7 +23,7 @@ test('PDF çıktısı önizlemedeki raster düzeltmeyi ve yeni aranabilir metni 
   }});
   try{
     const box={x0:374,y0:260,x1:690,y1:322};
-    const views=[{index:1,width:595,height:842,textSource:'ocr',
+    const views=[{index:1,width:900,height:842,textSource:'ocr',
       rotation:0,page:{rotate:0},words:[
         {text:'Eski',bbox:box},{text:'Belediye',bbox:{x0:20,y0:260,x1:140,y1:322}}],
       viewport:{convertToPdfPoint:(x,y)=>[x,842-y]},
