@@ -1,5 +1,13 @@
 # Değişiklik geçmişi
 
+## v0.6.1 — 23 Kasım 2026 · Yazının özgün renk ve kalınlığına otomatik uyarlama (Beta)
+
+- Önceden elle girilen yazı rengi, arka plan rengi ve boyut seçenekleri kaldırıldı: belge üzerindeki özgün harf/zemin piksellerinden otomatik örnekleme.
+- Açık ve koyu zemindeki renkli yazılar için testli renk tahmini, yaklaşık kalınlık algılama ve PDF'ye Noto Sans Bold ekleme.
+- Kullanıcı yalnızca yeni metni yazar; örnekleme güvenilir değilse renk tahmininin belirsiz olduğu gösterilir.
+- Font ailesi birebir algılanamaz; dokulu arka planı düz renk kapama bütünüyle onaramaz. Güvenli redaksiyon değildir.
+
+
 ## v0.6.0 — 23 Kasım 2026 · Görselde görünen yazıyı düzenleme (Beta)
 
 - Tanınan OCR sözcüğüne tıklayarak veya alan seçerek görsel PDF metnini değiştirme; yazı rengi, boyut ve zemin rengi.
