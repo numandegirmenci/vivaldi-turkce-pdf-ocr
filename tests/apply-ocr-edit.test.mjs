@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {prepareEditGeometry} from '../Eklenti/edit-geometry.mjs';
+import {prepareEditGeometry,prepareEditCandidates} from '../Eklenti/edit-geometry.mjs';
 import {planSelectiveRemoval,combineSelectiveLayers,validateTransparentPatch} from '../Eklenti/selective-repair.mjs';
 import {layoutScanReplacement} from '../Eklenti/scan-typography.mjs';
 
@@ -71,4 +71,17 @@ test('tarama benzeri piksel katmanında harfler değişir, yazı dışı tüm pi
   assert.equal(validateTransparentPatch(corrected,mask,added),true);
   assert.equal(corrected.data[(1*w+1)*4+3],0,
     'unmodified white page pixel MUST remain fully transparent');
+});
+
+test('AVCILAR için alan genişletme aşırı büyükse sistem daha küçük güvenli alanları deneyebilir',()=>{
+  const candidates=prepareEditCandidates({box:words[1].bbox,pageWidth:800,pageHeight:880,
+    words,sourceKind:'ocr',sourceIndex:1,sourceIndices:[1]});
+  assert.ok(candidates.length>=3);
+  assert.ok(candidates[0].padding>candidates.at(-1).padding);
+  assert.equal(candidates[0].targetHeight,candidates.at(-1).targetHeight,
+    'başlık yazısı orijinal yüksekliğini bütün alternatiflerde korumalı');
+  for(const c of candidates){
+    assert.ok(c.box.x0<words[1].bbox.x0);
+    assert.ok(c.box.x1>words[1].bbox.x1);
+  }
 });
