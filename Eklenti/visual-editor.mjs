@@ -3,7 +3,7 @@ import {SCAN_FONTS,nearestSameLineWord,findUnselectedOverlap,fullySelectedWords,
 import {formatOcrWords} from './text-utils.mjs';
 import {createEditedPdf,saveBytesAsPdf} from './export-pdf.mjs';
 import {sampleCanvasTextStyle} from './text-style.mjs';
-import {prepareEditGeometry} from './edit-geometry.mjs';
+import {prepareEditCandidates} from './edit-geometry.mjs';
 
 /** User-triggered, reversible visual edits. No network calls or automatic document rewriting. */
 export function installVisualEditor({$,state,status,updateExtractedText,refreshText}) {
@@ -268,24 +268,38 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         text:text.value},view.width,view.height);
       if(item.original.trim()===item.text.trim())
         throw new Error('Yeni yazı orijinaliyle aynı. Değişiklik yapılmadı.');
-      const geometry=prepareEditGeometry({box:item.box,
+      // A single maximum OCR padding can include a letter from another line.
+      // Try progressively smaller pixel-safe crops without ever compromising
+      // the original glyph-height or touching other recognized words.
+      const candidates=prepareEditCandidates({box:item.box,
         pageWidth:view.width,pageHeight:view.height,words:view.words,
         sourceIndices:item.sourceIndices,sourceIndex:item.sourceIndex,
         sourceKind:existing?'manual':item.sourceKind});
-      item.box=geometry.box;
       const items=existing?view.edits.map(e=>e.id===item.id?item:e):[...view.edits,item];
-      const duplicate=items.some(e=>e.id!==item.id&&e.box.x0<item.box.x1&&e.box.x1>item.box.x0&&
-        e.box.y0<item.box.y1&&e.box.y1>item.box.y0);
-      if(duplicate)throw new Error('Bu yazı alanında başka bir düzenleme var. Önce onu kaldır.');
-      const intruders=findUnselectedOverlap(view.words,item.box,item.sourceIndices,item.sourceIndex);
-      if(intruders.length)throw new Error('Seçili alan "'+intruders[0].word+
-        '" yazısını da kısmen kapatıyor. Yazı alanını diğer kelimelere taşmadan seç.');
-      const typography=analyzeScanTypography(view.canvas,view.words,item.box,
-        chosen.original||item.original,{ink:item.ink,fill:item.fill,bold:item.bold});
-      typography.targetHeight=geometry.targetHeight;
-      // Keep the full-height glyph and fit its width. No shrinking the entire
-      // typeface to fit a long word: that was the cause in the screenshot.
-      const rendered=renderScanReplacement(view.canvas,item,typography);
+      let rendered=null,typography=null,lastFailure=null;
+      for(const geometry of candidates){
+        item.box=geometry.box;
+        const duplicate=items.some(e=>e.id!==item.id&&e.box.x0<item.box.x1&&e.box.x1>item.box.x0&&
+          e.box.y0<item.box.y1&&e.box.y1>item.box.y0);
+        if(duplicate){lastFailure=new Error('Bu yazı alanında başka bir düzenleme var. Önce onu kaldır.');continue;}
+        const intruders=findUnselectedOverlap(view.words,item.box,item.sourceIndices,item.sourceIndex);
+        if(intruders.length){
+          lastFailure=new Error('Seçilen alan "'+intruders[0].word+'" yazısını kesiyor. Daha dar bir alan seç.');
+          continue;
+        }
+        try{
+          typography=analyzeScanTypography(view.canvas,view.words,item.box,
+            chosen.original||item.original,{ink:item.ink,fill:item.fill,bold:item.bold});
+          typography.targetHeight=geometry.targetHeight;
+          rendered=renderScanReplacement(view.canvas,item,typography);
+          break;
+        }catch(error){
+          lastFailure=error;
+          // Never force unsafe restoration. Only accept an alternative if ALL
+          // its own segmentation, clipping and overlap checks pass.
+        }
+      }
+      if(!rendered)throw lastFailure||new Error('Kelimeyi güvenli biçimde değiştirecek bir alan bulunamadı.');
       item.patchPng=rendered.png;
       item.transparency='selective';
       item.repairedPixels=rendered.repairedPixels;
