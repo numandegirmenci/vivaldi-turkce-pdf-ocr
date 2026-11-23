@@ -170,6 +170,8 @@ export function installSelectionSync({pages,text,status=()=>{}}) {
     }
   }
   function schedule(focus=false){
+    // Visual edit clicks must keep focus inside the edit form, not the OCR copy panel.
+    if(pages.classList?.contains?.('visual-edit-enabled'))return;
     shouldFocus=shouldFocus||focus;
     if(queued)return;queued=true;
     (globalThis.requestAnimationFrame||((f)=>setTimeout(f,0)))(update);
