@@ -36,7 +36,9 @@ await new Promise((resolve,reject)=>{
   server.listen(0,'127.0.0.1',resolve);
 });
 const port=server.address().port;
-const url='http://127.0.0.1:'+port+'/tests/browser-visual-edit.html';
+const page=process.argv[2]||'browser-visual-edit.html';
+if(!/^browser-[a-z-]+\.html$/.test(page))throw new Error('Geçersiz test sayfası.');
+const url='http://127.0.0.1:'+port+'/tests/'+page;
 let result='',errors='';
 try{
   const args=['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',

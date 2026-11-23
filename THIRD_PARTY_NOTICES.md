@@ -24,3 +24,10 @@ Aşağıdaki açık kaynak fontlar, taranmış yazının biçimini yerel ortamda
 - Archivo Narrow — SIL Open Font License 1.1 — `Eklenti/vendor/OCR-ArchivoNarrow.ttf`, `ArchivoNarrow-OFL.txt`.
 
 Kaynak: `google/fonts` deposu, `ofl/` alt dizinleri. Font ailesi ve görünüm eşleştirmesi bir tahmindir, görüntüden özgün fontun kesin kimliği kurtarılamaz.
+
+
+## TrOCR handwriting and local inference (v0.6.7)
+
+- `@huggingface/transformers` / Transformers.js — Apache 2.0 licensed browser inference runtime (bundled minified JavaScript plus matching ONNX WASM assets; see package metadata for exact version).
+- `Xenova/trocr-small-handwritten` — MIT-licensed converted TrOCR ONNX model. We do **not** redistribute the large model weights in the extension ZIP. They are downloaded on the user's explicit opt-in and cached in their own browser; image pixels are processed locally. Upstream model card: https://huggingface.co/Xenova/trocr-small-handwritten
+- TrOCR original architecture: Microsoft TrOCR small handwritten. It is English-centric; Turkish handwriting transcription is not assured. Users must review each suggestion.

@@ -27,7 +27,7 @@ jobs:
           node-version: '22'
 
       - name: Bagimliliklari yukle
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund --onnxruntime-node-install-cuda=skip
 
       - name: Otomatik testleri calistir
         run: npm test
@@ -37,6 +37,8 @@ jobs:
 
       - name: Chromium görsel yazı Uygula testi
         run: node tests/run-browser-visual-edit.mjs
+      - name: Chromium akıllı bölge, kaşe ve el yazısı analiz testi
+        run: node tests/run-browser-visual-edit.mjs browser-smart-regions.html
 
       - name: WhatsApp JS soz dizimini dogrula
         run: |
@@ -51,6 +53,11 @@ jobs:
           node --check Eklenti/paper-restoration.mjs
           node --check Eklenti/ocr-ranker.mjs
           node --check Eklenti/ocr-quality.mjs
+          node --check Eklenti/smart-regions.mjs
+          node --check Eklenti/smart-image.mjs
+          node --check Eklenti/smart-reader.mjs
+          node --check Eklenti/smart-inspector.mjs
+          node --check Eklenti/handwriting-bridge.mjs
           node --check Eklenti/edit-geometry.mjs
           node --check Eklenti/visual-editor.mjs
           node --check Eklenti/export-pdf.mjs
@@ -67,7 +74,7 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           MANIFEST_VERSION=$(node -p "require('./Eklenti/manifest.json').version")
           test "$VERSION" = "$MANIFEST_VERSION" || { echo 'package.json ve manifest surumleri farkli'; exit 1; }
-          for f in Eklenti/manifest.json Eklenti/viewer.html Eklenti/viewer.js Eklenti/text-utils.mjs Eklenti/background.js Eklenti/vendor/pdf.mjs Eklenti/vendor/pdf.worker.mjs Eklenti/vendor/tesseract.min.js Eklenti/vendor/worker.min.js Eklenti/vendor/lang/tur.traineddata.gz Eklenti/vendor/pdf-lib.min.js Eklenti/vendor/fontkit.umd.min.js Eklenti/vendor/NotoSans-Regular.ttf Eklenti/vendor/Noto-OFL.txt Eklenti/whatsapp-page.js Eklenti/whatsapp-content.js Eklenti/whatsapp-transfer.js Eklenti/attachment-capture.js Eklenti/visual-edits.mjs Eklenti/visual-editor.mjs Eklenti/text-style.mjs Eklenti/scan-typography.mjs Eklenti/selective-repair.mjs Eklenti/paper-restoration.mjs Eklenti/edit-geometry.mjs Eklenti/ocr-ranker.mjs Eklenti/vendor/NotoSans-Bold.ttf Eklenti/vendor/OCR-RobotoCondensed.ttf Eklenti/vendor/OCR-Oswald.ttf Eklenti/vendor/OCR-Anton.ttf Eklenti/vendor/OCR-ArchivoNarrow.ttf Eklenti/vendor/RobotoCondensed-OFL.txt Eklenti/vendor/Oswald-OFL.txt Eklenti/vendor/Anton-OFL.txt Eklenti/vendor/ArchivoNarrow-OFL.txt; do
+          for f in Eklenti/manifest.json Eklenti/viewer.html Eklenti/viewer.js Eklenti/text-utils.mjs Eklenti/background.js Eklenti/vendor/pdf.mjs Eklenti/vendor/pdf.worker.mjs Eklenti/vendor/tesseract.min.js Eklenti/vendor/worker.min.js Eklenti/vendor/lang/tur.traineddata.gz Eklenti/vendor/pdf-lib.min.js Eklenti/vendor/fontkit.umd.min.js Eklenti/vendor/NotoSans-Regular.ttf Eklenti/vendor/Noto-OFL.txt Eklenti/whatsapp-page.js Eklenti/whatsapp-content.js Eklenti/whatsapp-transfer.js Eklenti/attachment-capture.js Eklenti/visual-edits.mjs Eklenti/visual-editor.mjs Eklenti/text-style.mjs Eklenti/scan-typography.mjs Eklenti/smart-regions.mjs Eklenti/smart-image.mjs Eklenti/smart-reader.mjs Eklenti/smart-inspector.mjs Eklenti/vendor/handwriting-runtime.mjs Eklenti/vendor/ort/ort-wasm-simd-threaded.wasm Eklenti/selective-repair.mjs Eklenti/paper-restoration.mjs Eklenti/edit-geometry.mjs Eklenti/ocr-ranker.mjs Eklenti/vendor/NotoSans-Bold.ttf Eklenti/vendor/OCR-RobotoCondensed.ttf Eklenti/vendor/OCR-Oswald.ttf Eklenti/vendor/OCR-Anton.ttf Eklenti/vendor/OCR-ArchivoNarrow.ttf Eklenti/vendor/RobotoCondensed-OFL.txt Eklenti/vendor/Oswald-OFL.txt Eklenti/vendor/Anton-OFL.txt Eklenti/vendor/ArchivoNarrow-OFL.txt; do
             test -s "$f" || { echo "Eksik veya bos dosya: $f"; exit 1; }
           done
           ls Eklenti/vendor/core/tesseract-core*.wasm* >/dev/null || { echo 'Tesseract WASM eksik'; exit 1; }

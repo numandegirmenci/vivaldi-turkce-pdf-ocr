@@ -11,6 +11,7 @@
       <button id="choose">📂 Dosya seç</button>
       <button id="copyAll" disabled>📋 Tüm metni kopyala</button>
       <button id="scanAll" disabled title="Sayfalardaki metni tara; metinsiz sayfalara OCR uygula">⚡ Tüm metni hazırla</button>
+      <button id="smartAnalyze" disabled title="Bu sayfadaki basılı yazı, el yazısı ve kaşe bölgelerini ayrı incele">🧠 Akıllı belge analizi</button>
       <button id="exportPdf" disabled title="Orijinal PDF üzerine görünmez seçilebilir OCR metni ekleyerek yeni PDF kaydet">💾 Aranabilir PDF</button>
       <button id="editVisible" disabled aria-pressed="false" title="Taranan görseldeki yazıyı sayfa üzerinde seçip düzelt">✏️ Görünen yazıyı düzenle</button>
       <button id="exportEdited" disabled title="Görünür metin değişikliklerini yeni bir PDF kopyasına kaydet">💾 Düzenlenmiş PDF</button>
@@ -26,6 +27,38 @@
       <div id="pages"><div class="empty">PDF açıldığında sayfa otomatik genişliğe sığdırılır; devamını görmek için aşağı kaydırabilirsin. PDF'nin kendi seçilebilir metni varsa bozulmadan korunur.<br><br><b>Sayfada yazıyı seçip Ctrl+C ile kopyalayabilirsin.</b></div></div>
     </section>
     <aside>
+      <section class="smart-inspector" id="smartInspector" hidden aria-label="Akıllı belge bölge analizi">
+        <div class="smart-head"><strong>🧠 Akıllı Bölge Analizi</strong><button id="smartClose" title="Analiz panelini kapat">✕</button></div>
+        <p class="smart-note">Basılı yazı, el yazısı, kaşe ve imza ayrı incelenir. Tür sınıflandırması tahminidir; okunamayan metin uydurulmaz.</p>
+        <div class="smart-actions"><button id="smartDetect">Bölgeleri bul</button><button id="smartSelect" aria-pressed="false">▱ Fareyle alan seç</button></div>
+        <div id="smartRegionList" class="smart-region-list" aria-label="Sayfada tespit edilen bölgeler"></div>
+        <section id="smartRegionDetail" hidden>
+          <label for="smartRegionType">Bölge türü (düzeltilebilir)</label>
+          <select id="smartRegionType">
+            <option value="print">Basılı metin</option>
+            <option value="handwriting">El yazısı</option>
+            <option value="stamp">Kaşe / mühür</option>
+            <option value="signature">İmza / çizim</option>
+            <option value="uncertain">İncelenecek bölge</option>
+          </select>
+          <div id="smartStats" class="smart-stats"></div>
+          <div class="smart-previews">
+            <figure><figcaption>Orijinal (yakından)</figcaption><canvas id="smartOriginal"></canvas></figure>
+            <figure><figcaption>İyileştirilmiş (yalnız OCR)</figcaption><canvas id="smartEnhanced"></canvas></figure>
+          </div>
+          <label class="smart-advanced"><input id="smartAdvanced" type="checkbox" checked> Daha fazla OCR denemesi (daha yavaş)</label>
+          <div class="smart-actions">
+            <button id="smartRead">🔎 Bölgeyi çoklu OCR ile oku</button>
+            <button id="smartHtr" title="İlk kullanımda ayrı el yazısı modeli indirilir; Türkçe doğruluğu sınırlıdır">✍️ El yazısı modeli (deneysel)</button>
+          </div>
+          <div class="smart-result" id="smartResults" role="status" aria-live="polite"></div>
+          <div class="smart-candidates" id="smartCandidates"></div>
+          <label for="smartVerified">Kontrol ettiğin metin (yanlışsa düzelt)</label>
+          <textarea id="smartVerified" rows="3" maxlength="600" placeholder="Okunan metni doğrula; emin değilsen boş bırak."></textarea>
+          <button id="smartAppend">✓ Doğrulanmış metni not olarak ekle</button>
+          <small class="smart-note">Kaynak görüntü değiştirilmez. El yazısı modeli ilk kullanımda internetten indirilir ve yerel cihazda çalışır; İngilizce ağırlıklı olduğu için Türkçe el yazısını yanlış okuyabilir.</small>
+        </section>
+      </section>
       <div class="visual-editor-panel" id="visualEditor" hidden>
         <div class="edit-panel-title"><strong>✏️ Görsel üzerindeki yazı</strong><small id="editLocation">Bir yazı veya alan seç</small></div>
         <label for="editText">Yeni yazı</label>

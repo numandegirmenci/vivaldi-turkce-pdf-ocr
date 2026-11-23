@@ -79,7 +79,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     return [body,...result.extra].filter(Boolean).join('\n');
   }
   function syncPage(view){
-    state.pages[view.index-1]=pageText(view);
+    state.pages[view.index-1]=pageText(view)+(view.smartNotes?.length?'\n'+view.smartNotes.join('\n'):'');
     updateExtractedText();
     refreshText();
     paint(view);

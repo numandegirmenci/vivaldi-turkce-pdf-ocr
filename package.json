@@ -1,6 +1,6 @@
 {
   "name": "turkce-pdf-ocr-chromium",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "private": true,
   "description": "Chromium tabanlı tarayıcılar için deneysel yerel Türkçe PDF OCR eklentisi",
   "scripts": {
@@ -11,9 +11,11 @@
     "pdfjs-dist": "4.10.38",
     "tesseract.js": "5.1.1",
     "pdf-lib": "1.17.1",
-    "@pdf-lib/fontkit": "1.1.1"
+    "@pdf-lib/fontkit": "1.1.1",
+    "@huggingface/transformers": "3.8.1"
   },
   "devDependencies": {
-    "fake-indexeddb": "6.2.8"
+    "fake-indexeddb": "6.2.8",
+    "esbuild": "0.25.9"
   }
 }

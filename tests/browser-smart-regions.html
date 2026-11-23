@@ -1,0 +1,54 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"></head>
+<body><pre id="result">RUNNING</pre><script type="module">
+import {regionFeatures,classifyRegion,circularSealScore,discoverRegions,
+  assessCandidates} from '/Eklenti/smart-regions.mjs';
+import {preprocessRegionPixels,canvasFromPixels,rotateRegion,
+  unwrapCircularStamp} from '/Eklenti/smart-image.mjs';
+import {ocrRegionPlan,createRegionJobs} from '/Eklenti/smart-reader.mjs';
+const assert=(v,msg)=>{if(!v)throw new Error(msg);};
+try {
+ const canvas=document.createElement('canvas');canvas.width=450;canvas.height=260;
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,450,260);
+ ctx.font='600 26px Arial';ctx.fillStyle='#252b2f';ctx.fillText('ÇALIŞMA BELGESİ',24,65);
+ ctx.strokeStyle='#143bc6';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(45,121);ctx.bezierCurveTo(75,88,115,139,156,108);
+ ctx.bezierCurveTo(182,94,195,142,220,113);ctx.stroke();
+ ctx.lineWidth=2;ctx.strokeStyle='#1e1e23';ctx.beginPath();
+ ctx.arc(352,153,58,0,Math.PI*2);ctx.stroke();
+ ctx.font='12px Arial';ctx.fillStyle='#111';ctx.fillText('T.C.',333,143);
+ const all=ctx.getImageData(0,0,450,260);
+ const candidates=discoverRegions(all,[{
+   text:'ÇALIŞMA',confidence:94,bbox:{x0:24,y0:36,x1:147,y1:65}
+ },{text:'BELGESİ',confidence:93,bbox:{x0:152,y0:36,x1:286,y1:65}}
+ ],25);
+ assert(candidates.length>=1,'No regions found');
+ const stroke=ctx.getImageData(35,88,200,64);
+ const features=regionFeatures(stroke,[]);
+ assert(features.blue>.005,'Blue handwritten strokes not found');
+ const blue=canvasFromPixels(preprocessRegionPixels(stroke,'blue-pen'));
+ const processed=blue.getContext('2d').getImageData(0,0,blue.width,blue.height);
+ assert(processed.data.length===stroke.data.length,'Improved image resolution must match input');
+ const seal=ctx.getImageData(294,95,116,116);
+ assert(circularSealScore(seal)>.45,'Round seal not recognized');
+ const curved=unwrapCircularStamp(canvasFromPixels(seal));
+ assert(curved.width>=360&&curved.height>=10,'Unwrapped stamp canvas missing');
+ const rotated=rotateRegion(blue,-15);
+ assert(rotated.width>=blue.width,'Rotated handwriting must fit');
+ const jobs=createRegionJobs(blue,'handwriting');
+ assert(jobs.some(j=>j.psm===13),'Handwriting-specific PSM missing');
+ const stampJobs=ocrRegionPlan('stamp',true);
+ assert(stampJobs.some(j=>j.mode==='ring'),'Stamp polar variant missing');
+ const mismatch=assessCandidates([{name:'A',text:'deSlim Alı x n',confidence:24},
+ {name:'B',text:'Mulica bo be düler',confidence:33}]);
+ assert(mismatch.uncertain&&mismatch.text==='','Uncertain OCR must not fabricate a final answer');
+ await import('/Eklenti/vendor/handwriting-runtime.mjs');
+ blue.width=0;blue.height=0;rotated.width=0;rotated.height=0;
+ document.querySelector('#result').textContent=
+   'PASS: script OCR region detection, stamp unwrap, handwriting enhancement, uncertain vote and optional HTR runtime import';
+ document.querySelector('#result').dataset.result='pass';
+}catch(error){
+ document.querySelector('#result').textContent='FAIL: '+error.stack;
+ document.querySelector('#result').dataset.result='fail';
+}
+</script></body></html>
