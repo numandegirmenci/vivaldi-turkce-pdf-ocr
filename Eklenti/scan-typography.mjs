@@ -37,6 +37,26 @@ export function nearestSameLineWord(words,box){
     return {word:w,score};
   }).sort((a,b)=>a.score-b.score)[0]?.word||null;
 }
+/** Manual region selection must fully enclose every OCR word it includes.
+ * Center-only selection silently treated HALF a word as completely selected.
+ */
+export function fullySelectedWords(words,box){
+  if(!Array.isArray(words))return {sourceIndices:[],original:''};
+  const hits=[];
+  for(let index=0;index<words.length;index++){
+    const item=words[index],r=item?.bbox;
+    if(!r||!String(item.text||'').trim())continue;
+    const cx=(r.x0+r.x1)/2,cy=(r.y0+r.y1)/2;
+    if(cx<box.x0||cx>box.x1||cy<box.y0||cy>box.y1)continue;
+    const tolerance=1;
+    if(r.x0<box.x0-tolerance||r.x1>box.x1+tolerance||
+      r.y0<box.y0-tolerance||r.y1>box.y1+tolerance)
+      throw new Error('"'+item.text+'" kelimesi seçim alanında yarım kalıyor. Sözcüğün tamamını kapsayan bir alan seç.');
+    hits.push(index);
+  }
+  return {sourceIndices:hits,original:hits.map(i=>words[i].text).join(' ')};
+}
+
 /** Return adjacent OCR words which would be partly erased by the patch.
  * Manual region selection must contain the WHOLE recognized word, not just part.
  */
