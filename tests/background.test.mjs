@@ -39,3 +39,17 @@ test('Orijinal PDF açılırken 302 ve içerik türü yeniden yönlendirme yapma
   await new Promise(resolve => setTimeout(resolve,10));
   assert.deepEqual(updates.map(x=>x.url), ['about:blank','https://example.org/dosya.pdf']);
 });
+
+test('doğrudan açılan JPEG ve PNG ekleri de yerel OCR ekranına yönlenir',async()=>{
+  const {listeners,updates}=makeBackground();
+  listeners.updated(1,{url:'https://outlook.example/attachment.JPG?download=1'});
+  await new Promise(resolve => setTimeout(resolve,10));
+  assert.equal(updates.length,1);
+  assert.match(updates[0].url,/viewer\.html\?src=/);
+});
+test('görsel MIME yanıtı yalnız ana çerçevede yakalanır',async()=>{
+  const {listeners,updates}=makeBackground();
+  listeners.headers({tabId:4,url:'https://example.org/attachment?id=5',responseHeaders:[{name:'Content-Type',value:'image/png'}]});
+  await new Promise(resolve => setTimeout(resolve,10));
+  assert.equal(updates.length,1);
+});

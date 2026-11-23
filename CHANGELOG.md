@@ -1,5 +1,12 @@
 # Değişiklik geçmişi
 
+## v0.5.9 — 23 Kasım 2026 · OneDrive PDF ve Outlook görsel ekleri (Beta)
+
+- Doğrudan açılan PDF ve yaygın fotoğraf türlerini OCR ile yakalama.
+- Outlook görselleri ve OneDrive bağlantıları için sağ tıkla OCR ile aç; yalnız kullanıcı isteğiyle, sekme/çerçeve kontrollü geçici aktarım.
+- Farklı alan adındaki gerçek dosyaya eklenti kaynağından erişim denemesi.
+- HTML önizleme sayfalarında yanıltıcı PDF yerine indirme ve dosya seçme yönlendirmesi; WhatsApp aktarımı korunur.
+
 ## v0.5.8 — 18 Kasım 2026 · OCR ayraç yanlış okuma düzeltmesi (Beta)
 
 - `:` karakterinin `1`, `3`, `I`, `|` olarak okunması halinde aynı sütunda en az iki farklı alanın ayraç kanıtına dayanan temizlik.

@@ -7,6 +7,11 @@
   const MAX_BYTES=32*1024*1024,CHUNK_SIZE=256*1024,MAX_AGE=10*60*1000;
   const ALARM='turkce-pdf-ocr-wa-cleanup';
   const KINDS=['pdf','png','jpeg','webp','gif','bmp','docx','xlsx','pptx','odt','text'];
+  // A context transfer can start only after a user explicitly invokes the toolbar/menu.
+  const pendingContext = new Map();
+  globalThis.__ocrPermitContext = (id, tabId, frameId=0) => {
+    pendingContext.set(id, {tabId, frameId, expires:Date.now()+60000});
+  };
   let connectionPromise;
   function openDb(){
     if(!connectionPromise)connectionPromise=new Promise((resolve,reject)=>{
@@ -57,30 +62,45 @@
     }
   }
   async function handle(msg,sender){
-    const action=msg.action,fromWA=isWA(sender),fromViewer=isViewer(sender);
+    const action=msg.action,fromWA=isWA(sender),fromViewer=isViewer(sender),fromContext=action.startsWith('ctx');
+    const sourceAllowed=fromContext
+      ? Boolean(sender.tab?.id>=0 && sender.frameId>=0)
+      : fromWA;
     if(!validId(msg.id))throw new Error('Aktarım kimliği geçersiz.');const id=msg.id;
-    if(action==='waStart'){
-      if(!fromWA)throw new Error('Yalnızca WhatsApp Web destekleniyor.');
+    if(action==='waStart'||action==='ctxStart'){
+      if(!sourceAllowed)throw new Error('Kaynak doğrulanamadı.');
+      if(fromContext){
+        const permit=pendingContext.get(id);pendingContext.delete(id);
+        if(!permit||permit.tabId!==sender.tab.id||permit.frameId!==sender.frameId||permit.expires<Date.now())
+          throw new Error('Bu dosya için kullanıcı onayı yok.');
+      }
       const size=Number(msg.size),kind=String(msg.kind||(/\.pdf$/i.test(String(msg.name||''))?'pdf':''));
       if(!Number.isSafeInteger(size)||size<1||size>MAX_BYTES||!KINDS.includes(kind))throw new Error('Dosya türü veya boyutu geçersiz.');
       await cleanup();if(await get('sessions',id))throw new Error('Aktarım zaten var.');
-      const name=String(msg.name||'WhatsApp').split(/[\\/]/).pop().slice(0,180);
+      const name=String(msg.name||'Belge').split(/[\\/]/).pop().slice(0,180);
       await put('sessions',{id,size,name,kind,mime:String(msg.mime||'').slice(0,120),
-        sourceTab:sender.tab?.id??null,documentId:sender.documentId||null,updatedAt:Date.now(),
+        sourceTab:sender.tab?.id??null,sourceFrame:sender.frameId??0,owner:fromContext?'ctx':'wa',
+        documentId:sender.documentId||null,updatedAt:Date.now(),
         count:Math.ceil(size/CHUNK_SIZE),received:0,parts:0,ready:false},true);
       try{chrome.alarms.create(ALARM,{periodInMinutes:10});}catch{}
       return {ok:true};
     }
-    if(action==='waCancel'||action==='waDispose'){
-      if((action==='waCancel'&&!fromWA)||(action==='waDispose'&&!fromViewer))throw new Error('Kaynak doğrulanamadı.');
-      const s=await get('sessions',id);if(s&&(fromViewer||sameSender(s,sender)))await remove(id);
+    if(action==='waCancel'||action==='ctxCancel'||action==='waDispose'){
+      if(action==='waDispose'&&!fromViewer)throw new Error('Kaynak doğrulanamadı.');
+      const s=await get('sessions',id);
+      if(action!=='waDispose'&&(!s||s.owner!==(fromContext?'ctx':'wa')||
+        !sourceAllowed||!sameSender(s,sender)||(fromContext&&s.sourceFrame!==sender.frameId)))
+        throw new Error('Aktarım oturumu doğrulanamadı.');
+      if(s&&(fromViewer||sameSender(s,sender)))await remove(id);
       return {ok:true};
     }
     const s=await get('sessions',id);if(!s)throw new Error('Aktarım bulunamadı veya süresi doldu.');
-    if(action==='waChunk'||action==='waFinish'){
-      if(!fromWA||!sameSender(s,sender))throw new Error('WhatsApp oturumu doğrulanamadı.');
+    if(action==='waChunk'||action==='waFinish'||action==='ctxChunk'||action==='ctxFinish'){
+      if(!sourceAllowed||s.owner!==(fromContext?'ctx':'wa')||!sameSender(s,sender)||
+         (fromContext&&s.sourceFrame!==sender.frameId))
+        throw new Error('Aktarım oturumu doğrulanamadı.');
       if(s.ready)throw new Error('Aktarım tamamlandı.');
-      if(action==='waChunk'){
+      if(action==='waChunk'||action==='ctxChunk'){
         const index=Number(msg.index);
         if(!Number.isSafeInteger(index)||index<0||index>=s.count||index!==s.parts)throw new Error('Parça sırası geçersiz.');
         const bytes=fromBase64(msg.base64),expected=Math.min(CHUNK_SIZE,s.size-index*CHUNK_SIZE);
@@ -106,7 +126,7 @@
     throw new Error('Bilinmeyen aktarım komutu.');
   }
   chrome.runtime.onMessage.addListener((msg,sender,reply)=>{
-    if(!msg||typeof msg.action!=='string'||!msg.action.startsWith('wa'))return false;
+    if(!msg||typeof msg.action!=='string'||!(/^(wa|ctx)/).test(msg.action))return false;
     handle(msg,sender).then(reply).catch(e=>reply({ok:false,error:String(e?.message||e)}));return true;
   });
   chrome.alarms?.onAlarm?.addListener(a=>{if(a.name===ALARM)void cleanup().catch(e=>console.warn('Geçici dosya temizleme:',e));});
