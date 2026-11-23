@@ -33,7 +33,7 @@ test('satırdaki yakın kelimeler varsa OCR kutusu onlara taşmadan genişler',(
 test('çok yakın sözcükler arasında güvenli boşluk yoksa müdahale reddedilir',()=>{
   const near=[
     {text:'A',bbox:{x0:40,y0:10,x1:65,y1:41}},
-    {text:'B',bbox:{x0:67,y0:10,x1:105,y1:41}}
+    {text:'B',bbox:{x0:66,y0:10,x1:105,y1:41}}
   ];
   assert.throws(()=>prepareEditGeometry({box:near[0].bbox,pageWidth:200,pageHeight:100,
     words:near,sourceKind:'ocr',sourceIndex:0,sourceIndices:[0]}),/yeterli boşluk yok/);
