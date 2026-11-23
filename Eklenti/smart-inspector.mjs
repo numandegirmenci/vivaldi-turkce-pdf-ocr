@@ -9,7 +9,7 @@ import {regionBitmapFromCanvas,preprocessRegionPixels,canvasFromPixels,
 import {createRegionJobs,recognizeRegionJobs,confidenceLabel} from './smart-reader.mjs';
 
 export function installSmartInspector({$,state,status,ensurePage,runOcrJobs,
-  disableVisualEditor,updateExtractedText}) {
+  disableVisualEditor,updateExtractedText,getCurrentPageText}) {
   const ui={
     open:$('smartAnalyze'),panel:$('smartInspector'),close:$('smartClose'),
     detect:$('smartDetect'),select:$('smartSelect'),
@@ -280,7 +280,7 @@ export function installSmartInspector({$,state,status,ensurePage,runOcrJobs,
     const note='[Kullanıcı doğruladı · '+REGION_LABELS[ui.type.value]+'] '+text;
     if(!view.smartNotes.includes(note))view.smartNotes.push(note);
     const suffix='\n'+view.smartNotes.join('\n');
-    state.pages[view.index-1]=(view.visualBaseText||view.baseText||'')+suffix;
+    state.pages[view.index-1]=getCurrentPageText(view)+suffix;
     updateExtractedText();
     showStatus('Doğruladığın bölge metni ayrı not olarak çıkarılan metne eklendi. Kaynak PDF değişmedi.');
   });
