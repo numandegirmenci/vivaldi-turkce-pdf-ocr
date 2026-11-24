@@ -19,3 +19,56 @@ $('current').onclick = async () => {
     $('msg').textContent='OCR açılamadı: '+String(error?.message||error);
   } finally { $('current').disabled=false; }
 };
+
+(async () => {
+  const [tab] = await chrome.tabs.query({active:true,currentWindow:true});
+  if (!tab?.id || !tab.url?.startsWith('https://web.whatsapp.com/')) return;
+
+  $('whatsapp').hidden=false;
+  $('blank').textContent='Dosyadan seç';
+  $('current').hidden=true;
+  let running=false,renderedFiles;
+  function render(state) {
+    $('wa-toggle').textContent=state.armed?'Yakalamayı kapat':'Yakalamayı aç';
+    $('wa-toggle').disabled=state.transferring;
+    $('wa-preview').hidden=!state.armed;
+    $('wa-preview').disabled=state.transferring;
+    $('wa-status').textContent=state.error||state.status||'';
+    const fileState=JSON.stringify([state.transferring,state.files]);
+    if(fileState===renderedFiles)return;
+    renderedFiles=fileState;
+    const files=$('wa-files');
+    files.replaceChildren();
+    if(state.files.length){
+      const label=document.createElement('h3');
+      label.textContent='Son dosyalar';
+      files.append(label);
+    }
+    for(const file of state.files){
+      const button=document.createElement('button');
+      button.type='button';
+      button.textContent=file.name;
+      button.disabled=state.transferring;
+      button.onclick=()=>control('reopen',file.id);
+      files.append(button);
+    }
+  }
+  async function control(command,id) {
+    if(running)return;
+    running=true;
+    try {
+      const state=await chrome.tabs.sendMessage(tab.id,{action:'whatsappControl',command,id});
+      render(state);
+      if(command==='reopen'&&state.ok)window.close();
+    } catch {
+      $('wa-status').textContent='Yakalama menüsü bağlanamadı. WhatsApp sekmesini yenileyip tekrar aç.';
+    } finally {
+      running=false;
+    }
+  }
+  $('wa-toggle').onclick=()=>control('toggle');
+  $('wa-preview').onclick=()=>control('captureVisible');
+  await control('state');
+  // Keep status and recent files current while this popup remains open.
+  setInterval(()=>control('state'),1000);
+})();

@@ -1,7 +1,9 @@
+import { addPdfFormFields, fillPdfForm } from './pdf-form.mjs';
 import * as pdfjs from './vendor/pdf.mjs';
 import { hasUsablePdfText, formatPdfText, collectOcrWords, getSafeRenderScale, formatOcrWords } from './text-utils.mjs';
 import { installViewerTools } from './viewer-tools.mjs';
-import { createSearchablePdf, saveBytesAsPdf } from './export-pdf.mjs';
+import { preparePrintPages } from './print-document.mjs';
+import { createEditedPdf, createSearchablePdf, saveBytesAsPdf } from './export-pdf.mjs';
 
 import {normalizeToPdf} from './document-input.mjs';
 import {prepareOcrSurface,remapOcrWords} from './ocr-quality.mjs';
@@ -20,7 +22,7 @@ const state = {
   pdf: null, pages: [], sheets: [], run: 0,
   viewMode: 'width', zoom: 1, busy: false,
   workerPromise: null, ocrQueue: Promise.resolve(),
-  sourceBytes:null, sourceName:'belge.pdf',
+  sourceBytes:null, sourceName:'belge.pdf', formValues:new Map(),
   observer:null, renderQueue:Promise.resolve(), scanPromise:null,
   allTextReady:false, activePage:1, maxCanvases:8,
 };
@@ -75,6 +77,68 @@ const smartInspector=installSmartInspector({
   runOcrJobs:recognizeRegionSerially,disableVisualEditor:()=>visualEditor.toggle(false),
   updateExtractedText,getCurrentPageText:view=>visualEditor.pageText(view)
 });
+
+$('saveForm').onclick = async () => {
+  const button = $('saveForm');
+  const run = state.run;
+  button.disabled = true;
+  try {
+    const bytes = await fillPdfForm(state.sourceBytes, new Map(state.formValues));
+    if (run === state.run) status(saveBytesAsPdf(bytes,state.sourceName,'doldurulmus')+' kaydedildi.');
+  } catch (error) {
+    if (run === state.run) status('Form kaydedilemedi: '+error.message,true);
+  } finally {
+    button.disabled = state.formValues.size === 0;
+  }
+};
+
+let printing = false;
+$('printDocument').onclick = async () => {
+  if (!state.pdf || printing) return;
+  printing = true;
+  $('printDocument').disabled = true;
+  const run = state.run;
+  const pdf = state.pdf;
+  const showOriginal = $('editCompare').getAttribute('aria-pressed') === 'true';
+  const root = document.createElement('div');
+  root.id = 'document-print-pages';
+  let destroyPdf;
+  let releasePages;
+  function cleanup() {
+    window.removeEventListener('afterprint', cleanup);
+    root.remove();
+    releasePages?.();
+    printing = false;
+    $('printDocument').disabled = !state.pdf;
+  }
+  try {
+    let printPdf = pdf;
+    const sourceBytes = state.sourceBytes;
+    const views = state.sheets.map(view => ({...view, edits:view.edits?.slice()}));
+    let printBytes = sourceBytes;
+    if (state.formValues.size) printBytes = await fillPdfForm(printBytes,new Map(state.formValues));
+    if (!showOriginal && views.some(view => view.edits?.length)) {
+      const edited = await createEditedPdf(printBytes, views, message => status(message));
+      printBytes = edited.bytes;
+    }
+    if (printBytes !== sourceBytes) {
+      destroyPdf = await pdfjs.getDocument({data:printBytes}).promise;
+      printPdf = destroyPdf;
+    }
+    releasePages = await preparePrintPages(printPdf, root, () => run === state.run, (page, total) => {
+      status(`Yazdırma hazırlanıyor: ${page}/${total} sayfa`);
+    });
+    document.body.append(root);
+    window.addEventListener('afterprint', cleanup, {once:true});
+    status('Belge yazdırmaya hazır.');
+    window.print();
+  } catch (error) {
+    cleanup();
+    if (run === state.run) status('Yazdırma hazırlanamadı: ' + error.message, true);
+  } finally {
+    destroyPdf?.destroy().catch(() => {});
+  }
+};
 
 async function copyText() {
   try {
@@ -535,9 +599,15 @@ async function openBytes(bytes, label, mime="") {
     if(openRun!==state.run)return;
     const pdf=await pdfjs.getDocument({data:converted.bytes.slice()}).promise;
     if (openRun !== state.run) { pdf.destroy?.(); return; }
+    const fields = await pdf.getFieldObjects().catch(() => null);
+    if (openRun !== state.run) { pdf.destroy?.(); return; }
+    state.hasForm=Boolean(fields && Object.keys(fields).length);
     const oldPdf = state.pdf;
     state.pdf = pdf;
     state.sourceBytes=converted.bytes;
+    state.formValues=new Map();
+    $('saveForm').hidden=true;
+    $('saveForm').disabled=true;
     state.sourceName=converted.filename;
     state.zoom = 1;
     state.viewMode = 'width';
@@ -567,6 +637,7 @@ async function renderDocument() {
   for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf','editVisible','smartAnalyze']){
     $(id).disabled=false;
   }
+  $('printDocument').disabled=printing;
   $('totalPages').textContent='/ '+state.pdf.numPages;
   $('pageNumber').max=String(state.pdf.numPages);
   $('pageNumber').value='1';
@@ -587,6 +658,14 @@ async function renderDocument() {
       if(run!==state.run)return;
       createPageView(page,index,state.pdf.numPages);
       count++;
+      const view=state.sheets.at(-1);
+      if (state.hasForm) {
+        const annotations=await page.getAnnotations({intent:'display'});
+        if(run!==state.run)return;
+        if(addPdfFormFields(view,annotations,state.formValues,()=>{$('saveForm').disabled=false;})){
+          $('saveForm').hidden=false;
+        }
+      }
     }catch(error){console.error('Sayfa kabuğu:',index,error);}
     if(index%12===0)await new Promise(resolve=>setTimeout(resolve,0));
   }
@@ -594,7 +673,7 @@ async function renderDocument() {
     visualEditor.syncControls();
     viewerTools.refresh();
     $('counter').textContent=count+'/'+state.pdf.numPages+' sayfa hazır';
-    status('PDF açıldı. Görünen sayfalar yükleniyor; tüm sayfalar için "Tüm metni hazırla" kullanılabilir.');
+    status($('saveForm').hidden ? 'PDF açıldı. Görünen sayfalar yükleniyor.' : 'PDF formu hazır. Renkli alanları doldurup formu kaydedebilirsin.');
     if(state.sheets[0])enqueuePage(state.sheets[0],run);
   }
 }

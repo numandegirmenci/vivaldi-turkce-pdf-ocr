@@ -1,5 +1,10 @@
 # Değişiklik geçmişi
 
+## v0.6.8
+- Doldurulabilir AcroForm PDF alanları görüntüleyicide açılır ve doldurulmuş PDF kopyası kaydedilebilir.
+- Belgeyi yazdır düğmesi yalnızca sayfaları hazırlar.
+- WhatsApp yakalama komutları tarayıcıdaki PDF OCR menüsüne taşındı.
+
 ## v0.6.7 — 23 Kasım 2026 · Akıllı Bölge Analizi (Beta)
 
 - PDF'de bölge önerileri: basılı yazı, mavi kalem el yazısı, dairesel kaşe, imza ve belirsiz görüntü alanları.
