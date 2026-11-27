@@ -124,7 +124,7 @@ window.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'p' && state.pdf) {
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (!nativePrinting) $('nativePrint').click();
+    if (!printing) $('printDocument').click();
   }
 }, true);
 $('printDocument').onclick = async () => {
@@ -158,7 +158,7 @@ $('printDocument').onclick = async () => {
       printBytes = edited.bytes;
     }
     if (printBytes !== sourceBytes) {
-      destroyPdf = await pdfjs.getDocument({data:printBytes}).promise;
+      destroyPdf = await pdfjs.getDocument({data:printBytes.slice()}).promise;
       printPdf = destroyPdf;
     }
     releasePages = await preparePrintPages(printPdf, root, () => run === state.run, (page, total) => {
@@ -680,7 +680,7 @@ async function renderDocument() {
   state.renderQueue=Promise.resolve();
   $('pages').replaceChildren();$('counter').textContent='';
   updateExtractedText();
-  for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf','editVisible','smartAnalyze']){
+  for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf','editVisible','addText','smartAnalyze']){
     $(id).disabled=false;
   }
   $('printDocument').disabled=printing;
