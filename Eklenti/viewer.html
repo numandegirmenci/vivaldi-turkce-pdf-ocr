@@ -10,12 +10,13 @@
     <div class="actions">
       <button id="choose">📂 Dosya seç</button>
       <button id="saveForm" hidden disabled>Doldurulmuş formu kaydet</button>
-      <button id="printDocument" disabled title="HTML üzerinden alternatif yazdırma; başlık/altbilgiyi tarayıcı ayarından kapat">Alternatif yazdır</button>
-      <button id="nativePrint" disabled title="PDF dosyasını tarayıcının kendi PDF görüntüleyicisinde aç; Ctrl+P ile yazdır">🖨 Belgeyi yazdır</button>
+      <button id="printDocument" disabled title="Tek Ctrl+P ile yalnızca belge sayfalarını yazdır">🖨 Belgeyi yazdır</button>
+      <button id="nativePrint" disabled title="PDF dosyasını tarayıcının kendi PDF görüntüleyicisinde aç; Ctrl+P ile yazdır">PDF ayrı sekmede aç</button>
       <button id="copyAll" disabled>📋 Tüm metni kopyala</button>
       <button id="scanAll" disabled title="Sayfalardaki metni tara; metinsiz sayfalara OCR uygula">⚡ Tüm metni hazırla</button>
       <button id="smartAnalyze" disabled title="Bu sayfadaki basılı yazı, el yazısı ve kaşe bölgelerini ayrı incele">🧠 Akıllı belge analizi</button>
       <button id="exportPdf" disabled title="Orijinal PDF üzerine görünmez seçilebilir OCR metni ekleyerek yeni PDF kaydet">💾 Aranabilir PDF</button>
+      <button id="addText" disabled aria-pressed="false" title="Sayfada bir noktaya tıkla veya metin kutusu çiz">＋ Metin ekle</button>
       <button id="editVisible" disabled aria-pressed="false" title="Taranan görseldeki yazıyı sayfa üzerinde seçip düzelt">✏️ Görünen yazıyı düzenle</button>
       <button id="exportEdited" disabled title="Görünür metin değişikliklerini yeni bir PDF kopyasına kaydet">💾 Düzenlenmiş PDF</button>
       <button id="native" disabled title="PDF içinde yazı varsa korur; sadece metinsiz sayfalara OCR uygular">↶ PDF metnini kullan</button>
@@ -66,6 +67,7 @@
         <div class="edit-panel-title"><strong>✏️ Görsel üzerindeki yazı</strong><small id="editLocation">Bir yazı veya alan seç</small></div>
         <label for="editText">Yeni yazı</label>
         <textarea id="editText" maxlength="300" rows="3" placeholder="Belgede görünecek yeni yazıyı gir" spellcheck="false"></textarea>
+        <div id="addTextOptions" hidden><label for="addTextSize">Yazı boyutu (pt)</label> <input id="addTextSize" type="number" min="6" max="72" value="12"><label for="addTextColor">Renk</label> <input id="addTextColor" type="color" value="#165b9d"></div>
         <div class="detected-style" aria-live="polite">
           <span class="sample-swatch" id="editInkPreview" aria-hidden="true"></span>
           <span class="sample-swatch" id="editFillPreview" aria-hidden="true"></span>
