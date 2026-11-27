@@ -403,16 +403,19 @@ function boundCanvasMemory() {
   for(const view of distant.slice(0,Math.max(0,active.length-state.maxCanvases)))releaseCanvas(view);
 }
 
-async function renderPage(view,run,forceOcr=false) {
+async function renderPage(view,run,forceOcr=false,backgroundText=false) {
   if(run!==state.run)return;
   if(view.loadPromise){
     await view.loadPromise;
+    if(!backgroundText && view.textPromise) await view.textPromise;
     if(forceOcr && run===state.run && view.canvas)return processPageText(view,true,run);
     return;
   }
   if(view.canvas){
     view.lastUsed=Date.now();
-    if(forceOcr)return processPageText(view,true,run);
+    if(!backgroundText && view.textPromise) await view.textPromise;
+    if(forceOcr && run===state.run)return processPageText(view,true,run);
+    if(!backgroundText && !view.processed && run===state.run && view.canvas)return processPageText(view,false,run);
     return;
   }
   view.loadPromise=(async()=>{
@@ -435,7 +438,13 @@ async function renderPage(view,run,forceOcr=false) {
         viewerTools.paint(view);
         visualEditor.paint(view);
       } else {
-        await processPageText(view,forceOcr,run);
+        if(backgroundText && !forceOcr){
+          // OCR/text layer no longer blocks rendering of other visible pages.
+          view.textPromise=processPageText(view,false,run).finally(()=>{
+            view.textPromise=null;
+            if(run===state.run)boundCanvasMemory();
+          });
+        }else await processPageText(view,forceOcr,run);
       }
       view.lastUsed=Date.now();
     }catch(error){
@@ -453,7 +462,7 @@ async function renderPage(view,run,forceOcr=false) {
 
 function enqueuePage(view,run){
   if(!view || view.canvas || view.loadPromise || run!==state.run)return;
-  state.renderQueue=state.renderQueue.catch(()=>{}).then(()=>renderPage(view,run));
+  state.renderQueue=state.renderQueue.catch(()=>{}).then(()=>renderPage(view,run,false,true));
 }
 
 async function scanAll(forceOcr=false) {
