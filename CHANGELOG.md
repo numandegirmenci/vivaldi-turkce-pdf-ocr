@@ -1,5 +1,10 @@
 # Değişiklik geçmişi
 
+## v0.6.13
+- Kompakt, metne göre boyutlanan ek yazı kutuları.
+- Enter ile uygula, Shift+Enter ile alt satır; peş peşe metin ekleme.
+- PDF yazdırma davranışı v0.6.12 ile aynı.
+
 ## v0.6.12
 - HTML yazdırma kaldırıldı; üstbilgi ve URL riskine karşı yerleşik PDF görüntüleyicisinden yazdırma.
 - Metin ekleme ve düzenleme araçları korundu.
