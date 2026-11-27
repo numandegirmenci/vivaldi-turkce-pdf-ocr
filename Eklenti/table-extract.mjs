@@ -346,7 +346,7 @@ export function quantityValue(text) {
  * identifiable monetary amount is cleaned of OCR border/currency artifacts.
  */
 export function auditTable(table) {
-  if(table?.kind==='fields'||table?.headers?.length!==4)
+  if(table?.kind==='grid'||table?.kind==='fields'||table?.headers?.length!==4)
     return {...table,rows:(table?.rows||[]).map(row=>row.map(v=>String(v??'').trim())),issues:[]};
   const issues=[],rows=[];
   for(let i=0;i<(table.rows||[]).length;i++){
