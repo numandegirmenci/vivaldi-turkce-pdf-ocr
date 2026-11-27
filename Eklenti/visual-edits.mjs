@@ -57,6 +57,19 @@ export function fitVisibleText(text, width, height, preferredSize, measureAtOne)
   if(!Number.isFinite(fit)||fit<1.5)throw new Error('Metin bu alana sığmıyor. Daha kısa yazı veya daha geniş alan seç.');
   return {fontSize:fit,lineHeight:fit*1.18,lines,padding};
 }
+/** Fit the interactive annotation box to its text, not the initial click area. */
+export function compactAnnotationBox({box,text,fontSize,pageWidth,pageHeight,measureAtOne}) {
+  const lines=safeEditText(text).split('\n');
+  const size=Math.max(5,Math.min(180,Number(fontSize)||12));
+  const padding=Math.max(1,Math.min(3,size*.10));
+  const measured=Math.max(1,...lines.map(line=>Math.max(0,Number(measureAtOne(line))||0)));
+  // Allow for browser/PDF font-metric differences without a large invisible hit area.
+  const width=Math.min(pageWidth,Math.max(8,Math.ceil(measured*size*1.06+padding*2+1)));
+  const height=Math.min(pageHeight,Math.max(6,Math.ceil(size*1.28*lines.length+padding*2+1)));
+  const x0=Math.max(0,Math.min(box.x0,pageWidth-width));
+  const y0=Math.max(0,Math.min(box.y0,pageHeight-height));
+  return clampBox({x0,y0,x1:x0+width,y1:y0+height},pageWidth,pageHeight);
+}
 export function textWithVisibleEdits(original,view) {
   const edits=view?.edits||[];
   if(!edits.length)return String(original||'');
