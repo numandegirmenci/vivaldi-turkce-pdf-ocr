@@ -93,6 +93,14 @@ $('saveForm').onclick = async () => {
 };
 
 let printing = false;
+// Intercept Ctrl+P before the browser prints the entire viewer.
+window.addEventListener('keydown', event => {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'p' && state.pdf) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (!printing) $('printDocument').click();
+  }
+}, true);
 $('printDocument').onclick = async () => {
   if (!state.pdf || printing) return;
   printing = true;
@@ -659,6 +667,8 @@ async function renderDocument() {
       createPageView(page,index,state.pdf.numPages);
       count++;
       const view=state.sheets.at(-1);
+      // Display the first page without waiting for every page shell.
+      if(index===1) enqueuePage(view,run);
       if (state.hasForm) {
         const annotations=await page.getAnnotations({intent:'display'});
         if(run!==state.run)return;
