@@ -27,11 +27,12 @@ export function colorComponents(value) {
 }
 export function normalizeVisibleEdit(input, pageWidth, pageHeight) {
   const box=clampBox(input.box,pageWidth,pageHeight);
-  const text=safeEditText(input.text);
+  const deleting=input.operation==='delete';
+  const text=deleting?'':safeEditText(input.text);
   const fontSize=Number(input.fontSize);
   return {
     id:String(input.id||'').slice(0,80),
-    box,text,
+    box,text,operation:deleting?'delete':'replace',
     original:String(input.original||'').slice(0,300),
     sourceKind:['ocr','native','manual'].includes(input.sourceKind)?input.sourceKind:'manual',
     sourceIndex:Number.isInteger(input.sourceIndex)&&input.sourceIndex>=0?input.sourceIndex:null,
@@ -69,7 +70,7 @@ export function textWithVisibleEdits(original,view) {
         for(const index of rest)removed.add(index);
       }else if(e.sourceKind==='manual')extra.push(e.text);
     }
-    const words=view.words.flatMap((w,i)=>removed.has(i)?[]:[{
+    const words=view.words.flatMap((w,i)=>removed.has(i)||(replacements.has(i)&&!replacements.get(i))?[]:[{
       ...w,text:replacements.has(i)?replacements.get(i):w.text
     }]);
     // DOM-agnostic; the caller supplies its OCR formatter.
