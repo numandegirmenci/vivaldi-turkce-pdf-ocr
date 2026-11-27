@@ -254,10 +254,11 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     view.edits=edits;
     syncPage(view);
   }
-  save.addEventListener('click',async()=>{
+  async function applyEdit(deleting=false){
     if(!selection)return;
     const chosen=selection,view=chosen.view;
     save.disabled=true;
+    if($('editDelete'))$('editDelete').disabled=true;
     reportEdit('Yazı görüntüye uygulanıyor...');
     try{
       if(!view.canvas)throw new Error('Sayfa görüntüsü hazır değil. Belgeyi tekrar açıp OCR işlemini tamamla.');
@@ -265,8 +266,8 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       if(selection!==chosen)return;
       const existing=chosen.id?view.edits.find(e=>e.id===chosen.id):null;
       const item=normalizeVisibleEdit({...chosen,id:existing?.id||crypto.randomUUID(),
-        text:text.value},view.width,view.height);
-      if(item.original.trim()===item.text.trim())
+        operation:deleting?'delete':'replace',text:deleting?'':text.value},view.width,view.height);
+      if(!deleting&&item.original.trim()===item.text.trim())
         throw new Error('Yeni yazı orijinaliyle aynı. Değişiklik yapılmadı.');
       // A single maximum OCR padding can include a letter from another line.
       // Try progressively smaller pixel-safe crops without ever compromising
@@ -290,9 +291,9 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         try{
           // Detect typography from the ORIGINAL glyph box, not from the
           // enlarged safety crop (whose whitespace would distort the match).
-          typography=analyzeScanTypography(view.canvas,view.words,chosen.box,
+          typography=deleting?null:analyzeScanTypography(view.canvas,view.words,chosen.box,
             chosen.original||item.original,{ink:item.ink,fill:item.fill,bold:item.bold});
-          typography.targetHeight=geometry.targetHeight;
+          if(typography)typography.targetHeight=geometry.targetHeight;
           rendered=renderScanReplacement(view.canvas,item,typography);
           break;
         }catch(error){
@@ -323,8 +324,10 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       reportEdit('Uygulanamadı: '+reason,true);
       status('Görsel yazı uygulanamadı: '+reason,true);
     }
-    finally{save.disabled=false;}
-  });
+    finally{save.disabled=false;if($('editDelete'))$('editDelete').disabled=false;}
+  }
+  save.addEventListener('click',()=>applyEdit(false));
+  $('editDelete')?.addEventListener('click',()=>applyEdit(true));
   remove.addEventListener('click',()=>{
     if(!selection?.id)return;
     const view=selection.view;
