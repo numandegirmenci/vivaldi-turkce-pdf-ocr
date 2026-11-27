@@ -44,3 +44,15 @@ test('explicit delete removes selected OCR word without allowing accidental empt
   assert.deepEqual(result.words.map(w=>w.text),['METİN']);
   assert.throws(()=>normalizeVisibleEdit({box,text:''},200,200),/Yeni yazıyı/);
 });
+
+test('adding a note never replaces the source word or removes its OCR coordinates',()=>{
+  const edit=normalizeVisibleEdit({operation:'add',box:{x0:15,y0:25,x1:160,y1:80},text:'Örnek açıklama',sourceKind:'ocr',sourceIndex:0,sourceIndices:[0],fontSize:18,ink:'#165b9d'},200,200);
+  assert.equal(edit.operation,'add');
+  assert.equal(edit.sourceIndex,null);
+  assert.deepEqual(edit.sourceIndices,[]);
+  const view={textSource:'ocr',words:[{text:'Özgün metin'}],edits:[edit]};
+  const result=textWithVisibleEdits('Özgün metin',view);
+  assert.deepEqual(result.words.map(w=>w.text),['Özgün metin']);
+  assert.deepEqual(result.extra,['Örnek açıklama']);
+  assert.equal(textWithVisibleEdits('Özgün metin',{textSource:'native',edits:[edit]}),'Özgün metin\nÖrnek açıklama');
+});
