@@ -58,6 +58,7 @@ export async function createEditedPdf(sourceBytes,views,report=()=>{}) {
   const filtered=views.map(view=>{
     const excluded=new Set();
     for(const edit of view.edits||[]){
+      if(edit.operation==='add')continue;
       if(edit.sourceKind==='ocr'&&Number.isInteger(edit.sourceIndex))excluded.add(edit.sourceIndex);
       for(const index of edit.sourceIndices||[])excluded.add(index);
     }
@@ -88,6 +89,15 @@ export async function createEditedPdf(sourceBytes,views,report=()=>{}) {
       const x=Math.min(a[0],b[0]),y=Math.min(a[1],b[1]);
       const width=Math.abs(b[0]-a[0]),height=Math.abs(b[1]-a[1]);
       if(width<1||height<1)throw new Error('PDF üzerinde düzenleme alanı çok küçük.');
+      if(edit.operation==='add'){
+        const scale=view.viewport.scale||1;
+        const plan=fitVisibleText(edit.text,width,height,edit.fontSize/scale,t=>font.widthOfTextAtSize(t,1));
+        const color=lib.rgb(...colorComponents(edit.ink));
+        for(const [i,line] of plan.lines.entries()){
+          if(line)page.drawText(line,{x:x+plan.padding,y:y+height-plan.padding-plan.fontSize-i*plan.lineHeight,size:plan.fontSize,font,color});
+        }
+        count++;continue;
+      }
       if(typeof raw.patchPng!=='string'||!raw.patchPng.startsWith('data:image/png;base64,'))
         throw new Error('Güvenli onarım katmanı oluşturulmadı. Boş/düz renkli alana yazı yazılmadı.');
       // Draw the SAME transparent correction used in the preview. The old
