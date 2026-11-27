@@ -210,7 +210,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       if(!adding&&event.target.closest?.('[data-visible-edit-id]'))return;
       if(!adding&&!event.shiftKey&&event.target.closest?.('.ocr-layer span, .textLayer span'))return;
       if(view.rotation||view.page.rotate){status('Döndürülmüş sayfada alan seçimi desteklenmiyor.',true);return;}
-      start={...getPoint(view,event),pointerId:event.pointerId};
+      start={...getPoint(view,event),pointerId:event.pointerId,editId:event.target.closest?.('[data-visible-edit-id]')?.dataset.visibleEditId};
       clearGhost();
       ghost=document.createElement('div');ghost.className='visual-edit-ghost';
       view.surface.append(ghost);
@@ -230,9 +230,8 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       try{view.surface.releasePointerCapture(event.pointerId);}catch{}
       if(adding){
         suppressedClick=true;setTimeout(()=>{suppressedClick=false;},0);
-        const existing=event.target.closest?.('[data-visible-edit-id]');
-        if(existing&&Math.abs(end.x-begin.x)<14&&Math.abs(end.y-begin.y)<8){
-          const edit=view.edits.find(e=>e.id===existing.dataset.visibleEditId&&e.operation==='add');
+        if(begin.editId&&Math.abs(end.x-begin.x)<14&&Math.abs(end.y-begin.y)<8){
+          const edit=view.edits.find(e=>e.id===begin.editId&&e.operation==='add');
           if(edit){select(view,edit);return;}
         }
         const scale=view.viewport.scale||1;
@@ -382,7 +381,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         rendered.repairedPixels+' eski yazı pikseli düzeltildi). Orijinal dosya korundu.');
     }catch(error){
       const reason=error?.message||'Bilinmeyen düzenleme hatası';
-      reportEdit('Uygulanamadı: '+reason,true);
+      reportEdit('Uygulanamadı: '+reason+' Alternatif: Metin ekle ile belgeye ayrı bir düzeltme notu yazabilirsin.',true);
       status('Görsel yazı uygulanamadı: '+reason,true);
     }
     finally{save.disabled=false;if($('editDelete'))$('editDelete').disabled=false;}
