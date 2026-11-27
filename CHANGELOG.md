@@ -1,5 +1,10 @@
 # Değişiklik geçmişi
 
+## v0.6.10
+- Yerleşik PDF görüntüleyicisi üzerinden yazdırma.
+- Görsel metin silme ve native PDF seçim geometrisi.
+- Görsel silme güvenli redaksiyon değildir; Vivaldi manuel doğrulaması yapılmadı.
+
 ## v0.6.9 — 27 Kasım 2026
 - Ctrl+P belgeye özel yazdırmayı çağırır; sıfır yazdırma kenar boşluğu.
 - İlk sayfa öncelikli çizim ve arka planda metin/OCR işleme.
