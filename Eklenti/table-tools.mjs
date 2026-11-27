@@ -1,3 +1,4 @@
+import {ruledTablesForView} from './ruled-tables.mjs';
 import {extractedTablesFromSheets,tablesToTsv,tablesToCsv,auditTable} from './table-extract.mjs';
 
 /** Interactive table view: every cell is its own selectable DOM text. */
@@ -64,9 +65,10 @@ export function installTableTools({$,state,status,scanAll}) {
       count+=checked.issues.length;
       for(const issue of checked.issues)text.push(`Sayfa ${table.page}, ${issue.row<0?'toplam':`${issue.row+1}. satır`}: ${issue.message}`);
     }
-    const feeCount=found.filter(table=>table.kind==='fee'||table.headers?.length===4).length;
-    const formCount=found.length-feeCount;
-    info.textContent=`${found.length} ayrı tablo/bilgi grubu bulundu (${feeCount} ücret tablosu, ${formCount} alan-değer grubu). `+
+    const feeCount=found.filter(table=>table.kind==='fee'||(!table.kind&&table.headers?.length===4)).length;
+    const formCount=found.filter(table=>table.kind==='fields').length;
+    const gridCount=found.filter(table=>table.kind==='grid').length;
+    info.textContent=`${found.length} ayrı tablo/bilgi grubu bulundu (${gridCount} çizgili tablo, ${feeCount} ücret tablosu, ${formCount} alan-değer grubu). `+
       (count?`${count} hesap kontrolü uyarısı var. Turuncu hücreleri belgeyle karşılaştır. `:
         feeCount?'Ücret tablolarında belirgin hesap uyuşmazlığı bulunmadı. ':'')+
       'Hücreye tıklayıp hatalı OCR metnini düzeltebilirsin. Değişiklikler Excel/CSV çıktılarına yansır.';
@@ -143,7 +145,19 @@ export function installTableTools({$,state,status,scanAll}) {
     open.disabled=true;
     try{
       await scanAll(false);
-      found=extractedTablesFromSheets(state.sheets).map(auditTable);
+      const run=state.run, fallback=extractedTablesFromSheets(state.sheets), result=[];
+      for(const view of state.sheets){
+        if(run!==state.run)throw new Error('Açık belge değişti.');
+        let grids=[];
+        try{grids=await ruledTablesForView(view);}catch(error){console.warn('Çizgili tablo:',error);}
+        if(run!==state.run)throw new Error('Açık belge değişti.');
+        result.push(...grids);
+        for(const t of fallback.filter(t=>t.page===view.index)){
+          const y=t.topY??t.bounds?.y0;
+          if(!grids.some(g=>Number.isFinite(y)&&y>=g.bounds.y0-8&&y<=g.bounds.y1+8))result.push(t);
+        }
+      }
+      found=result.sort((a,b)=>a.page-b.page||(a.topY??a.bounds?.y0??0)-(b.topY??b.bounds?.y0??0)).map(auditTable);
       present();
       if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
     }catch(error){status('Tablo ayrıştırılamadı: '+error.message,true);}
