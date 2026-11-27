@@ -220,3 +220,8 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
   font-family:Arial,sans-serif; resize:none;
 }
 .pdf-form-layer :is(input,textarea,select):focus { outline:2px solid #006992; outline-offset:1px; }
+
+#addTextOptions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#addTextOptions[hidden]{display:none}
+#addTextSize{width:60px}
+#addTextColor{width:42px;height:32px}
