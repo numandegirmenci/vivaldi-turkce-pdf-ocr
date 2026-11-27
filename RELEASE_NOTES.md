@@ -1,8 +1,8 @@
-# Türkçe PDF OCR v0.6.10 — PDF yazdırma ve görsel silme (Beta)
+# Türkçe PDF OCR v0.6.11 — Metin ekleme ve tek adım yazdırma (Beta)
 
-- Belgeyi yazdır ve Ctrl+P, PDF dosyasını tarayıcının kendi PDF görüntüleyicisinde açar; yeni sekmede Ctrl+P ile yazdırın. Böylece HTML belge başlık ve altbilgileri kullanılmaz. Alternatif HTML yazdırma korunur; tarayıcı üstbilgi ayarı gerekebilir.
-- Görsel yazı paneline Yazıyı sil (görsel) seçeneği eklendi. Orijinal dosya korunur; silme güvenli redaksiyon değildir.
-- Hazır PDF metninin seçili alanı ve komşu yazı koordinatları kullanılır. Temiz zemin denetimi korunur; kaşe, imza, karmaşık zemin veya komşu harf içeren seçimler reddedilebilir.
-- Açık silme işlemi için regresyon testi eklendi.
+- Metin ekle: sayfada bir noktaya tıklayın veya kutu çizin; yazı boyutu ve rengini seçin, Uygula deyin. Ek metin ayrı katman olarak görünür ve Düzenlenmiş PDF çıktısına seçilebilir PDF metni olarak yazılır. Kaynak yazı korunur.
+- Ctrl+P ve Belgeyi yazdır aynı sekmede belgeye özel yazdırmayı başlatır. Tarayıcı üstbilgi/altbilgi ayarı zorlanamaz; görünürse yazdırma ekranında Üstbilgiler ve altbilgiler seçeneğini kapatın. Yerleşik PDF görüntüleyicisine ayrı sekmede geçme seçeneği yedek olarak korunur.
+- Görsel metin düzeltme için daha geniş, komşu OCR kelimeleriyle çakışmayan güvenli alanlar denenir. Düz kağıt şartı korunur; gerçek PDF içerik nesnesi düzenleme henüz yoktur. Kaşe, imza ve karmaşık zeminlerde düzeltme reddedilebilir. Alternatif olarak ayrı düzeltme notu eklenebilir.
+- Ek metnin kaynak OCR kelimelerini silmediğini doğrulayan regresyon testi eklendi.
 
-Kurulum: Assets bölümündeki Turkce-PDF-OCR-Chromium-v0.6.10.zip paketini kullanın. Vivaldi üzerinde canlı doğrulama yapılmadı.
+Kurulum: Assets bölümünden Turkce-PDF-OCR-Chromium-v0.6.11.zip indirin. Vivaldi canlı testi henüz tamamlanmadı; kaynak belgeyi saklayın.
