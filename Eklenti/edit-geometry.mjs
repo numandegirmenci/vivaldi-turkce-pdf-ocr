@@ -23,8 +23,8 @@ export function prepareEditGeometry({box,pageWidth,pageHeight,words=[],sourceInd
   let expanded=original,padding=0;
   if(sourceKind==='ocr'){
     const desired=Math.max(2,Math.min(
-      Number.isFinite(maxPadding)?Math.max(2,Math.floor(maxPadding)):14,
-      Math.max(4,Math.ceil(targetHeight*.20))));
+      Number.isFinite(maxPadding)?Math.max(2,Math.floor(maxPadding)):22,
+      Math.max(4,Math.ceil(targetHeight*.36))));
     for(let delta=1;delta<=desired;delta++){
       const candidate=clampBox({
         x0:Math.floor(original.x0-delta),y0:Math.floor(original.y0-delta),
