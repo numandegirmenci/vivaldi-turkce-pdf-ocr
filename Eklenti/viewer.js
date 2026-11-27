@@ -2,7 +2,6 @@ import { addPdfFormFields, fillPdfForm } from './pdf-form.mjs';
 import * as pdfjs from './vendor/pdf.mjs';
 import { hasUsablePdfText, formatPdfText, collectOcrWords, getSafeRenderScale, formatOcrWords } from './text-utils.mjs';
 import { installViewerTools } from './viewer-tools.mjs';
-import { preparePrintPages } from './print-document.mjs';
 import { createEditedPdf, createSearchablePdf, saveBytesAsPdf } from './export-pdf.mjs';
 
 import {normalizeToPdf} from './document-input.mjs';
@@ -92,7 +91,6 @@ $('saveForm').onclick = async () => {
   }
 };
 
-let printing = false;
 let nativePrinting=false;
 $('nativePrint').onclick=async()=>{
   if(!state.pdf||nativePrinting)return;
@@ -124,58 +122,9 @@ window.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'p' && state.pdf) {
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (!printing) $('printDocument').click();
+    if (!nativePrinting) $('nativePrint').click();
   }
 }, true);
-$('printDocument').onclick = async () => {
-  if (!state.pdf || printing) return;
-  printing = true;
-  $('printDocument').disabled = true;
-  const run = state.run;
-  const pdf = state.pdf;
-  const showOriginal = $('editCompare').getAttribute('aria-pressed') === 'true';
-  const root = document.createElement('div');
-  root.id = 'document-print-pages';
-  let destroyPdf;
-  let releasePages;
-  const originalTitle=document.title;
-  function cleanup() {
-    window.removeEventListener('afterprint', cleanup);
-    root.remove();
-    document.title=originalTitle;
-    releasePages?.();
-    printing = false;
-    $('printDocument').disabled = !state.pdf;
-  }
-  try {
-    let printPdf = pdf;
-    const sourceBytes = state.sourceBytes;
-    const views = state.sheets.map(view => ({...view, edits:view.edits?.slice()}));
-    let printBytes = sourceBytes;
-    if (state.formValues.size) printBytes = await fillPdfForm(printBytes,new Map(state.formValues));
-    if (!showOriginal && views.some(view => view.edits?.length)) {
-      const edited = await createEditedPdf(printBytes, views, message => status(message));
-      printBytes = edited.bytes;
-    }
-    if (printBytes !== sourceBytes) {
-      destroyPdf = await pdfjs.getDocument({data:printBytes.slice()}).promise;
-      printPdf = destroyPdf;
-    }
-    releasePages = await preparePrintPages(printPdf, root, () => run === state.run, (page, total) => {
-      status(`Yazdırma hazırlanıyor: ${page}/${total} sayfa`);
-    });
-    document.body.append(root);
-    window.addEventListener('afterprint', cleanup, {once:true});
-    status('Belge yazdırmaya hazır.');
-    document.title='';
-    window.print();
-  } catch (error) {
-    cleanup();
-    if (run === state.run) status('Yazdırma hazırlanamadı: ' + error.message, true);
-  } finally {
-    destroyPdf?.destroy().catch(() => {});
-  }
-};
 
 async function copyText() {
   try {
@@ -683,7 +632,7 @@ async function renderDocument() {
   for(const id of ['reocr','native','fit','fitWidth','zoomIn','zoomOut','scanAll','exportPdf','editVisible','addText','smartAnalyze']){
     $(id).disabled=false;
   }
-  $('printDocument').disabled=printing;
+
   $('nativePrint').disabled=nativePrinting;
   $('totalPages').textContent='/ '+state.pdf.numPages;
   $('pageNumber').max=String(state.pdf.numPages);
