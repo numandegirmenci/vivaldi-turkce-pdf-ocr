@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Türkçe PDF OCR (Chromium)",
-  "version": "0.6.11",
+  "version": "0.6.12",
   "description": "Türkçe PDF OCR, el yazısı/kaşe bölge inceleme ve isteğe bağlı yerel el yazısı modeli; Outlook, OneDrive, WhatsApp ekleri.",
   "permissions": [
     "tabs",
