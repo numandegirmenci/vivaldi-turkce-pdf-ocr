@@ -186,6 +186,7 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
   grid-template-columns:minmax(0,1fr) minmax(350px,390px)}}
 
 #document-print-pages { display: none; }
+@page { margin: 0; }
 @page document-portrait { size: A4 portrait; margin: 0; }
 @page document-landscape { size: A4 landscape; margin: 0; }
 @media print {
