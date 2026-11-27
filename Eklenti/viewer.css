@@ -225,3 +225,7 @@ textarea{flex:1;min-height:100px;width:100%;resize:none;border:1px solid #c8dae7
 #addTextOptions[hidden]{display:none}
 #addTextSize{width:60px}
 #addTextColor{width:42px;height:32px}
+
+/* Added notes must not intercept clicks in the surrounding blank page. */
+.visual-edit-enabled .visual-edit-box[data-operation="add"]{pointer-events:none}
+.visual-edit-enabled .visual-edit-box[data-operation="add"]>span{pointer-events:auto;cursor:text}
