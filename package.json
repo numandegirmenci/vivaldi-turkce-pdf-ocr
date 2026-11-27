@@ -1,6 +1,6 @@
 {
   "name": "turkce-pdf-ocr-chromium",
-  "version": "0.6.9",
+  "version": "0.6.10",
   "private": true,
   "description": "Chromium tabanlı tarayıcılar için deneysel yerel Türkçe PDF OCR eklentisi",
   "scripts": {
