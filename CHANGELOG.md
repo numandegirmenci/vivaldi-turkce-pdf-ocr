@@ -1,5 +1,11 @@
 # Değişiklik geçmişi
 
+## v0.6.9 — 27 Kasım 2026
+- Ctrl+P belgeye özel yazdırmayı çağırır; sıfır yazdırma kenar boşluğu.
+- İlk sayfa öncelikli çizim ve arka planda metin/OCR işleme.
+- Gerçek çizgilerden tablo hücreleri çıkarma ve regresyon testleri.
+- Vivaldi manuel testi ve serbest metin düzenleme henüz tamamlanmadı.
+
 ## v0.6.8
 - Doldurulabilir AcroForm PDF alanları görüntüleyicide açılır ve doldurulmuş PDF kopyası kaydedilebilir.
 - Belgeyi yazdır düğmesi yalnızca sayfaları hazırlar.
