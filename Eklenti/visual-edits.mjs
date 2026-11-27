@@ -27,16 +27,16 @@ export function colorComponents(value) {
 }
 export function normalizeVisibleEdit(input, pageWidth, pageHeight) {
   const box=clampBox(input.box,pageWidth,pageHeight);
-  const deleting=input.operation==='delete';
+  const deleting=input.operation==='delete', adding=input.operation==='add';
   const text=deleting?'':safeEditText(input.text);
   const fontSize=Number(input.fontSize);
   return {
     id:String(input.id||'').slice(0,80),
-    box,text,operation:deleting?'delete':'replace',
+    box,text,operation:deleting?'delete':adding?'add':'replace',
     original:String(input.original||'').slice(0,300),
-    sourceKind:['ocr','native','manual'].includes(input.sourceKind)?input.sourceKind:'manual',
-    sourceIndex:Number.isInteger(input.sourceIndex)&&input.sourceIndex>=0?input.sourceIndex:null,
-    sourceIndices:Array.isArray(input.sourceIndices)?[...new Set(input.sourceIndices.filter(n=>Number.isInteger(n)&&n>=0))].slice(0,200):[],
+    sourceKind:adding?'manual':['ocr','native','manual'].includes(input.sourceKind)?input.sourceKind:'manual',
+    sourceIndex:!adding&&Number.isInteger(input.sourceIndex)&&input.sourceIndex>=0?input.sourceIndex:null,
+    sourceIndices:!adding&&Array.isArray(input.sourceIndices)?[...new Set(input.sourceIndices.filter(n=>Number.isInteger(n)&&n>=0))].slice(0,200):[],
     fontSize:Number.isFinite(fontSize)?Math.max(5,Math.min(180,fontSize)):Math.max(8,Math.min(36,(box.y1-box.y0)*.76)),
     ink:hexColor(input.ink,'#172b3d'),
     fill:hexColor(input.fill,'#ffffff'),
@@ -63,6 +63,7 @@ export function textWithVisibleEdits(original,view) {
   if(view.textSource==='ocr'&&Array.isArray(view.words)&&view.words.length){
     const replacements=new Map(),removed=new Set(),extra=[];
     for(const e of edits){
+      if(e.operation==='add'){extra.push(e.text);continue;}
       if(e.sourceKind==='ocr'&&e.sourceIndex!==null)replacements.set(e.sourceIndex,e.text);
       else if(e.sourceKind==='manual'&&e.sourceIndices?.length){
         const [first,...rest]=e.sourceIndices;
@@ -78,7 +79,8 @@ export function textWithVisibleEdits(original,view) {
   }
   let out=String(original||'');
   for(const e of edits){
-    if(e.sourceKind==='native'&&e.original&&out.includes(e.original))
+    if(e.operation==='add')out+=(out?'\n':'')+e.text;
+    else if(e.sourceKind==='native'&&e.original&&out.includes(e.original))
       out=out.replace(e.original,e.text);
     else if(e.sourceKind==='manual')out+=(out?'\n':'')+e.text;
   }
