@@ -1,5 +1,10 @@
 # Değişiklik geçmişi
 
+## v0.6.11
+- Serbest ek metin, renk ve yazı boyutu; ayrı PDF kopyasına seçilebilir metin.
+- Aynı sekmede tek Ctrl+P ve belge yazdırma.
+- Temiz zeminde güvenli alan genişletme; karmaşık zemin kısıtı korunur.
+
 ## v0.6.10
 - Yerleşik PDF görüntüleyicisi üzerinden yazdırma.
 - Görsel metin silme ve native PDF seçim geometrisi.
