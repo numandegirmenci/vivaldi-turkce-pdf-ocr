@@ -1,4 +1,4 @@
-import {clampBox,normalizeVisibleEdit,fitVisibleText,textWithVisibleEdits} from './visual-edits.mjs';
+import {clampBox,normalizeVisibleEdit,fitVisibleText,textWithVisibleEdits,compactAnnotationBox} from './visual-edits.mjs';
 import {SCAN_FONTS,nearestSameLineWord,findUnselectedOverlap,fullySelectedWords,analyzeScanTypography,renderScanReplacement} from './scan-typography.mjs';
 import {formatOcrWords} from './text-utils.mjs';
 import {createEditedPdf,saveBytesAsPdf} from './export-pdf.mjs';
@@ -32,7 +32,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
   // Loading font faces before measuring prevents browser fallback from distorting edits.
   let fontReady=null;
   const ensureFonts=()=>fontReady||(fontReady=Promise.allSettled(
-    SCAN_FONTS.map(({family,weight})=>document.fonts.load(weight+' 24px "'+family+'"'))
+    [...SCAN_FONTS.map(({family,weight})=>document.fonts.load(weight+' 24px "'+family+'"')),document.fonts.load('400 24px NotoSansOcr')]
   ));
   const hasEdits=()=>state.sheets.some(v=>v.edits?.length);
   const measureAtOne=value=>{
@@ -237,7 +237,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         const scale=view.viewport.scale||1;
         const click=Math.abs(end.x-begin.x)<14||Math.abs(end.y-begin.y)<8;
         const x=Math.max(0,Math.min(begin.x,view.width-20)),y=Math.max(0,Math.min(begin.y,view.height-20));
-        const box=click?{x0:x,y0:y,x1:Math.min(view.width,x+210*scale),y1:Math.min(view.height,y+75*scale)}:
+        const box=click?{x0:x,y0:y,x1:Math.min(view.width,x+80*scale),y1:Math.min(view.height,y+20*scale)}:
           {x0:begin.x,y0:begin.y,x1:end.x,y1:end.y};
         select(view,{box,sourceKind:'manual',operation:'add',original:''});
         return;
@@ -264,6 +264,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       el.style.left=box.x0+'px';el.style.top=box.y0+'px';
       el.style.width=w+'px';el.style.height=h+'px';
       if(edit.operation==='add'){
+        el.dataset.operation='add';
         const plan=fitVisibleText(edit.text,w,h,edit.fontSize,measureAtOne);
         el.style.color=edit.ink;
         el.style.fontSize=plan.fontSize+'px';
@@ -300,7 +301,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     syncPage(view);
   }
   async function applyEdit(deleting=false){
-    if(!selection)return;
+    if(!selection||save.disabled)return;
     const chosen=selection,view=chosen.view;
     save.disabled=true;
     if($('editDelete'))$('editDelete').disabled=true;
@@ -316,11 +317,13 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         operation:isAdd?'add':deleting?'delete':'replace',text:deleting?'':text.value,
         ...(isAdd?{fontSize:Math.max(6,Math.min(72,Number(addSize?.value)||12))*(view.viewport.scale||1),ink:addColor?.value||'#165b9d',bold:false}:{} )},view.width,view.height);
       if(isAdd){
+        item.box=compactAnnotationBox({box:item.box,text:item.text,fontSize:item.fontSize,
+          pageWidth:view.width,pageHeight:view.height,measureAtOne});
         fitVisibleText(item.text,item.box.x1-item.box.x0,item.box.y1-item.box.y0,item.fontSize,measureAtOne);
         mutate(view,existing?view.edits.map(e=>e.id===item.id?item:e):[...view.edits,item]);
         if(showingOriginal){showingOriginal=false;$('pages').classList.remove('show-original');compare.setAttribute('aria-pressed','false');syncControls();}
         panel.hidden=true;selection=null;reportEdit('');
-        status('Metin eklendi. Düzenlenmiş PDF ile ayrı kopyaya kaydedebilirsin.');
+        status('Metin eklendi. Yeni bir metin için sayfada başka bir yere tıkla. Enter: Uygula · Shift+Enter: Alt satır.');
         return;
       }
       if(!deleting&&item.original.trim()===item.text.trim())
@@ -387,6 +390,12 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     finally{save.disabled=false;if($('editDelete'))$('editDelete').disabled=false;}
   }
   save.addEventListener('click',()=>applyEdit(false));
+  text.addEventListener('keydown',event=>{
+    if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&event.keyCode!==229){
+      event.preventDefault();event.stopPropagation();
+      if(!event.repeat&&!save.disabled)applyEdit(false);
+    }
+  });
   $('editDelete')?.addEventListener('click',()=>applyEdit(true));
   remove.addEventListener('click',()=>{
     if(!selection?.id)return;
