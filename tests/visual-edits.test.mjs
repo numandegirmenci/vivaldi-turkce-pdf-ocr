@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {clampBox,safeEditText,normalizeVisibleEdit,fitVisibleText,textWithVisibleEdits,colorComponents} from '../Eklenti/visual-edits.mjs';
+import {clampBox,safeEditText,normalizeVisibleEdit,fitVisibleText,textWithVisibleEdits,colorComponents,compactAnnotationBox} from '../Eklenti/visual-edits.mjs';
 
 test('görsel yazı alanı sayfa sınırları içinde tutulur',()=>{
   assert.deepEqual(clampBox({x0:-4,y0:-9,x1:120,y1:40},100,100),{x0:0,y0:0,x1:100,y1:40});
@@ -55,4 +55,18 @@ test('adding a note never replaces the source word or removes its OCR coordinate
   assert.deepEqual(result.words.map(w=>w.text),['Özgün metin']);
   assert.deepEqual(result.extra,['Örnek açıklama']);
   assert.equal(textWithVisibleEdits('Özgün metin',{textSource:'native',edits:[edit]}),'Özgün metin\nÖrnek açıklama');
+});
+
+test('short notes have compact hit areas and leave the next line free',()=>{
+  const args={box:{x0:20,y0:40,x1:440,y1:190},text:'1112',fontSize:24,pageWidth:1200,pageHeight:1500,measureAtOne:t=>t.length*.56};
+  const box=compactAnnotationBox(args);
+  assert.equal(box.x0,20);assert.equal(box.y0,40);
+  assert.ok(box.x1-box.x0<70);
+  assert.ok(box.y1-box.y0<40);
+  const next=compactAnnotationBox({...args,box:{...args.box,y0:82}});
+  assert.ok(next.y0>box.y1);
+  const long=compactAnnotationBox({...args,text:'İkinci satır\nAçıklama'});
+  assert.ok(long.y1-long.y0>box.y1-box.y0);
+  const edge=compactAnnotationBox({...args,box:{x0:1198,y0:1499,x1:1200,y1:1500}});
+  assert.equal(edge.x1,1200);assert.equal(edge.y1,1500);
 });
