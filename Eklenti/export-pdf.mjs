@@ -91,10 +91,10 @@ export async function createEditedPdf(sourceBytes,views,report=()=>{}) {
       if(width<1||height<1)throw new Error('PDF üzerinde düzenleme alanı çok küçük.');
       if(edit.operation==='add'){
         const scale=view.viewport.scale||1;
-        const plan=fitVisibleText(edit.text,width,height,edit.fontSize/scale,t=>font.widthOfTextAtSize(t,1));
+        const plan=fitVisibleText(edit.text,edit.box.x1-edit.box.x0,edit.box.y1-edit.box.y0,edit.fontSize,t=>font.widthOfTextAtSize(t,1));
         const color=lib.rgb(...colorComponents(edit.ink));
         for(const [i,line] of plan.lines.entries()){
-          if(line)page.drawText(line,{x:x+plan.padding,y:y+height-plan.padding-plan.fontSize-i*plan.lineHeight,size:plan.fontSize,font,color});
+          if(line)page.drawText(line,{x:x+plan.padding/scale,y:y+height-(plan.padding+plan.fontSize+i*plan.lineHeight)/scale,size:plan.fontSize/scale,font,color});
         }
         count++;continue;
       }
