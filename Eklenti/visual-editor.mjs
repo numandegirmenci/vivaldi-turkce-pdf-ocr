@@ -175,7 +175,14 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         const sourceIndex=sourceKind==='ocr'?Number(span.dataset.ocrIndex):null;
         const bbox=sourceKind==='ocr'&&Number.isInteger(sourceIndex)&&view.words[sourceIndex]
           ?view.words[sourceIndex].bbox:elementBox(view,span);
+        // Native PDF spans also need a little clean padding; build a local
+        // geometry-only list so neighboring text is not covered.
+        const nativeSpans=sourceKind==='native'?[...span.closest('.textLayer').querySelectorAll('span')].filter(el=>el.textContent.trim()&&el.childElementCount===0):[];
+        const nativeWords=nativeSpans.map(el=>{
+          try{return {text:el.textContent.trim(),bbox:elementBox(view,el)};}catch{return null;}
+        });
         select(view,{box:bbox,original:span.textContent.trim(),sourceKind,
+          nativeWords,nativeIndex:nativeSpans.indexOf(span),
           sourceIndex:sourceKind==='ocr'?sourceIndex:null,
           sourceIndices:sourceKind==='ocr'?[sourceIndex]:[]});
       }catch(error){status('Yazı seçilemedi: '+error.message,true);}
@@ -272,10 +279,14 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       // A single maximum OCR padding can include a letter from another line.
       // Try progressively smaller pixel-safe crops without ever compromising
       // the original glyph-height or touching other recognized words.
+      const nativeGeometry=!existing&&item.sourceKind==='native'&&chosen.nativeIndex>=0;
+      const geometryWords=nativeGeometry?chosen.nativeWords:view.words;
+      const geometryIndices=nativeGeometry?[chosen.nativeIndex]:item.sourceIndices;
+      const geometryIndex=nativeGeometry?chosen.nativeIndex:item.sourceIndex;
       const candidates=prepareEditCandidates({box:item.box,
-        pageWidth:view.width,pageHeight:view.height,words:view.words,
-        sourceIndices:item.sourceIndices,sourceIndex:item.sourceIndex,
-        sourceKind:existing?'manual':item.sourceKind});
+        pageWidth:view.width,pageHeight:view.height,words:geometryWords,
+        sourceIndices:geometryIndices,sourceIndex:geometryIndex,
+        sourceKind:existing?'manual':nativeGeometry?'ocr':item.sourceKind});
       const items=existing?view.edits.map(e=>e.id===item.id?item:e):[...view.edits,item];
       let rendered=null,typography=null,lastFailure=null;
       for(const geometry of candidates){
@@ -283,7 +294,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         const duplicate=items.some(e=>e.id!==item.id&&e.box.x0<item.box.x1&&e.box.x1>item.box.x0&&
           e.box.y0<item.box.y1&&e.box.y1>item.box.y0);
         if(duplicate){lastFailure=new Error('Bu yazı alanında başka bir düzenleme var. Önce onu kaldır.');continue;}
-        const intruders=findUnselectedOverlap(view.words,item.box,item.sourceIndices,item.sourceIndex);
+        const intruders=findUnselectedOverlap(geometryWords,item.box,geometryIndices,geometryIndex);
         if(intruders.length){
           lastFailure=new Error('Seçilen alan "'+intruders[0].word+'" yazısını kesiyor. Daha dar bir alan seç.');
           continue;
