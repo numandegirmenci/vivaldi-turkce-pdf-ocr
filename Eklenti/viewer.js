@@ -93,12 +93,38 @@ $('saveForm').onclick = async () => {
 };
 
 let printing = false;
+let nativePrinting=false;
+$('nativePrint').onclick=async()=>{
+  if(!state.pdf||nativePrinting)return;
+  nativePrinting=true;
+  $('nativePrint').disabled=true;
+  const run=state.run;
+  let url;
+  try{
+    let bytes=state.sourceBytes;
+    if(state.formValues.size)bytes=await fillPdfForm(bytes,new Map(state.formValues));
+    if($('editCompare').getAttribute('aria-pressed')!=='true'&&state.sheets.some(v=>v.edits?.length))
+      bytes=(await createEditedPdf(bytes,state.sheets,m=>status(m))).bytes;
+    if(run!==state.run)return;
+    url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+    const tab=await chrome.tabs.create({url,active:true});
+    const closed=id=>{if(id===tab.id){URL.revokeObjectURL(url);chrome.tabs.onRemoved.removeListener(closed);}};
+    chrome.tabs.onRemoved.addListener(closed);
+    status('PDF ayrı sekmede açıldı. Orada Ctrl+P ile yalnızca PDF dosyasını yazdır.');
+  }catch(error){
+    if(url)URL.revokeObjectURL(url);
+    if(run===state.run)status('PDF yazdırma sekmesi açılamadı: '+error.message,true);
+  }finally{
+    nativePrinting=false;
+    $('nativePrint').disabled=!state.pdf;
+  }
+};
 // Intercept Ctrl+P before the browser prints the entire viewer.
 window.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'p' && state.pdf) {
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (!printing) $('printDocument').click();
+    if (!nativePrinting) $('nativePrint').click();
   }
 }, true);
 $('printDocument').onclick = async () => {
@@ -112,9 +138,11 @@ $('printDocument').onclick = async () => {
   root.id = 'document-print-pages';
   let destroyPdf;
   let releasePages;
+  const originalTitle=document.title;
   function cleanup() {
     window.removeEventListener('afterprint', cleanup);
     root.remove();
+    document.title=originalTitle;
     releasePages?.();
     printing = false;
     $('printDocument').disabled = !state.pdf;
@@ -139,6 +167,7 @@ $('printDocument').onclick = async () => {
     document.body.append(root);
     window.addEventListener('afterprint', cleanup, {once:true});
     status('Belge yazdırmaya hazır.');
+    document.title='';
     window.print();
   } catch (error) {
     cleanup();
@@ -655,6 +684,7 @@ async function renderDocument() {
     $(id).disabled=false;
   }
   $('printDocument').disabled=printing;
+  $('nativePrint').disabled=nativePrinting;
   $('totalPages').textContent='/ '+state.pdf.numPages;
   $('pageNumber').max=String(state.pdf.numPages);
   $('pageNumber').value='1';
