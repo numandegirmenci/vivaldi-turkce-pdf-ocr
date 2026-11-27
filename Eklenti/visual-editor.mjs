@@ -7,7 +7,8 @@ import {prepareEditCandidates} from './edit-geometry.mjs';
 
 /** User-triggered, reversible visual edits. No network calls or automatic document rewriting. */
 export function installVisualEditor({$,state,status,updateExtractedText,refreshText}) {
-  let enabled=false, selection=null, undoStack=[];
+  let enabled=false, adding=false, selection=null, undoStack=[];
+  const addMode=$('addText'),addOptions=$('addTextOptions'),addSize=$('addTextSize'),addColor=$('addTextColor');
   const mode=$('editVisible'),panel=$('visualEditor'),label=$('editLocation');
   const text=$('editText'),detected=$('editDetectedStyle'),feedback=$('editFeedback');
   const reportEdit=(message,isError=false)=>{
@@ -39,10 +40,13 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     measure.font='100px NotoSansOcr, Arial, sans-serif';
     return measure.measureText(value).width/100;
   };
-  const toggle=active=>{
+  const toggle=(active,add=false)=>{
     enabled=Boolean(active&&state.pdf);
-    mode.setAttribute('aria-pressed',String(enabled));
-    mode.textContent=enabled?'✓ Yazı düzenleme açık':'✏️ Görünen yazıyı düzenle';
+    adding=enabled&&add;
+    selection=null;panel.hidden=true;
+    if(addMode){addMode.setAttribute('aria-pressed',String(adding));addMode.textContent=adding?'✓ Metin ekleme açık':'＋ Metin ekle';}
+    mode.setAttribute('aria-pressed',String(enabled&&!adding));
+    mode.textContent=enabled&&!adding?'✓ Yazı düzenleme açık':'✏️ Görünen yazıyı düzenle';
     $('pages').classList.toggle('visual-edit-enabled',enabled);
     // A search highlight made BELEDİYE look yellow in the screenshot.
     // Editing must show only original pixels, not the yellow search overlay.
@@ -51,9 +55,10 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       $('searchInput').dispatchEvent(new Event('input'));
     }
     if(!enabled){selection=null;panel.hidden=true;}
-    status(enabled?'Düzenleme açık: kelimeye tıkla. Özel alan için Shift tuşunu basılı tutup fareyle sürükle.':'Yazı düzenleme kapatıldı.');
+    status(adding?'Metin eklemek için sayfaya tıkla veya bir kutu çiz.':enabled?'Düzenleme açık: kelimeye tıkla. Özel alan için Shift tuşunu basılı tutup fareyle sürükle.':'Yazı düzenleme kapatıldı.');
   };
-  mode.addEventListener('click',()=>toggle(!enabled));
+  mode.addEventListener('click',()=>toggle(!enabled||adding));
+  addMode?.addEventListener('click',()=>toggle(!adding,true));
   function syncControls(){
     const count=state.sheets.reduce((n,v)=>n+(v.edits?.length||0),0);
     $('editCount').textContent=count?count+' görsel değişiklik':'Henüz değişiklik yok';
@@ -64,7 +69,8 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     compare.textContent=showingOriginal?'✓ Düzenlenmişi göster':'👁 Orijinali göster';
   }
   function reset(){
-    enabled=false;selection=null;undoStack=[];showingOriginal=false;
+    enabled=false;adding=false;selection=null;undoStack=[];showingOriginal=false;
+    if(addMode){addMode.setAttribute('aria-pressed','false');addMode.textContent='＋ Metin ekle';addMode.disabled=!state.pdf;}
     $('pages').classList.remove('show-original');
     $('pages').classList.remove('visual-edit-enabled');
     mode.setAttribute('aria-pressed','false');
@@ -106,6 +112,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     try{
       const box=clampBox(choice.box,view.width,view.height);
       const existing=choice.id?view.edits.find(e=>e.id===choice.id):null;
+      const isAdd=choice.operation==='add'||existing?.operation==='add';
       // Sample the closest word on the SAME line. A neighboring heading word
       // is a better typography reference than a short or malformed OCR target.
       const untouchedWords=(view.words||[]).filter(word=>!(view.edits||[]).some(edit=>{
@@ -139,6 +146,13 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         ink:style.ink,fill:style.fill,bold:Boolean(style.bold),
         styleConfidence:style.confidence||0,texturedBackground:Boolean(style.texture)};
       text.value=existing?.text??choice.original??'';
+      selection.operation=isAdd?'add':choice.operation;
+      if(addOptions)addOptions.hidden=!isAdd;
+      if($('editDelete'))$('editDelete').hidden=isAdd;
+      if(isAdd){
+        if(addColor)addColor.value=existing?.ink||'#165b9d';
+        if(addSize)addSize.value=String(Math.max(6,Math.min(72,Math.round((existing?.fontSize||12*(view.viewport.scale||1))/(view.viewport.scale||1)))));
+      }
       reportEdit('');
       inkPreview.style.backgroundColor=style.ink;
       fillPreview.style.backgroundColor=style.fill;
@@ -148,7 +162,8 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
         (reference?'Aynı satırdan örnek: '+reference.text+' · ':'')+
         confidence+(style.texture?' · dokulu zemin':'');
       label.textContent='Sayfa '+view.index+' · '+
-        (existing?'Değişikliği düzenle':choice.sourceKind==='manual'?'Seçilen alan':'Tanınan yazı');
+        (isAdd?'Ek metin / not':existing?'Değişikliği düzenle':choice.sourceKind==='manual'?'Seçilen alan':'Tanınan yazı');
+      if(isAdd)detected.textContent='Yeni metin ayrı bir katman olarak eklenir; kaynak yazı değiştirilmez.';
       remove.hidden=!existing;panel.hidden=false;
       text.focus({preventScroll:true});text.select();
     }catch(error){status('Alan seçilemedi: '+error.message,true);}
@@ -161,7 +176,7 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
     view.editLayer=null;
     let start=null,ghost=null,suppressedClick=false;
     view.surface.addEventListener('click',event=>{
-      if(!enabled||suppressedClick)return;
+      if(!enabled||suppressedClick||adding)return;
       const previous=event.target.closest?.('[data-visible-edit-id]');
       if(previous&&view.surface.contains(previous)){
         const e=view.edits.find(item=>item.id===previous.dataset.visibleEditId);
@@ -192,8 +207,8 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       if(!enabled||event.button!==0||!view.canvas)return;
       // Shift+drag deliberately starts a custom region over OCR text.
       // Without Shift, a plain click still edits the whole detected word.
-      if(event.target.closest?.('[data-visible-edit-id]'))return;
-      if(!event.shiftKey&&event.target.closest?.('.ocr-layer span, .textLayer span'))return;
+      if(!adding&&event.target.closest?.('[data-visible-edit-id]'))return;
+      if(!adding&&!event.shiftKey&&event.target.closest?.('.ocr-layer span, .textLayer span'))return;
       if(view.rotation||view.page.rotate){status('Döndürülmüş sayfada alan seçimi desteklenmiyor.',true);return;}
       start={...getPoint(view,event),pointerId:event.pointerId};
       clearGhost();
@@ -213,6 +228,21 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       if(!start||event.pointerId!==start.pointerId)return;
       const end=getPoint(view,event),begin=start;start=null;clearGhost();
       try{view.surface.releasePointerCapture(event.pointerId);}catch{}
+      if(adding){
+        suppressedClick=true;setTimeout(()=>{suppressedClick=false;},0);
+        const existing=event.target.closest?.('[data-visible-edit-id]');
+        if(existing&&Math.abs(end.x-begin.x)<14&&Math.abs(end.y-begin.y)<8){
+          const edit=view.edits.find(e=>e.id===existing.dataset.visibleEditId&&e.operation==='add');
+          if(edit){select(view,edit);return;}
+        }
+        const scale=view.viewport.scale||1;
+        const click=Math.abs(end.x-begin.x)<14||Math.abs(end.y-begin.y)<8;
+        const x=Math.max(0,Math.min(begin.x,view.width-20)),y=Math.max(0,Math.min(begin.y,view.height-20));
+        const box=click?{x0:x,y0:y,x1:Math.min(view.width,x+210*scale),y1:Math.min(view.height,y+75*scale)}:
+          {x0:begin.x,y0:begin.y,x1:end.x,y1:end.y};
+        select(view,{box,sourceKind:'manual',operation:'add',original:''});
+        return;
+      }
       if(Math.abs(end.x-begin.x)<14||Math.abs(end.y-begin.y)<8)return;
       suppressedClick=true;
       setTimeout(()=>{suppressedClick=false;},0);
@@ -234,7 +264,16 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       el.dataset.visibleEditId=edit.id;
       el.style.left=box.x0+'px';el.style.top=box.y0+'px';
       el.style.width=w+'px';el.style.height=h+'px';
-      if(edit.patchPng?.startsWith('data:image/png;base64,')){
+      if(edit.operation==='add'){
+        const plan=fitVisibleText(edit.text,w,h,edit.fontSize,measureAtOne);
+        el.style.color=edit.ink;
+        el.style.fontSize=plan.fontSize+'px';
+        el.style.lineHeight=plan.lineHeight+'px';
+        el.style.whiteSpace='pre';
+        const inner=document.createElement('span');
+        inner.style.cssText='position:absolute;left:'+plan.padding+'px;top:'+plan.padding+'px';
+        inner.textContent=plan.lines.join('\n');el.append(inner);
+      }else if(edit.patchPng?.startsWith('data:image/png;base64,')){
         const img=document.createElement('img');
         img.src=edit.patchPng;img.alt='Düzenlenmiş yazı';
         img.width=Math.ceil(w);img.height=Math.ceil(h);
@@ -272,8 +311,19 @@ export function installVisualEditor({$,state,status,updateExtractedText,refreshT
       await ensureFonts();
       if(selection!==chosen)return;
       const existing=chosen.id?view.edits.find(e=>e.id===chosen.id):null;
+      const isAdd=chosen.operation==='add';
+      if(isAdd&&deleting)throw new Error('Ek metni kaldırmak için Değişikliği kaldır düğmesini kullan.');
       const item=normalizeVisibleEdit({...chosen,id:existing?.id||crypto.randomUUID(),
-        operation:deleting?'delete':'replace',text:deleting?'':text.value},view.width,view.height);
+        operation:isAdd?'add':deleting?'delete':'replace',text:deleting?'':text.value,
+        ...(isAdd?{fontSize:Math.max(6,Math.min(72,Number(addSize?.value)||12))*(view.viewport.scale||1),ink:addColor?.value||'#165b9d',bold:false}:{} )},view.width,view.height);
+      if(isAdd){
+        fitVisibleText(item.text,item.box.x1-item.box.x0,item.box.y1-item.box.y0,item.fontSize,measureAtOne);
+        mutate(view,existing?view.edits.map(e=>e.id===item.id?item:e):[...view.edits,item]);
+        if(showingOriginal){showingOriginal=false;$('pages').classList.remove('show-original');compare.setAttribute('aria-pressed','false');syncControls();}
+        panel.hidden=true;selection=null;reportEdit('');
+        status('Metin eklendi. Düzenlenmiş PDF ile ayrı kopyaya kaydedebilirsin.');
+        return;
+      }
       if(!deleting&&item.original.trim()===item.text.trim())
         throw new Error('Yeni yazı orijinaliyle aynı. Değişiklik yapılmadı.');
       // A single maximum OCR padding can include a letter from another line.
