@@ -217,6 +217,15 @@ export function renderScanReplacement(canvas,edit,typography){
   // including antialiased outlines and JPEG haloes. Previous sparse masking
   // left the old lettering visible under the replacement.
   const cleanup=planPaperRestoration(selectedPixels,{ink:edit.ink,fill:edit.fill});
+  if(edit.operation==='delete'){
+    const output=document.createElement('canvas');
+    output.width=w;output.height=h;
+    const ctx=output.getContext('2d');
+    const patch=ctx.createImageData(w,h);
+    patch.data.set(cleanup.data);ctx.putImageData(patch,0,0);
+    return {png:output.toDataURL('image/png'),layout:{fontSize:edit.fontSize},
+      repairedPixels:cleanup.oldGlyphPixels,transparency:'bounded-restoration',confidence:cleanup.sourceUniformity};
+  }
   const glyph=document.createElement('canvas');
   glyph.width=w;glyph.height=h;
   const gc=glyph.getContext('2d',{willReadFrequently:true});
