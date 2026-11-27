@@ -1,5 +1,9 @@
 # Değişiklik geçmişi
 
+## v0.6.12
+- HTML yazdırma kaldırıldı; üstbilgi ve URL riskine karşı yerleşik PDF görüntüleyicisinden yazdırma.
+- Metin ekleme ve düzenleme araçları korundu.
+
 ## v0.6.11
 - Serbest ek metin, renk ve yazı boyutu; ayrı PDF kopyasına seçilebilir metin.
 - Aynı sekmede tek Ctrl+P ve belge yazdırma.
