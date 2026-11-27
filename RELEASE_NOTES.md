@@ -1,19 +1,8 @@
-# Türkçe PDF OCR v0.6.9 — Yazdırma, hızlı açılış ve tablo ayrımı (Beta)
+# Türkçe PDF OCR v0.6.10 — PDF yazdırma ve görsel silme (Beta)
 
-**Tarih:** 27 Kasım 2026
+- Belgeyi yazdır ve Ctrl+P, PDF dosyasını tarayıcının kendi PDF görüntüleyicisinde açar; yeni sekmede Ctrl+P ile yazdırın. Böylece HTML belge başlık ve altbilgileri kullanılmaz. Alternatif HTML yazdırma korunur; tarayıcı üstbilgi ayarı gerekebilir.
+- Görsel yazı paneline Yazıyı sil (görsel) seçeneği eklendi. Orijinal dosya korunur; silme güvenli redaksiyon değildir.
+- Hazır PDF metninin seçili alanı ve komşu yazı koordinatları kullanılır. Temiz zemin denetimi korunur; kaşe, imza, karmaşık zemin veya komşu harf içeren seçimler reddedilebilir.
+- Açık silme işlemi için regresyon testi eklendi.
 
-- Ctrl+P, açık belgenin yazdırma işlevine yönlendirilir.
-- Yazdırma sayfasında sıfır kenar boşluğu kullanılır; tarayıcı başlık ve altbilgilerinin görünmesi azaltılır.
-- İlk sayfa öncelikli hazırlanır; görünür sayfaların OCR işlemleri sonraki sayfaların çizimini engellemez.
-- Yeni çizgili tablo algılayıcısı gerçek yatay ve dikey çizgilerden hücreleri ayırır; çok satırlı ve boş hücreleri korur. Mevcut Excel için kopyalama ve CSV dışa aktarımı kullanılabilir.
-- Çizgili tablo için sentetik regresyon testleri eklendi.
-
-## Kurulum
-
-Assets bölümünden `Turkce-PDF-OCR-Chromium-v0.6.9.zip` indirin. Kurulu Eklenti klasörünü yedekleyin, ZIP içindeki Eklenti içeriğini üzerine kopyalayın ve `vivaldi://extensions` sayfasında Yeniden yükle düğmesine basın. Kaynak kod ZIP'i kurulum paketi değildir.
-
-## Bilinen sınırlar
-
-- Gerçek Vivaldi/WhatsApp belgeleriyle manuel doğrulama tamamlanmamıştır. Tarayıcı ve yazıcı ayarları başlık/altbilgi davranışını etkileyebilir.
-- Çizgisiz ve birleştirilmiş hücreli karmaşık tablolar tam algılanmayabilir.
-- Serbest metin ekleme, gerçek PDF içerik düzenleme ve metin silme bu sürümde tamamlanmamıştır.
+Kurulum: Assets bölümündeki Turkce-PDF-OCR-Chromium-v0.6.10.zip paketini kullanın. Vivaldi üzerinde canlı doğrulama yapılmadı.
