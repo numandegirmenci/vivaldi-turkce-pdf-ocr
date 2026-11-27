@@ -34,3 +34,13 @@ test('OCR kelimesi yerine yeni metin gelir, kaplanan diğer kelimeler çıkarıl
   const changed=textWithVisibleEdits('ESKİ BEDEL 100',view);
   assert.deepEqual(changed.words.map(w=>w.text),['YENİ BEDEL','100']);
 });
+
+test('explicit delete removes selected OCR word without allowing accidental empty replacement',()=>{
+  const box={x0:10,y0:10,x1:90,y1:35};
+  const edit=normalizeVisibleEdit({box,operation:'delete',text:'',sourceKind:'ocr',sourceIndex:0,original:'ÖRNEK'},200,200);
+  assert.equal(edit.operation,'delete');
+  assert.equal(edit.text,'');
+  const result=textWithVisibleEdits('ÖRNEK METİN',{textSource:'ocr',words:[{text:'ÖRNEK'},{text:'METİN'}],edits:[edit]});
+  assert.deepEqual(result.words.map(w=>w.text),['METİN']);
+  assert.throws(()=>normalizeVisibleEdit({box,text:''},200,200),/Yeni yazıyı/);
+});
